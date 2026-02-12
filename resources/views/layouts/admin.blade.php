@@ -18,6 +18,8 @@
     @include('layouts.sidebar-admin')
   @elseif(session('role') === 'guru')
     @include('layouts.sidebar-guru')
+  @elseif(session('role') === 'orangtua')
+    @include('layouts.sidebar-orangtua')
   @endif
 
   {{-- MAIN CONTENT --}}

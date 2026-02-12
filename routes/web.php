@@ -387,6 +387,55 @@ Route::prefix('guru')->group(function () {
 
     });
 
+    // ========================
+    // ORANG TUA AREA
+    // ========================
+    Route::prefix('orangtua')->group(function () {
+        Route::get('/dashboard', [DashboardController::class, 'orangtua'])->name('orangtua.dashboard');
+
+        // Monitoring Anak
+        Route::prefix('monitoring')->group(function () {
+            Route::get('/presensi', [\App\Http\Controllers\OrangtuaController::class, 'monitoringPresensi'])->name('orangtua.monitoring.presensi');
+            Route::get('/nilai', [\App\Http\Controllers\OrangtuaController::class, 'monitoringNilai'])->name('orangtua.monitoring.nilai');
+            Route::get('/spp', [\App\Http\Controllers\OrangtuaController::class, 'monitoringSpp'])->name('orangtua.monitoring.spp');
+        });
+
+        // Monitoring Akademik
+        Route::prefix('akademik')->group(function () {
+            Route::get('/tugas', [\App\Http\Controllers\OrangtuaController::class, 'akademikTugas'])->name('orangtua.akademik.tugas');
+            Route::get('/rapor', [\App\Http\Controllers\OrangtuaController::class, 'akademikRapor'])->name('orangtua.akademik.rapor');
+            Route::get('/jadwal', [\App\Http\Controllers\OrangtuaController::class, 'akademikJadwal'])->name('orangtua.akademik.jadwal');
+        });
+
+        // Absensi Anak
+        Route::prefix('absensi')->group(function () {
+            Route::get('/riwayat', [\App\Http\Controllers\OrangtuaController::class, 'absensiRiwayat'])->name('orangtua.absensi.riwayat');
+            Route::get('/izin', [\App\Http\Controllers\OrangtuaController::class, 'absensiIzin'])->name('orangtua.absensi.izin');
+            Route::get('/rekap', [\App\Http\Controllers\OrangtuaController::class, 'absensiRekap'])->name('orangtua.absensi.rekap');
+        });
+
+        // Keuangan
+        Route::prefix('keuangan')->group(function () {
+            Route::get('/tagihan', [\App\Http\Controllers\OrangtuaController::class, 'keuanganTagihan'])->name('orangtua.keuangan.tagihan');
+            Route::get('/riwayat', [\App\Http\Controllers\OrangtuaController::class, 'keuanganRiwayat'])->name('orangtua.keuangan.riwayat');
+            Route::get('/bukti', [\App\Http\Controllers\OrangtuaController::class, 'keuanganBukti'])->name('orangtua.keuangan.bukti');
+        });
+
+        // Kegiatan & Info
+        Route::prefix('kegiatan')->group(function () {
+            Route::get('/agenda', [\App\Http\Controllers\OrangtuaController::class, 'kegiatanAgenda'])->name('orangtua.kegiatan.agenda');
+            Route::get('/event', [\App\Http\Controllers\OrangtuaController::class, 'kegiatanEvent'])->name('orangtua.kegiatan.event');
+            Route::get('/pengumuman', [\App\Http\Controllers\OrangtuaController::class, 'kegiatanPengumuman'])->name('orangtua.kegiatan.pengumuman');
+        });
+
+        // Profil Orang Tua
+        Route::prefix('profil')->group(function () {
+            Route::get('/data-diri', [\App\Http\Controllers\OrangtuaController::class, 'profilDataDiri'])->name('orangtua.profil.datadiri');
+            Route::get('/data-anak', [\App\Http\Controllers\OrangtuaController::class, 'profilDataAnak'])->name('orangtua.profil.dataanak');
+            Route::get('/password', [\App\Http\Controllers\OrangtuaController::class, 'profilPassword'])->name('orangtua.profil.password');
+        });
+    });
+
     Route::prefix('guru/materi')->name('guru.materi.')->group(function () {
 
     // tampil form

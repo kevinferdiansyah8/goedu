@@ -50,4 +50,9 @@ class DashboardController extends Controller
             'stats', 'attendance_labels', 'attendance', 'ppdb_labels', 'ppdb', 'months', 'activities', 'summary'
         ));
     }
+
+    public function orangtua()
+    {
+        return view('orangtua.dashboard');
+    }
 }
