@@ -27,8 +27,10 @@ Route::get('/login', function () {
 // proses login satu pintu
 Route::post('/login', function (Request $request) {
     $email = $request->input('email');
+    $password = $request->input('password');
     $role = null;
     $redirect = null;
+
     if ($email === 'admin@gmail.com') {
         $role = 'admin';
         $redirect = '/admin/dashboard';
@@ -36,12 +38,15 @@ Route::post('/login', function (Request $request) {
         $role = 'guru';
         $redirect = '/guru/dashboard';
     } elseif ($email === 'siswa@gmail.com') {
-        $role = 'siswa';
-        $redirect = '/siswa/dashboard';
+        if ($password === 'siswa123') {
+            $role = 'siswa';
+            $redirect = '/siswa/dashboard';
+        }
     } elseif ($email === 'ortu@gmail.com') {
         $role = 'orangtua';
         $redirect = '/orangtua/dashboard';
     }
+
     if ($role && $redirect) {
         session([
             'is_login' => true,
@@ -49,7 +54,7 @@ Route::post('/login', function (Request $request) {
         ]);
         return redirect($redirect);
     } else {
-        return redirect('/login')->with('error', 'Email tidak terdaftar!');
+        return redirect('/login')->with('error', 'Email atau Password salah!');
     }
 });
 
@@ -433,6 +438,55 @@ Route::prefix('guru')->group(function () {
             Route::get('/data-diri', [\App\Http\Controllers\OrangtuaController::class, 'profilDataDiri'])->name('orangtua.profil.datadiri');
             Route::get('/data-anak', [\App\Http\Controllers\OrangtuaController::class, 'profilDataAnak'])->name('orangtua.profil.dataanak');
             Route::get('/password', [\App\Http\Controllers\OrangtuaController::class, 'profilPassword'])->name('orangtua.profil.password');
+        });
+    });
+
+    // ========================
+    // SISWA AREA
+    // ========================
+    Route::prefix('siswa')->group(function () {
+        Route::get('/dashboard', [\App\Http\Controllers\SiswaController::class, 'index'])->name('siswa.dashboard');
+        
+        // Akademik
+        Route::prefix('akademik')->group(function () {
+            Route::get('/jadwal', [\App\Http\Controllers\SiswaController::class, 'akademikJadwal'])->name('siswa.akademik.jadwal');
+            Route::get('/tugas', [\App\Http\Controllers\SiswaController::class, 'akademikTugas'])->name('siswa.akademik.tugas');
+            Route::get('/nilai', [\App\Http\Controllers\SiswaController::class, 'akademikNilai'])->name('siswa.akademik.nilai');
+        });
+
+        // Kehadiran
+        Route::prefix('kehadiran')->group(function () {
+            Route::get('/riwayat', [\App\Http\Controllers\SiswaController::class, 'kehadiranRiwayat'])->name('siswa.kehadiran.riwayat');
+            Route::get('/izin', [\App\Http\Controllers\SiswaController::class, 'kehadiranIzin'])->name('siswa.kehadiran.izin');
+            Route::get('/rekap', [\App\Http\Controllers\SiswaController::class, 'kehadiranRekap'])->name('siswa.kehadiran.rekap');
+        });
+
+        // Kegiatan
+        Route::prefix('kegiatan')->group(function () {
+            Route::get('/event', [\App\Http\Controllers\SiswaController::class, 'kegiatanEvent'])->name('siswa.kegiatan.event');
+            Route::get('/agenda', [\App\Http\Controllers\SiswaController::class, 'kegiatanAgenda'])->name('siswa.kegiatan.agenda');
+            Route::get('/dokumentasi', [\App\Http\Controllers\SiswaController::class, 'kegiatanDokumentasi'])->name('siswa.kegiatan.dokumentasi');
+        });
+
+        // Pembelajaran (Materi & Tugas)
+        Route::prefix('pembelajaran')->group(function () {
+            Route::get('/materi', [\App\Http\Controllers\SiswaController::class, 'pembelajaranMateri'])->name('siswa.pembelajaran.materi');
+            Route::get('/tugas', [\App\Http\Controllers\SiswaController::class, 'pembelajaranTugas'])->name('siswa.pembelajaran.tugas');
+            Route::get('/nilai', [\App\Http\Controllers\SiswaController::class, 'pembelajaranNilai'])->name('siswa.pembelajaran.nilai');
+        });
+
+        // Perpustakaan
+        Route::prefix('perpustakaan')->group(function () {
+            Route::get('/katalog', [\App\Http\Controllers\SiswaController::class, 'perpustakaanKatalog'])->name('siswa.perpustakaan.katalog');
+            Route::get('/pinjam', [\App\Http\Controllers\SiswaController::class, 'perpustakaanPinjam'])->name('siswa.perpustakaan.pinjam');
+            Route::get('/riwayat', [\App\Http\Controllers\SiswaController::class, 'perpustakaanRiwayat'])->name('siswa.perpustakaan.riwayat');
+        });
+
+        // Profil
+        Route::prefix('profil')->group(function () {
+            Route::get('/biodata', [\App\Http\Controllers\SiswaController::class, 'profilBiodata'])->name('siswa.profil.biodata');
+            Route::get('/orangtua', [\App\Http\Controllers\SiswaController::class, 'profilOrangtua'])->name('siswa.profil.orangtua');
+            Route::get('/password', [\App\Http\Controllers\SiswaController::class, 'profilPassword'])->name('siswa.profil.password');
         });
     });
 

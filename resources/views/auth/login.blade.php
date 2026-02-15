@@ -104,11 +104,13 @@
   <div class="flex items-center justify-between px-6 py-4">
     <!-- Logo -->
     <div class="flex items-center gap-3">
-      <div class="w-10 h-10 bg-primary rounded-xl flex items-center justify-center">
-        <i data-lucide="graduation-cap" class="w-5 h-5 text-white"></i>
-      </div>
-      <h1 class="font-semibold text-xl text-foreground">EduGo</h1>
-    </div>
+  <img src="{{ asset('images/logoedu.png') }}" 
+       alt="EduGo Logo"
+       class="h-10 w-auto object-contain">
+  
+  <h1 class="font-semibold text-xl text-foreground">EduGo</h1>
+</div>
+
     
     <!-- Navigation Links -->
     <div class="flex items-center gap-6">
@@ -123,127 +125,140 @@
 </nav>
 
 <!-- Main Layout -->
-<div class="flex min-h-screen pt-20">
-  <!-- Left Column - Image -->
-  <div class="hidden lg:flex lg:w-1/2 xl:w-3/5">
-    <img src="https://plus.unsplash.com/premium_photo-1691962723291-d5d82743fb4b?q=80&w=1287&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" 
-         alt="Students studying in modern campus library" 
+<div class="relative min-h-screen pt-20 flex items-center justify-center">
+  <!-- Background Image with Overlay -->
+  <div class="absolute inset-0 z-0">
+    <img src="{{ asset('images/pendidikan.jpg') }}" 
+         alt="Background" 
          class="w-full h-full object-cover">
+    <div class="absolute inset-0 bg-white/70 backdrop-blur-[2px]"></div>
   </div>
   
-  <!-- Right Column - Login Form -->
-  <div class="flex-1 lg:w-1/2 xl:w-2/5 flex items-center justify-center p-6 lg:p-12">
-    <div class="w-full max-w-md">
-      <!-- Welcome Header -->
-      <div class="text-center mb-8">
-        <!-- Logo -->
-        <div class="flex items-center justify-center gap-3 mb-4">
-          <div class="w-12 h-12 bg-primary rounded-xl flex items-center justify-center">
-            <i data-lucide="graduation-cap" class="w-6 h-6 text-white"></i>
-          </div>
-          <h1 class="font-semibold text-2xl text-foreground">EduGo</h1>
+  <!-- Login Form Container -->
+  <div class="relative z-10 w-full max-w-md p-6">
+    <!-- Welcome Header -->
+    <div class="text-center mb-8">
+      <!-- Logo -->
+       <div class="flex items-center justify-center gap-3 mb-4">
+        <img src="{{ asset('images/logoedu.png') }}" 
+            alt="EduGo Logo"
+            class="h-20 w-auto object-contain">
+      </div>
+
+      <h1 class="text-foreground text-3xl font-bold mb-2">EduGo</h1>
+      <h2 class="text-foreground text-xl md:text-2xl font-semibold mb-2">
+        Welcome Back{{ isset($role) && $role === 'guru' ? ' Guru' : '' }}
+      </h2>
+      <p class="text-secondary font-medium">
+        Sign in to access your courses and resources
+        @if(isset($role) && $role === 'guru')<br><span class="text-primary font-bold">Login Guru</span>@endif
+      </p>
+    </div>
+    
+    <!-- Login Card -->
+    <div class="bg-white/80 backdrop-blur-md rounded-card border border-white/50 shadow-xl p-6 md:p-8">
+      @if(session('error'))
+        <div class="mb-4 p-3 rounded-xl bg-error-light text-error text-center font-semibold">
+          {{ session('error') }}
         </div>
-        <h2 class="text-foreground text-2xl md:text-3xl font-bold mb-2">
-          Welcome Back{{ isset($role) && $role === 'guru' ? ' Guru' : '' }}
-        </h2>
-        <p class="text-secondary">
-          Sign in to access your courses and resources
-          @if(isset($role) && $role === 'guru')<br><span class="text-primary font-semibold">Login Guru</span>@endif
-        </p>
-      </div>
-      
-      <!-- Login Card -->
-      <div class="bg-white rounded-card border border-border p-6 md:p-8">
-        @if(session('error'))
-          <div class="mb-4 p-3 rounded-xl bg-error-light text-error text-center font-semibold">
-            {{ session('error') }}
-          </div>
-        @endif
-        <form action="{{ isset($role) && $role === 'guru' ? '/guru/login' : '/login' }}" method="POST" class="space-y-5">
+      @endif
+      <form id="loginForm" action="{{ isset($role) && $role === 'guru' ? '/guru/login' : '/login' }}" method="POST" class="space-y-5">
 @csrf
-          <!-- Email Field -->
-          <div class="space-y-2">
-            <label for="email" class="block text-foreground text-sm font-medium">Email Address</label>
-            <input type="email" id="email" name="email" placeholder="your@email.com" required
-              class="w-full px-4 py-3 border border-border rounded-button text-foreground placeholder:text-gray-400 focus:outline-none focus:border-primary transition-all duration-200">
-          </div>
-          
-          <!-- Student/Staff ID -->
-          <div class="space-y-2">
-            <label for="studentId" class="block text-foreground text-sm font-medium">Student/Staff ID Number</label>
-            <input type="text" id="studentId" name="studentId" placeholder="Enter your ID number" required
-              class="w-full px-4 py-3 border border-border rounded-button text-foreground placeholder:text-gray-400 focus:outline-none focus:border-primary transition-all duration-200">
-          </div>
-          
-          <!-- Password Field -->
-          <div class="space-y-2">
-            <label for="password" class="block text-foreground text-sm font-medium">Password</label>
-            <div class="relative">
-              <input type="password" id="password" name="password" placeholder="••••••••" required
-                class="w-full px-4 py-3 pr-12 border border-border rounded-button text-foreground placeholder:text-gray-400 focus:outline-none focus:border-primary transition-all duration-200">
-              <button type="button" onclick="togglePassword('password')" class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-foreground cursor-pointer" aria-label="Toggle password visibility">
-                <i data-lucide="eye" class="w-5 h-5"></i>
-              </button>
-            </div>
-          </div>
-          
-          <!-- Remember Me & Forgot Password -->
-          <div class="flex items-center justify-between">
-            <label class="flex items-center gap-2 cursor-pointer group">
-              <input type="checkbox" name="remember" class="w-4 h-4 rounded border-border text-primary focus:ring-primary cursor-pointer">
-              <span class="text-foreground text-sm group-hover:text-primary transition-colors">Remember me</span>
-            </label>
-            <a href="#" class="cursor-pointer">
-              <span class="text-primary text-sm hover:underline">Forgot password?</span>
-            </a>
-          </div>
-          
-          <!-- Sign In Button -->
-          <button type="submit" class="w-full px-4 py-3 bg-primary text-white rounded-button font-semibold hover:bg-primary-hover transition-all duration-200 cursor-pointer">
-            Sign In
-          </button>
-          
-          <!-- Divider -->
-          <div class="relative my-6">
-            <div class="absolute inset-0 flex items-center">
-              <div class="w-full border-t border-border"></div>
-            </div>
-            <div class="relative flex justify-center text-sm">
-              <span class="px-4 bg-white text-secondary">Or continue with</span>
-            </div>
-          </div>
-          
-          <!-- Sign In with Google -->
-          <button type="button" class="w-full flex items-center justify-center gap-3 px-4 py-3 border border-border rounded-button text-foreground font-medium hover:border-primary hover:bg-card-grey transition-all duration-200 cursor-pointer">
-            <svg class="w-5 h-5" viewBox="0 0 24 24">
-              <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-              <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-            </svg>
-            Sign in with Google
-          </button>
-        </form>
+        <!-- Email Field -->
+        <div class="space-y-2">
+          <label for="email" class="block text-foreground text-sm font-medium">Email Address</label>
+          <input type="email" id="email" name="email" placeholder="your@email.com" required
+            class="w-full px-4 py-3 border border-border/60 bg-white/50 rounded-button text-foreground placeholder:text-gray-500 focus:outline-none focus:border-primary focus:bg-white transition-all duration-200">
+        </div>
         
-        <!-- Create Account Link -->
-        <p class="text-center text-secondary text-sm mt-6">
-          Don't have an account?
+        <!-- Student/Staff ID -->
+        <div class="space-y-2">
+          <label for="studentId" class="block text-foreground text-sm font-medium">
+            {{ isset($role) && $role === 'guru' ? 'NIP' : 'Student/Staff ID Number' }}
+          </label>
+          <input type="text" id="studentId" name="studentId" placeholder="Enter your ID number" required
+            class="w-full px-4 py-3 border border-border/60 bg-white/50 rounded-button text-foreground placeholder:text-gray-500 focus:outline-none focus:border-primary focus:bg-white transition-all duration-200">
+        </div>
+        
+        <!-- Password Field -->
+        <div class="space-y-2">
+          <label for="password" class="block text-foreground text-sm font-medium">Password</label>
+          <div class="relative">
+            <input type="password" id="password" name="password" placeholder="••••••••" required
+              class="w-full px-4 py-3 pr-12 border border-border/60 bg-white/50 rounded-button text-foreground placeholder:text-gray-500 focus:outline-none focus:border-primary focus:bg-white transition-all duration-200">
+            <button type="button" onclick="togglePassword('password')" class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 cursor-pointer focus:outline-none" aria-label="Toggle password visibility">
+              <!-- Eye Icon (Show Password) -->
+              <svg id="eye-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-eye">
+                <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+              <!-- Eye Off Icon (Hide Password) -->
+              <svg id="eye-off-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-eye-off hidden">
+                <path d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49"></path>
+                <path d="M14.084 14.151a3 3 0 0 1-4.242-4.242"></path>
+                <path d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143"></path>
+                <path d="m2 2 20 20"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+        
+        <!-- Remember Me & Forgot Password -->
+        <div class="flex items-center justify-between">
+          <label class="flex items-center gap-2 cursor-pointer group">
+            <input type="checkbox" name="remember" class="w-4 h-4 rounded border-border text-primary focus:ring-primary cursor-pointer">
+            <span class="text-foreground text-sm group-hover:text-primary transition-colors">Remember me</span>
+          </label>
           <a href="#" class="cursor-pointer">
-            <span class="text-primary hover:underline font-medium">Create account</span>
+            <span class="text-primary text-sm hover:underline">Forgot password?</span>
           </a>
-        </p>
-      </div>
+        </div>
+        
+        <!-- Sign In Button -->
+        <button type="submit" class="w-full px-4 py-3 bg-primary text-white rounded-button font-semibold hover:bg-primary-hover transition-all duration-200 cursor-pointer shadow-lg shadow-primary/30">
+          Sign In
+        </button>
+        
+        <!-- Divider -->
+        <div class="relative my-6">
+          <div class="absolute inset-0 flex items-center">
+            <div class="w-full border-t border-border/60"></div>
+          </div>
+          <div class="relative flex justify-center text-sm">
+            <span class="px-4 bg-transparent text-secondary">Or continue with</span>
+          </div>
+        </div>
+        
+        <!-- Sign In with Google -->
+        <button type="button" class="w-full flex items-center justify-center gap-3 px-4 py-3 border border-border/60 bg-white/50 rounded-button text-foreground font-medium hover:border-primary hover:bg-white transition-all duration-200 cursor-pointer">
+          <svg class="w-5 h-5" viewBox="0 0 24 24">
+            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+          </svg>
+          Sign in with Google
+        </button>
+      </form>
       
-      <!-- Footer Links -->
-      <div class="flex items-center justify-center gap-6 mt-8 text-sm text-secondary">
+      <!-- Create Account Link -->
+      <p class="text-center text-secondary text-sm mt-6">
+        Don't have an account?
         <a href="#" class="cursor-pointer">
-          <span class="hover:text-primary transition-colors">Privacy Policy</span>
+          <span class="text-primary hover:underline font-bold">Create account</span>
         </a>
-        <span>•</span>
-        <a href="#" class="cursor-pointer">
-          <span class="hover:text-primary transition-colors">Terms of Service</span>
-        </a>
-      </div>
+      </p>
+    </div>
+    
+    <!-- Footer Links -->
+    <div class="flex items-center justify-center gap-6 mt-8 text-sm text-secondary/80 font-medium">
+      <a href="#" class="cursor-pointer">
+        <span class="hover:text-primary transition-colors">design by</span>
+      </a>
+      <span>•</span>
+      <a href="#" class="cursor-pointer">
+        <span class="hover:text-primary transition-colors">kevin|fredy|denis</span>
+      </a>
     </div>
   </div>
 </div>
@@ -281,58 +296,60 @@
 //     e.preventDefault();
   
   // Handle form submission
-  document.getElementById('loginForm').addEventListener('submit', function(e) {
-    e.preventDefault();
+  // document.getElementById('loginForm').addEventListener('submit', function(e) {
+  //   e.preventDefault();
     
-    const email = document.getElementById('email').value.trim();
-    const studentId = document.getElementById('studentId').value.trim();
-    const password = document.getElementById('password').value.trim();
+  //   const email = document.getElementById('email').value.trim();
+  //   const studentId = document.getElementById('studentId').value.trim();
+  //   const password = document.getElementById('password').value.trim();
     
-    // Basic validation
-    if (!email || !studentId || !password) {
-      showError('Please fill in all required fields.');
-      return;
-    }
+  //   // Basic validation
+  //   if (!email || !studentId || !password) {
+  //     showError('Please fill in all required fields.');
+  //     return;
+  //   }
     
-    // Email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      showError('Please enter a valid email address.');
-      return;
-    }
+  //   // Email validation
+  //   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  //   if (!emailRegex.test(email)) {
+  //     showError('Please enter a valid email address.');
+  //     return;
+  //   }
     
-    // Simulate login process
-    const submitBtn = e.target.querySelector('button[type="submit"]');
-    const originalText = submitBtn.textContent;
-    submitBtn.textContent = 'Signing in...';
-    submitBtn.disabled = true;
+  //   // Simulate login process
+  //   const submitBtn = e.target.querySelector('button[type="submit"]');
+  //   const originalText = submitBtn.textContent;
+  //   submitBtn.textContent = 'Signing in...';
+  //   submitBtn.disabled = true;
     
-    setTimeout(() => {
-      // Simulate successful login (in real app, this would be an API call)
-      if (email === 'demo@educampus.com' && studentId === '12345' && password === 'password') {
-        document.getElementById('successModal').classList.remove('hidden');
-      } else {
-        showError('Invalid credentials. Try demo@educampus.com, ID: 12345, password: password');
-      }
+  //   setTimeout(() => {
+  //     // Simulate successful login (in real app, this would be an API call)
+  //     if (email === 'demo@educampus.com' && studentId === '12345' && password === 'password') {
+  //       document.getElementById('successModal').classList.remove('hidden');
+  //     } else {
+  //       showError('Invalid credentials. Try demo@educampus.com, ID: 12345, password: password');
+  //     }
       
-      submitBtn.textContent = originalText;
-      submitBtn.disabled = false;
-    }, 1500);
-  });
-});
+  //     submitBtn.textContent = originalText;
+  //     submitBtn.disabled = false;
+  //   }, 1500);
+  // });
 
-function togglePassword(inputId) {
-  const input = document.getElementById(inputId);
-  const icon = input.nextElementSibling.querySelector('i');
-  if (input.type === 'password') {
-    input.type = 'text';
-    icon.setAttribute('data-lucide', 'eye-off');
-  } else {
-    input.type = 'password';
-    icon.setAttribute('data-lucide', 'eye');
-  }
-  lucide.createIcons();
-}
+    function togglePassword(inputId) {
+      const input = document.getElementById(inputId);
+      const eyeIcon = document.getElementById('eye-icon');
+      const eyeOffIcon = document.getElementById('eye-off-icon');
+      
+      if (input.type === 'password') {
+        input.type = 'text';
+        eyeIcon.classList.add('hidden');
+        eyeOffIcon.classList.remove('hidden');
+      } else {
+        input.type = 'password';
+        eyeIcon.classList.remove('hidden');
+        eyeOffIcon.classList.add('hidden');
+      }
+    }
 
 function showError(message) {
   document.getElementById('errorMessage').textContent = message;
@@ -357,6 +374,14 @@ function showToast(message, type = 'success') {
   document.body.appendChild(toast);
   setTimeout(() => toast.remove(), 3000);
 }
+
+// Initialize Lucide icons for modals
+if (typeof lucide !== 'undefined') {
+  lucide.createIcons();
+}
+
+
+
 </script>
 </body>
 </html>

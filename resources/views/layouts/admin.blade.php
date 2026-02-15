@@ -20,6 +20,8 @@
     @include('layouts.sidebar-guru')
   @elseif(session('role') === 'orangtua')
     @include('layouts.sidebar-orangtua')
+  @elseif(session('role') === 'siswa')
+    @include('layouts.sidebar-siswa')
   @endif
 
   {{-- MAIN CONTENT --}}
