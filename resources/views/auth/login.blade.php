@@ -218,6 +218,13 @@
         <button type="submit" class="w-full px-4 py-3 bg-primary text-white rounded-button font-semibold hover:bg-primary-hover transition-all duration-200 cursor-pointer shadow-lg shadow-primary/30">
           Sign In
         </button>
+
+        <!-- Daftar PPDB Button -->
+        <div class="mt-4 w-full text-center">
+          <a href="/ppdb" class="block w-full px-4 py-3 rounded-button bg-blue-50 text-blue-600 font-semibold hover:bg-blue-100 hover:text-blue-700 transition-all duration-200 shadow-sm">
+            Belum punya akun? <span class="font-semibold text-blue-700">Daftar PPDB</span>
+          </a>
+        </div>
         
         <!-- Divider -->
         <div class="relative my-6">

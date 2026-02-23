@@ -3,12 +3,129 @@
 @section('title', 'Dashboard Orang Tua')
 
 @section('content')
-<div class="container mx-auto px-4 py-6">
+<div class="container mx-auto px-4 py-6" x-data="{ selectedChild: 0 }">
     
     <!-- Welcome Section -->
-    <div class="mb-8">
+    <div class="mb-6">
         <h1 class="text-3xl font-bold text-gray-800">Selamat Datang, Bapak/Ibu</h1>
         <p class="text-gray-600">Pantau perkembangan pendidikan putra-putri Anda dengan mudah.</p>
+    </div>
+
+    <!-- Child Picker -->
+    <div class="mb-8">
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-2">
+          <i data-lucide="users" class="w-4 h-4 text-primary"></i>
+          <span class="text-sm font-bold text-gray-700 uppercase tracking-wider">Pilih Anak</span>
+        </div>
+        <span class="text-xs text-gray-400">2 anak terdaftar</span>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+
+        <!-- Child 1 -->
+        <button @click="selectedChild = 0" :class="selectedChild === 0 ? 'ring-2 ring-primary border-primary bg-blue-50/50' : 'border-gray-100 bg-white hover:border-gray-200 hover:shadow-md'" class="relative flex items-center gap-4 p-4 rounded-2xl border shadow-sm transition-all duration-200 text-left cursor-pointer">
+          <!-- Active Badge -->
+          <div x-show="selectedChild === 0" class="absolute top-2.5 right-2.5">
+            <div class="w-5 h-5 rounded-full bg-primary flex items-center justify-center">
+              <i data-lucide="check" class="w-3 h-3 text-white"></i>
+            </div>
+          </div>
+          <!-- Avatar -->
+          <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shrink-0 shadow-md shadow-blue-200">
+            <span class="text-white font-extrabold text-lg">AR</span>
+          </div>
+          <!-- Info -->
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-bold text-gray-800 truncate">Ahmad Rizky Pratama</p>
+            <p class="text-[11px] text-gray-400">NISN: 0012345678</p>
+            <div class="flex items-center gap-2 mt-1">
+              <span class="text-[10px] font-bold text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full">SMP — Kelas 7A</span>
+            </div>
+          </div>
+        </button>
+
+        <!-- Child 2 -->
+        <button @click="selectedChild = 1" :class="selectedChild === 1 ? 'ring-2 ring-primary border-primary bg-blue-50/50' : 'border-gray-100 bg-white hover:border-gray-200 hover:shadow-md'" class="relative flex items-center gap-4 p-4 rounded-2xl border shadow-sm transition-all duration-200 text-left cursor-pointer">
+          <!-- Active Badge -->
+          <div x-show="selectedChild === 1" class="absolute top-2.5 right-2.5">
+            <div class="w-5 h-5 rounded-full bg-primary flex items-center justify-center">
+              <i data-lucide="check" class="w-3 h-3 text-white"></i>
+            </div>
+          </div>
+          <!-- Avatar -->
+          <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center shrink-0 shadow-md shadow-pink-200">
+            <span class="text-white font-extrabold text-lg">SA</span>
+          </div>
+          <!-- Info -->
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-bold text-gray-800 truncate">Siti Aisyah Pratama</p>
+            <p class="text-[11px] text-gray-400">NISN: 0098765432</p>
+            <div class="flex items-center gap-2 mt-1">
+              <span class="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">SD — Kelas 4B</span>
+            </div>
+          </div>
+        </button>
+
+      </div>
+    </div>
+
+    <!-- Active Child Summary -->
+    <div class="bg-white border border-gray-100 rounded-2xl shadow-sm p-5 mb-8">
+      <div class="flex items-center gap-4 flex-wrap">
+        <!-- Child 1 summary -->
+        <template x-if="selectedChild === 0">
+          <div class="flex items-center gap-4 w-full flex-wrap">
+            <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shrink-0">
+              <span class="text-white font-extrabold">AR</span>
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-bold text-gray-800">Menampilkan data: <span class="text-primary">Ahmad Rizky Pratama</span></p>
+              <p class="text-xs text-gray-400">SMP Kelas 7A — Wali Kelas: Ibu Sri Wahyuni, S.Pd.</p>
+            </div>
+            <div class="flex gap-4 ml-auto">
+              <div class="text-center">
+                <p class="text-lg font-extrabold text-emerald-600">95%</p>
+                <p class="text-[10px] text-gray-400 uppercase tracking-wider">Kehadiran</p>
+              </div>
+              <div class="text-center">
+                <p class="text-lg font-extrabold text-blue-600">82.5</p>
+                <p class="text-[10px] text-gray-400 uppercase tracking-wider">Rata-rata</p>
+              </div>
+              <div class="text-center">
+                <p class="text-lg font-extrabold text-amber-500">Lunas</p>
+                <p class="text-[10px] text-gray-400 uppercase tracking-wider">SPP</p>
+              </div>
+            </div>
+          </div>
+        </template>
+        <!-- Child 2 summary -->
+        <template x-if="selectedChild === 1">
+          <div class="flex items-center gap-4 w-full flex-wrap">
+            <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center shrink-0">
+              <span class="text-white font-extrabold">SA</span>
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-bold text-gray-800">Menampilkan data: <span class="text-pink-600">Siti Aisyah Pratama</span></p>
+              <p class="text-xs text-gray-400">SD Kelas 4B — Wali Kelas: Bapak Hadi Santoso, S.Pd.</p>
+            </div>
+            <div class="flex gap-4 ml-auto">
+              <div class="text-center">
+                <p class="text-lg font-extrabold text-emerald-600">98%</p>
+                <p class="text-[10px] text-gray-400 uppercase tracking-wider">Kehadiran</p>
+              </div>
+              <div class="text-center">
+                <p class="text-lg font-extrabold text-blue-600">88.2</p>
+                <p class="text-[10px] text-gray-400 uppercase tracking-wider">Rata-rata</p>
+              </div>
+              <div class="text-center">
+                <p class="text-lg font-extrabold text-red-500">Belum</p>
+                <p class="text-[10px] text-gray-400 uppercase tracking-wider">SPP</p>
+              </div>
+            </div>
+          </div>
+        </template>
+      </div>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

@@ -2,510 +2,378 @@
 
 @section('title', 'Input Nilai Rapor')
 
+@php
+    // Default mock data if $students is not provided
+    $defaultStudents = [
+        ['id' => 1, 'name' => 'Ahmad Fauzi', 'nis' => '20230101', 'score' => 88],
+        ['id' => 2, 'name' => 'Budi Santoso', 'nis' => '20230103', 'score' => 72],
+        ['id' => 3, 'name' => 'Citra Dewi', 'nis' => '20230105', 'score' => 95],
+        ['id' => 4, 'name' => 'Dimas Pratama', 'nis' => '20230107', 'score' => 78],
+        ['id' => 5, 'name' => 'Eka Putri', 'nis' => '20230109', 'score' => 65],
+        ['id' => 6, 'name' => 'Fajar Nugraha', 'nis' => '20230111', 'score' => 82],
+    ];
+    $studentsData = $students ?? $defaultStudents;
+@endphp
+
 @section('content')
-
-{{-- HEADER --}}
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Input Nilai Rapor - Enhanced</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        @keyframes slideInUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes pulse-soft {
-            0%, 100% {
-                opacity: 1;
-            }
-            50% {
-                opacity: 0.8;
-            }
-        }
-
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-5px); }
-            75% { transform: translateX(5px); }
-        }
-
-        .slide-in {
-            animation: slideInUp 0.5s ease-out forwards;
-        }
-
-        .row-enter {
-            opacity: 0;
-            transform: translateY(10px);
-        }
-
-        .pulse-soft {
-            animation: pulse-soft 2s ease-in-out infinite;
-        }
-
-        .shake {
-            animation: shake 0.3s ease-in-out;
-        }
-
-        .input-focus {
-            transition: all 0.3s ease;
-        }
-
-        .input-focus:focus {
-            transform: scale(1.05);
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-        }
-
-        .grade-badge {
-            transition: all 0.3s ease;
-        }
-
-        .grade-badge:hover {
-            transform: scale(1.1);
-        }
-
-        .button-hover {
-            transition: all 0.3s ease;
-        }
-
-        .button-hover:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(37, 99, 235, 0.3);
-        }
-
-        .button-hover:active {
-            transform: translateY(0);
-        }
-
-        .stats-card {
-            transition: all 0.3s ease;
-        }
-
-        .stats-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-10px); }
-        }
-
-        .float {
-            animation: float 3s ease-in-out infinite;
-        }
-
-        .progress-bar {
-            transition: width 0.5s ease;
-        }
-    </style>
-</head>
-<body class="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 min-h-screen p-8">
+<div class="min-h-screen bg-gray-50/50 pb-32" x-data="inputRaporPage()">
     
-    <div class="max-w-7xl mx-auto space-y-6">
-        
-        <!-- Header Section -->
-        <div class="slide-in" style="animation-delay: 0.1s;">
-            <div class="flex items-center justify-between">
+    {{-- PAGE HEADER--}}
+    <div class="mb-8" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900 tracking-tight">Input Nilai Rapor</h1>
+                <p class="text-sm text-gray-500 mt-1">Masukkan nilai akhir rapor siswa semester ini.</p>
+            </div>
+            <div class="flex gap-3">
+                <button @click="addStudent" class="px-5 py-2.5 bg-white border border-gray-200 text-gray-700 font-medium rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm flex items-center gap-2">
+                    <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
+                    Tambah Siswa
+                </button>
+                <button @click="exportData" class="px-5 py-2.5 bg-indigo-600 text-white font-medium rounded-xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                    Export Data
+                </button>
+            </div>
+        </div>
+    </div>
+
+    {{-- STATS CARDS --}}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        {{-- Total Siswa --}}
+        <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-all group">
+            <div class="flex justify-between items-start">
                 <div>
-                    <h1 class="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                        Input Nilai Rapor
-                    </h1>
-                    <p class="text-gray-500 mt-1">Masukkan nilai akhir rapor siswa semester ini</p>
+                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Total Siswa</p>
+                    <h3 class="text-3xl font-bold text-gray-900 mt-1" x-text="students.length"></h3>
                 </div>
-                <div class="flex gap-3">
-                    <button onclick="addStudent()" class="px-4 py-2 rounded-xl bg-gradient-to-r from-green-500 to-emerald-500 text-yellow font-medium button-hover shadow-lg">
-                        + Tambah Siswa
-                    </button>
-                    <button onclick="exportData()" class="px-4 py-2 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-yellow font-medium button-hover shadow-lg">
-                        📊 Export
-                    </button>
+                <div class="p-3 bg-blue-50 text-blue-600 rounded-xl group-hover:bg-blue-100 transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                 </div>
             </div>
         </div>
 
-        <!-- Statistics Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 slide-in" style="animation-delay: 0.2s;">
-            <div class="stats-card bg-white rounded-2xl shadow-lg p-6 border-l-4 border-blue-500">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-gray-500 text-sm">Total Siswa</p>
-                        <p class="text-3xl font-bold text-blue-600 mt-1" id="totalStudents">2</p>
-                    </div>
-                    <div class="bg-blue-100 p-3 rounded-xl">
-                        <span class="text-2xl">👥</span>
-                    </div>
+        {{-- Rata-rata --}}
+        <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-all group">
+            <div class="flex justify-between items-start">
+                <div>
+                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Rata-rata Kelas</p>
+                    <h3 class="text-3xl font-bold text-gray-900 mt-1" x-text="classAverage"></h3>
                 </div>
-            </div>
-
-            <div class="stats-card bg-white rounded-2xl shadow-lg p-6 border-l-4 border-green-500">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-gray-500 text-sm">Rata-rata Kelas</p>
-                        <p class="text-3xl font-bold text-green-600 mt-1" id="classAverage">80.0</p>
-                    </div>
-                    <div class="bg-green-100 p-3 rounded-xl">
-                        <span class="text-2xl">📈</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="stats-card bg-white rounded-2xl shadow-lg p-6 border-l-4 border-yellow-500">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-gray-500 text-sm">Nilai Tertinggi</p>
-                        <p class="text-3xl font-bold text-yellow-600 mt-1" id="highestScore">88</p>
-                    </div>
-                    <div class="bg-yellow-100 p-3 rounded-xl">
-                        <span class="text-2xl">🏆</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="stats-card bg-white rounded-2xl shadow-lg p-6 border-l-4 border-purple-500">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-gray-500 text-sm">Nilai Terendah</p>
-                        <p class="text-3xl font-bold text-purple-600 mt-1" id="lowestScore">72</p>
-                    </div>
-                    <div class="bg-purple-100 p-3 rounded-xl">
-                        <span class="text-2xl">📉</span>
-                    </div>
+                <div class="p-3 bg-green-50 text-green-600 rounded-xl group-hover:bg-green-100 transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 002 2h2a2 2 0 002-2z"/></svg>
                 </div>
             </div>
         </div>
 
-        <!-- Search and Filter -->
-        <div class="slide-in" style="animation-delay: 0.3s;">
-            <div class="bg-white rounded-2xl shadow-lg p-4 flex gap-4 items-center">
-                <div class="flex-1 relative">
-                    <input type="text" id="searchInput" onkeyup="searchStudents()" 
-                           placeholder="🔍 Cari nama atau NIS siswa..." 
-                           class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none transition">
+        {{-- Tertinggi --}}
+        <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-all group">
+            <div class="flex justify-between items-start">
+                <div>
+                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Nilai Tertinggi</p>
+                    <h3 class="text-3xl font-bold text-emerald-600 mt-1" x-text="highestScore"></h3>
                 </div>
-                <select id="filterGrade" onchange="filterByGrade()" 
-                        class="px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none transition">
-                    <option value="">Semua Predikat</option>
-                    <option value="A">A (90-100)</option>
-                    <option value="B">B (80-89)</option>
-                    <option value="C">C (70-79)</option>
-                    <option value="D">D (60-69)</option>
-                    <option value="E">E (<60)</option>
-                </select>
-            </div>
-        </div>
-
-        <!-- Table Section -->
-        <div class="slide-in" style="animation-delay: 0.4s;">
-            <div class="bg-white rounded-2xl shadow-xl border overflow-hidden">
-                <div class="overflow-x-auto">
-                    <table class="w-full text-sm" id="studentTable">
-                        <thead class="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
-                            <tr>
-                                <th class="px-6 py-4 text-left font-semibold">No</th>
-                                <th class="px-6 py-4 text-left font-semibold">Nama Siswa</th>
-                                <th class="px-6 py-4 text-left font-semibold">NIS</th>
-                                <th class="px-6 py-4 text-left font-semibold">Nilai Akhir</th>
-                                <th class="px-6 py-4 text-left font-semibold">Predikat</th>
-                                <th class="px-6 py-4 text-left font-semibold">Progress</th>
-                                <th class="px-6 py-4 text-left font-semibold">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-100" id="tableBody">
-                            <!-- Rows will be inserted here dynamically -->
-                        </tbody>
-                    </table>
+                <div class="p-3 bg-emerald-50 text-emerald-600 rounded-xl group-hover:bg-emerald-100 transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 11l7-7 7 7M5 19l7-7 7 7"/></svg>
                 </div>
             </div>
         </div>
 
-        <!-- Action Buttons -->
-        <div class="flex justify-between items-center slide-in" style="animation-delay: 0.5s;">
-            <div class="flex gap-3">
-                <button onclick="resetAll()" class="px-6 py-3 rounded-xl bg-gray-500 text-white font-medium button-hover shadow-lg">
-                    🔄 Reset Semua
-                </button>
-            </div>
-            <div class="flex gap-3">
-                <button onclick="saveDraft()" class="px-6 py-3 rounded-xl bg-yellow-500 text-white font-medium button-hover shadow-lg">
-                    💾 Simpan Draft
-                </button>
-                <button onclick="saveData()" class="px-8 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold button-hover shadow-lg text-lg">
-                    ✅ Simpan Nilai Rapor
-                </button>
+        {{-- Terendah --}}
+        <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-all group">
+            <div class="flex justify-between items-start">
+                <div>
+                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Nilai Terendah</p>
+                    <h3 class="text-3xl font-bold text-red-600 mt-1" x-text="lowestScore"></h3>
+                </div>
+                <div class="p-3 bg-red-50 text-red-600 rounded-xl group-hover:bg-red-100 transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 13l-7 7-7-7m14-8l-7 7-7-7"/></svg>
+                </div>
             </div>
         </div>
-
     </div>
 
-    <!-- Toast Notification -->
-    <div id="toast" class="fixed bottom-8 right-8 px-6 py-4 rounded-xl shadow-2xl transform translate-y-32 transition-transform duration-300 z-50">
+    {{-- FILTER SECTION --}}
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-4 mb-6">
+        <div class="flex flex-col md:flex-row gap-4 justify-between items-center">
+            <div class="relative w-full md:w-96">
+                <input type="text" x-model="searchQuery" placeholder="Cari nama atau NIS siswa..." class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all bg-gray-50 focus:bg-white">
+                <svg class="w-5 h-5 text-gray-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+            </div>
+            
+            <div class="flex gap-2 overflow-x-auto pb-1 md:pb-0 w-full md:w-auto">
+                <template x-for="grade in ['Semua', 'A', 'B', 'C', 'D']">
+                    <button 
+                        @click="filterGrade = grade"
+                        class="px-4 py-2 rounded-xl text-sm font-medium transition-all whitespace-nowrap"
+                        :class="filterGrade === grade ? 'bg-indigo-600 text-white shadow-md shadow-indigo-200' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'"
+                        x-text="grade === 'Semua' ? 'Semua Predikat' : 'Predikat ' + grade"
+                    ></button>
+                </template>
+            </div>
+        </div>
     </div>
 
-    <script>
-        // Initial student data
-        let students = [
-            { id: 1, name: 'Ahmad Fauzi', nis: '20230101', score: 88 },
-            { id: 2, name: 'Budi Santoso', nis: '20230103', score: 72 },
-            { id: 3, name: 'Citra Dewi', nis: '20230105', score: 95 },
-            { id: 4, name: 'Dimas Pratama', nis: '20230107', score: 78 },
-            { id: 5, name: 'Eka Putri', nis: '20230109', score: 85 }
-        ];
+    {{-- MAIN TABLE --}}
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden mb-8">
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm text-left">
+                <thead class="bg-gray-50 text-gray-600 border-b border-gray-100">
+                    <tr>
+                        <th class="px-6 py-4 font-semibold w-16">No</th>
+                        <th class="px-6 py-4 font-semibold cursor-pointer hover:text-indigo-600 group" @click="sortBy('name')">
+                            Nama Siswa <span class="text-gray-400 group-hover:text-indigo-600 ml-1">↕</span>
+                        </th>
+                        <th class="px-6 py-4 font-semibold">NIS</th>
+                        <th class="px-6 py-4 font-semibold w-32 cursor-pointer hover:text-indigo-600 group" @click="sortBy('score')">
+                            Nilai <span class="text-gray-400 group-hover:text-indigo-600 ml-1">↕</span>
+                        </th>
+                        <th class="px-6 py-4 font-semibold text-center w-24">Predikat</th>
+                        <th class="px-6 py-4 font-semibold w-48">Progress</th>
+                        <th class="px-6 py-4 font-semibold text-center w-20">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    <template x-for="(student, index) in filteredStudents" :key="student.id">
+                        <tr class="hover:bg-indigo-50/30 transition-colors group">
+                            <td class="px-6 py-4 text-gray-500" x-text="index + 1"></td>
+                            <td class="px-6 py-4">
+                                <div class="font-bold text-gray-900" x-text="student.name"></div>
+                            </td>
+                            <td class="px-6 py-4 text-gray-500 font-mono" x-text="student.nis"></td>
+                            <td class="px-6 py-4">
+                                <input 
+                                    type="number" 
+                                    x-model.number="student.score"
+                                    min="0" max="100"
+                                    class="w-full px-3 py-2 text-center font-bold rounded-lg border-2 focus:outline-none transition-all"
+                                    :class="{
+                                        'border-gray-200 focus:border-indigo-500': student.score >= 0 && student.score <= 100,
+                                        'border-red-300 bg-red-50 text-red-600 animate-pulse': student.score < 0 || student.score > 100
+                                    }"
+                                    @input="validateScore(student)"
+                                >
+                            </td>
+                            <td class="px-6 py-4 text-center">
+                                <span class="px-3 py-1 rounded-full text-xs font-bold ring-1 ring-inset"
+                                    :class="getGradeColor(student.score)"
+                                    x-text="calculateGrade(student.score)">
+                                </span>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="w-full bg-gray-100 rounded-full h-2.5 overflow-hidden">
+                                    <div class="h-2.5 rounded-full transition-all duration-500"
+                                        :style="`width: ${Math.min(100, Math.max(0, student.score))}%`"
+                                        :class="{
+                                            'bg-green-500': student.score >= 90,
+                                            'bg-blue-500': student.score >= 80 && student.score < 90,
+                                            'bg-yellow-400': student.score >= 70 && student.score < 80,
+                                            'bg-red-500': student.score < 70
+                                        }"
+                                    ></div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 text-center">
+                                <button @click="deleteStudent(student.id)" class="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Hapus">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                </button>
+                            </td>
+                        </tr>
+                    </template>
+                    
+                    {{-- Empty State --}}
+                    <tr x-show="filteredStudents.length === 0">
+                        <td colspan="7" class="py-12 text-center">
+                            <div class="flex flex-col items-center justify-center text-gray-400">
+                                <svg class="w-16 h-16 mb-4 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                <p class="text-lg font-medium text-gray-500">Tidak ada siswa ditemukan</p>
+                                <p class="text-sm">Coba ubah filter atau kata kunci pencarian</p>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
 
-        let nextId = 6;
+    {{-- FOOTER ACTIONS --}}
+    <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 z-40 md:pl-64">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+            <button @click="resetAll" class="px-6 py-2.5 text-gray-600 hover:text-red-600 bg-gray-50 hover:bg-red-50 rounded-xl transition-all font-medium border border-gray-200">
+                🔄 Reset Semua
+            </button>
+            <div class="flex gap-3 w-full md:w-auto">
+                <button @click="saveDraft" class="flex-1 md:flex-none px-6 py-2.5 bg-yellow-500 text-white font-bold rounded-xl hover:bg-yellow-600 hover:shadow-lg hover:shadow-yellow-200 transition-all flex items-center justify-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg>
+                    Simpan Draft
+                </button>
+                <button @click="saveFinal" class="flex-1 md:flex-none px-8 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold rounded-xl hover:from-blue-700 hover:to-indigo-700 hover:shadow-lg hover:shadow-blue-200 transition-all transform hover:-translate-y-0.5 flex items-center justify-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    Simpan Final
+                </button>
+            </div>
+        </div>
+    </div>
 
-        // Calculate grade based on score
-        function calculateGrade(score) {
-            if (score >= 90) return 'A';
-            if (score >= 80) return 'B';
-            if (score >= 70) return 'C';
-            if (score >= 60) return 'D';
-            return 'E';
-        }
+    {{-- TOAST --}}
+    <div 
+        x-show="toast.visible" 
+        x-transition:enter="transition ease-out duration-300"
+        x-transition:enter-start="translate-y-full opacity-0"
+        x-transition:enter-end="translate-y-0 opacity-100"
+        x-transition:leave="transition ease-in duration-300"
+        x-transition:leave-start="translate-y-0 opacity-100"
+        x-transition:leave-end="translate-y-full opacity-0"
+        class="fixed bottom-24 right-6 z-50 px-6 py-4 rounded-xl shadow-2xl flex items-center gap-3 backdrop-blur-md"
+        :class="{
+            'bg-green-600/90 text-white': toast.type === 'success',
+            'bg-yellow-500/90 text-white': toast.type === 'warning',
+            'bg-blue-600/90 text-white': toast.type === 'info',
+            'bg-red-600/90 text-white': toast.type === 'error'
+        }"
+        style="display: none;"
+    >
+        <span x-text="toast.message" class="font-medium"></span>
+    </div>
 
-        // Get grade color
-        function getGradeColor(grade) {
-            const colors = {
-                'A': 'bg-green-100 text-green-700 border-green-300',
-                'B': 'bg-blue-100 text-blue-700 border-blue-300',
-                'C': 'bg-yellow-100 text-yellow-700 border-yellow-300',
-                'D': 'bg-orange-100 text-orange-700 border-orange-300',
-                'E': 'bg-red-100 text-red-700 border-red-300'
-            };
-            return colors[grade] || colors['E'];
-        }
+</div>
 
-        // Render table
-        function renderTable(data = students) {
-            const tbody = document.getElementById('tableBody');
-            tbody.innerHTML = '';
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+<script>
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('inputRaporPage', () => ({
+            searchQuery: '',
+            filterGrade: 'Semua',
+            sortCol: 'name',
+            sortAsc: true,
+            toast: { visible: false, message: '', type: 'success' },
 
-            data.forEach((student, index) => {
-                const grade = calculateGrade(student.score);
-                const row = document.createElement('tr');
-                row.className = 'hover:bg-blue-50 transition-colors row-enter';
-                row.style.animationDelay = `${index * 0.05}s`;
-                
-                row.innerHTML = `
-                    <td class="px-6 py-4 font-semibold text-gray-600">${index + 1}</td>
-                    <td class="px-6 py-4">
-                        <div class="font-semibold text-gray-800">${student.name}</div>
-                    </td>
-                    <td class="px-6 py-4 text-gray-600">${student.nis}</td>
-                    <td class="px-6 py-4">
-                        <input type="number" 
-                               value="${student.score}" 
-                               min="0" 
-                               max="100"
-                               onchange="updateScore(${student.id}, this.value)"
-                               oninput="validateScore(this)"
-                               class="w-24 px-3 py-2 border-2 border-gray-300 rounded-xl font-bold text-center input-focus focus:border-blue-500 focus:outline-none">
-                    </td>
-                    <td class="px-6 py-4">
-                        <span class="grade-badge px-4 py-2 rounded-full ${getGradeColor(grade)} text-sm font-bold border-2 inline-block">
-                            ${grade}
-                        </span>
-                    </td>
-                    <td class="px-6 py-4">
-                        <div class="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
-                            <div class="progress-bar h-full rounded-full bg-gradient-to-r from-blue-500 to-purple-500" 
-                                 style="width: ${student.score}%"></div>
-                        </div>
-                        <span class="text-xs text-gray-500 mt-1 block">${student.score}%</span>
-                    </td>
-                    <td class="px-6 py-4">
-                        <button onclick="deleteStudent(${student.id})" 
-                                class="px-3 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600 transition text-xs font-semibold">
-                            🗑️ Hapus
-                        </button>
-                    </td>
-                `;
-                
-                tbody.appendChild(row);
-                
-                // Trigger animation
-                setTimeout(() => {
-                    row.classList.remove('row-enter');
-                    row.style.opacity = '1';
-                    row.style.transform = 'translateY(0)';
-                }, 50);
-            });
+            // Using pure JSON data from PHP
+            students: @json($studentsData),
 
-            updateStatistics();
-        }
+            get filteredStudents() {
+                let result = this.students.filter(s => {
+                    const matchesSearch = s.name.toLowerCase().includes(this.searchQuery.toLowerCase()) || 
+                                          s.nis.includes(this.searchQuery);
+                    const grade = this.calculateGrade(s.score);
+                    const matchesGrade = this.filterGrade === 'Semua' || grade === this.filterGrade;
+                    return matchesSearch && matchesGrade;
+                });
 
-        // Validate score input
-        function validateScore(input) {
-            let value = parseInt(input.value);
-            
-            if (value > 100) {
-                input.value = 100;
-                input.classList.add('shake');
-                setTimeout(() => input.classList.remove('shake'), 300);
-            } else if (value < 0) {
-                input.value = 0;
-                input.classList.add('shake');
-                setTimeout(() => input.classList.remove('shake'), 300);
+                return result.sort((a, b) => {
+                    let valA = a[this.sortCol];
+                    let valB = b[this.sortCol];
+                    
+                    if (typeof valA === 'string') valA = valA.toLowerCase();
+                    if (typeof valB === 'string') valB = valB.toLowerCase();
+
+                    if (valA < valB) return this.sortAsc ? -1 : 1;
+                    if (valA > valB) return this.sortAsc ? 1 : -1;
+                    return 0;
+                });
+            },
+
+            // Stats Getters
+            get classAverage() {
+                if (this.students.length === 0) return 0;
+                const sum = this.students.reduce((acc, s) => acc + (parseInt(s.score) || 0), 0);
+                return (sum / this.students.length).toFixed(1);
+            },
+            get highestScore() {
+                if (this.students.length === 0) return 0;
+                return Math.max(...this.students.map(s => parseInt(s.score) || 0));
+            },
+            get lowestScore() {
+                if (this.students.length === 0) return 0;
+                return Math.min(...this.students.map(s => parseInt(s.score) || 0));
+            },
+
+            // Logic
+            calculateGrade(score) {
+                if (score >= 90) return 'A';
+                if (score >= 80) return 'B';
+                if (score >= 70) return 'C';
+                if (score < 70) return 'D';
+                return 'D';
+            },
+
+            getGradeColor(score) {
+                const grade = this.calculateGrade(score);
+                const colors = {
+                    'A': 'bg-green-100 text-green-700 ring-green-600/20',
+                    'B': 'bg-blue-100 text-blue-700 ring-blue-600/20',
+                    'C': 'bg-yellow-100 text-yellow-700 ring-yellow-600/20',
+                    'D': 'bg-red-100 text-red-700 ring-red-600/20',
+                };
+                return colors[grade];
+            },
+
+            validateScore(student) {
+                if (student.score > 100) student.score = 100;
+                if (student.score < 0) student.score = 0;
+            },
+
+            sortBy(col) {
+                if (this.sortCol === col) {
+                    this.sortAsc = !this.sortAsc;
+                } else {
+                    this.sortCol = col;
+                    this.sortAsc = true;
+                }
+            },
+
+            // Actions
+            addStudent() {
+                const name = prompt("Nama Siswa:");
+                if(name) {
+                    const nis = prompt("NIS:");
+                    this.students.push({
+                        id: Date.now(),
+                        name: name,
+                        nis: nis || '2023xxxx',
+                        score: 75
+                    });
+                    this.showToast(`Siswa ${name} ditambahkan`, 'success');
+                }
+            },
+
+            deleteStudent(id) {
+                if(confirm('Hapus siswa ini?')) {
+                    this.students = this.students.filter(s => s.id !== id);
+                    this.showToast('Siswa dihapus', 'info');
+                }
+            },
+
+            resetAll() {
+                if(confirm('Reset semua nilai ke 0?')) {
+                    this.students.forEach(s => s.score = 0);
+                    this.showToast('Semua nilai direset', 'warning');
+                }
+            },
+
+            saveDraft() {
+                this.showToast('Draft berhasil disimpan', 'warning');
+                // Simulate API call
+            },
+
+            saveFinal() {
+                this.showToast('Data Rapor berhasil disimpan permanen! 🎉', 'success');
+                // Simulate API call
+            },
+
+            exportData() {
+                this.showToast('Mengekspor data ke Excel...', 'info');
+            },
+
+            showToast(msg, type = 'success') {
+                this.toast.message = msg;
+                this.toast.type = type;
+                this.toast.visible = true;
+                setTimeout(() => this.toast.visible = false, 3000);
             }
-        }
-
-        // Update score
-        function updateScore(id, newScore) {
-            const score = Math.max(0, Math.min(100, parseInt(newScore) || 0));
-            const student = students.find(s => s.id === id);
-            if (student) {
-                student.score = score;
-                renderTable();
-                showToast(`Nilai ${student.name} diperbarui menjadi ${score}`, 'success');
-            }
-        }
-
-        // Update statistics
-        function updateStatistics() {
-            const total = students.length;
-            const average = students.reduce((sum, s) => sum + s.score, 0) / total;
-            const highest = Math.max(...students.map(s => s.score));
-            const lowest = Math.min(...students.map(s => s.score));
-
-            document.getElementById('totalStudents').textContent = total;
-            document.getElementById('classAverage').textContent = average.toFixed(1);
-            document.getElementById('highestScore').textContent = highest;
-            document.getElementById('lowestScore').textContent = lowest;
-        }
-
-        // Add new student
-        function addStudent() {
-            const name = prompt('Nama siswa:');
-            if (!name) return;
-            
-            const nis = prompt('NIS:');
-            if (!nis) return;
-            
-            const score = parseInt(prompt('Nilai (0-100):', '75'));
-            if (isNaN(score)) return;
-
-            students.push({
-                id: nextId++,
-                name: name,
-                nis: nis,
-                score: Math.max(0, Math.min(100, score))
-            });
-
-            renderTable();
-            showToast(`Siswa ${name} berhasil ditambahkan!`, 'success');
-        }
-
-        // Delete student
-        function deleteStudent(id) {
-            const student = students.find(s => s.id === id);
-            if (confirm(`Hapus data ${student.name}?`)) {
-                students = students.filter(s => s.id !== id);
-                renderTable();
-                showToast(`Data ${student.name} dihapus`, 'warning');
-            }
-        }
-
-        // Search students
-        function searchStudents() {
-            const query = document.getElementById('searchInput').value.toLowerCase();
-            const filtered = students.filter(s => 
-                s.name.toLowerCase().includes(query) || 
-                s.nis.includes(query)
-            );
-            renderTable(filtered);
-        }
-
-        // Filter by grade
-        function filterByGrade() {
-            const grade = document.getElementById('filterGrade').value;
-            if (!grade) {
-                renderTable();
-                return;
-            }
-            const filtered = students.filter(s => calculateGrade(s.score) === grade);
-            renderTable(filtered);
-        }
-
-        // Save data
-        function saveData() {
-            const button = event.target;
-            button.disabled = true;
-            button.innerHTML = '⏳ Menyimpan...';
-            
-            setTimeout(() => {
-                button.disabled = false;
-                button.innerHTML = '✅ Simpan Nilai Rapor';
-                showToast('Data berhasil disimpan! 🎉', 'success');
-            }, 1500);
-        }
-
-        // Save draft
-        function saveDraft() {
-            localStorage.setItem('studentDraft', JSON.stringify(students));
-            showToast('Draft tersimpan', 'info');
-        }
-
-        // Reset all
-        function resetAll() {
-            if (confirm('Reset semua data?')) {
-                students.forEach(s => s.score = 0);
-                renderTable();
-                showToast('Semua nilai direset', 'warning');
-            }
-        }
-
-        // Export data
-        function exportData() {
-            const csv = 'Nama,NIS,Nilai,Predikat\n' + 
-                students.map(s => `${s.name},${s.nis},${s.score},${calculateGrade(s.score)}`).join('\n');
-            const blob = new Blob([csv], { type: 'text/csv' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'nilai-rapor.csv';
-            a.click();
-            showToast('Data berhasil diexport! 📊', 'success');
-        }
-
-        // Show toast notification
-        function showToast(message, type = 'info') {
-            const toast = document.getElementById('toast');
-            const colors = {
-                success: 'bg-green-500',
-                warning: 'bg-yellow-500',
-                error: 'bg-red-500',
-                info: 'bg-blue-500'
-            };
-            
-            toast.className = `fixed bottom-8 right-8 px-6 py-4 rounded-xl shadow-2xl transform transition-transform duration-300 z-50 ${colors[type]} text-white font-semibold`;
-            toast.textContent = message;
-            toast.style.transform = 'translateY(0)';
-            
-            setTimeout(() => {
-                toast.style.transform = 'translateY(200px)';
-            }, 3000);
-        }
-
-        // Initialize
-        renderTable();
-
-        // Load draft if exists
-        const draft = localStorage.getItem('studentDraft');
-        if (draft) {
-            students = JSON.parse(draft);
-            renderTable();
-        }
-    </script>
-
-</body>
-</html>
+        }));
+    });
+</script>
+@endpush
 @endsection

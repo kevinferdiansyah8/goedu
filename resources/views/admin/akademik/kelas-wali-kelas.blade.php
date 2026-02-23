@@ -1,231 +1,274 @@
-
 @extends('layouts.admin')
 
 @section('title', 'Kelas & Wali Kelas')
 
 @section('content')
-<div class="max-w-7xl mx-auto px-4 py-8">
-	<!-- Breadcrumb -->
-	<nav class="text-xs mb-4 flex items-center gap-2 text-gray-400" aria-label="Breadcrumb">
-		<a href="/admin" class="hover:text-blue-600 transition flex items-center"><i data-lucide="home" class="inline w-4 h-4 mr-1"></i>Dashboard</a>
-		<span>/</span>
-		<a href="#" class="hover:text-blue-600 transition">Akademik</a>
-		<span>/</span>
-		<span class="text-gray-500">Kelas & Wali Kelas</span>
-	</nav>
+@php
+$kelas = [
+	['id' => 1, 'nama_kelas' => 'X RPL 1', 'tingkat' => 'X', 'jurusan' => 'Rekayasa Perangkat Lunak', 'wali_kelas' => 'Budi Santoso, S.Pd', 'jumlah_siswa' => 32, 'jumlah_laki' => 18, 'jumlah_perempuan' => 14, 'status' => 'Aktif'],
+	['id' => 2, 'nama_kelas' => 'X RPL 2', 'tingkat' => 'X', 'jurusan' => 'Rekayasa Perangkat Lunak', 'wali_kelas' => 'Siti Aminah, S.Pd', 'jumlah_siswa' => 30, 'jumlah_laki' => 16, 'jumlah_perempuan' => 14, 'status' => 'Aktif'],
+	['id' => 3, 'nama_kelas' => 'XI TKJ 1', 'tingkat' => 'XI', 'jurusan' => 'Teknik Komputer & Jaringan', 'wali_kelas' => null, 'jumlah_siswa' => 30, 'jumlah_laki' => 20, 'jumlah_perempuan' => 10, 'status' => 'Aktif'],
+	['id' => 4, 'nama_kelas' => 'XI MM 1', 'tingkat' => 'XI', 'jurusan' => 'Multimedia', 'wali_kelas' => 'Rina Kartika, S.Pd', 'jumlah_siswa' => 28, 'jumlah_laki' => 12, 'jumlah_perempuan' => 16, 'status' => 'Aktif'],
+	['id' => 5, 'nama_kelas' => 'XII AKL 1', 'tingkat' => 'XII', 'jurusan' => 'Akuntansi & Keuangan Lembaga', 'wali_kelas' => 'Dewi Lestari, S.Pd', 'jumlah_siswa' => 28, 'jumlah_laki' => 10, 'jumlah_perempuan' => 18, 'status' => 'Tidak Aktif'],
+];
+$waliKelas = [
+	['nama' => 'Budi Santoso, S.Pd'],
+	['nama' => 'Siti Aminah, S.Pd'],
+	['nama' => 'Rina Kartika, S.Pd'],
+	['nama' => 'Dewi Lestari, S.Pd'],
+	['nama' => 'Hadi Prasetyo, S.Kom'],
+];
+$totalKelas = count($kelas);
+$totalSiswa = collect($kelas)->sum('jumlah_siswa');
+$kelasAktif = collect($kelas)->where('status', 'Aktif')->count();
+$kelasTanpaWali = collect($kelas)->whereNull('wali_kelas')->count();
+$daftarJurusan = collect($kelas)->pluck('jurusan')->unique()->values();
+$daftarTingkat = collect($kelas)->pluck('tingkat')->unique()->values();
+@endphp
+
+<div class="max-w-7xl mx-auto" x-data="{ showForm: false }">
+
 	<!-- Header -->
-	<div class="mb-8 flex items-center gap-3">
-		<div class="flex items-center justify-center bg-blue-100 rounded-xl w-12 h-12 mr-2">
-			<i data-lucide="layers" class="w-7 h-7 text-blue-600"></i>
-		</div>
+	<div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-6">
 		<div>
-			<h1 class="text-3xl font-bold text-gray-900 mb-1">Kelas & Wali Kelas</h1>
-			<p class="text-gray-500">Kelola data kelas dan penugasan wali kelas</p>
-		</div>
-	</div>
-	<!-- Card Summary -->
-	@php
-		$kelas = [
-			[
-				'id' => 1,
-				'nama_kelas' => 'X RPL 1',
-				'tingkat' => 'X',
-				'jurusan' => 'Rekayasa Perangkat Lunak',
-				'wali_kelas' => 'Budi Santoso, S.Pd',
-				'jumlah_siswa' => 32,
-				'status' => 'Aktif',
-			],
-			[
-				'id' => 2,
-				'nama_kelas' => 'XI TKJ 2',
-				'tingkat' => 'XI',
-				'jurusan' => 'Teknik Komputer & Jaringan',
-				'wali_kelas' => null,
-				'jumlah_siswa' => 30,
-				'status' => 'Aktif',
-			],
-			[
-				'id' => 3,
-				'nama_kelas' => 'XII AKL 1',
-				'tingkat' => 'XII',
-				'jurusan' => 'Akuntansi & Keuangan Lembaga',
-				'wali_kelas' => 'Dewi Lestari, S.Pd',
-				'jumlah_siswa' => 28,
-				'status' => 'Tidak Aktif',
-			],
-		];
-		$waliKelas = [
-			[
-				'nama' => 'Budi Santoso, S.Pd',
-				'kelas_diampu' => 'X RPL 1',
-			],
-			[
-				'nama' => 'Siti Aminah, S.Pd',
-				'kelas_diampu' => 'XI TKJ 2',
-			],
-			[
-				'nama' => 'Dewi Lestari, S.Pd',
-				'kelas_diampu' => 'XII AKL 1',
-			],
-		];
-		$totalKelas = count($kelas);
-		$totalWali = count($waliKelas);
-		$kelasAktif = collect($kelas)->where('status', 'Aktif')->count();
-		$kelasTanpaWali = collect($kelas)->whereNull('wali_kelas')->count();
-		$daftarJurusan = collect($kelas)->pluck('jurusan')->unique()->values();
-		$daftarTingkat = collect($kelas)->pluck('tingkat')->unique()->values();
-	@endphp
-	<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-5 mb-8">
-		<div class="bg-white border rounded-xl shadow flex items-center gap-4 p-5">
-			<div class="bg-blue-100 rounded-lg p-2"><i data-lucide="layers" class="w-6 h-6 text-blue-600"></i></div>
-			<div>
-				<div class="text-lg font-bold text-gray-900">{{ $totalKelas }}</div>
-				<div class="text-xs text-gray-500">Total Kelas</div>
+			<div class="flex items-center gap-3 mb-1">
+				<div class="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-lg shadow-violet-200">
+					<i data-lucide="layers" class="w-5 h-5 text-white"></i>
+				</div>
+				<div>
+					<h1 class="text-2xl font-extrabold text-gray-900">Kelas & Wali Kelas</h1>
+					<p class="text-gray-400 text-xs">Kelola data kelas, wali kelas, dan distribusi siswa</p>
+				</div>
 			</div>
 		</div>
-		<div class="bg-white border rounded-xl shadow flex items-center gap-4 p-5">
-			<div class="bg-blue-100 rounded-lg p-2"><i data-lucide="users" class="w-6 h-6 text-blue-600"></i></div>
-			<div>
-				<div class="text-lg font-bold text-gray-900">{{ $totalWali }}</div>
-				<div class="text-xs text-gray-500">Total Wali Kelas</div>
-			</div>
-		</div>
-		<div class="bg-white border rounded-xl shadow flex items-center gap-4 p-5">
-			<div class="bg-blue-100 rounded-lg p-2"><i data-lucide="check-circle-2" class="w-6 h-6 text-blue-600"></i></div>
-			<div>
-				<div class="text-lg font-bold text-gray-900">{{ $kelasAktif }}</div>
-				<div class="text-xs text-gray-500">Kelas Aktif</div>
-			</div>
-		</div>
-		<div class="bg-white border rounded-xl shadow flex items-center gap-4 p-5">
-			<div class="bg-blue-100 rounded-lg p-2"><i data-lucide="alert-triangle" class="w-6 h-6 text-blue-600"></i></div>
-			<div>
-				<div class="text-lg font-bold text-gray-900">{{ $kelasTanpaWali }}</div>
-				<div class="text-xs text-gray-500">Kelas Tanpa Wali</div>
-			</div>
-		</div>
-	</div>
-	<!-- Filter & Actions -->
-	<div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-		<div class="flex flex-wrap gap-4 items-center w-full md:w-auto">
-			<input type="text" class="input min-w-[180px] md:min-w-[220px] w-full md:w-auto" placeholder="Cari kelas / wali...">
-			<select class="input min-w-[170px] md:min-w-[200px] w-full md:w-auto">
-				<option value="">Filter Jurusan</option>
-				@foreach($daftarJurusan as $jurusan)
-					<option value="{{ $jurusan }}">{{ $jurusan }}</option>
-				@endforeach
-			</select>
-			<select class="input min-w-[130px] md:min-w-[150px] w-full md:w-auto">
-				<option value="">Filter Tingkat</option>
-				@foreach($daftarTingkat as $tingkat)
-					<option value="{{ $tingkat }}">{{ $tingkat }}</option>
-				@endforeach
-			</select>
-		</div>  
-		<button
-	type="button"
-	onclick="toggleFormKelas()"
-	class="flex items-center gap-2 px-5 py-2 bg-blue-600 text-white rounded-lg font-semibold shadow hover:bg-blue-700 transition whitespace-nowrap">
-			<i data-lucide="plus" class="w-5 h-5"></i>
+		<button @click="showForm = !showForm" class="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white rounded-xl font-bold text-sm shadow-lg shadow-violet-200 transition-all active:scale-95">
+			<i data-lucide="plus" class="w-4 h-4"></i>
 			Tambah Kelas
 		</button>
 	</div>
-	<!-- Tabel Data Kelas -->
-	<div class="bg-white border rounded-2xl shadow p-6 overflow-x-auto mb-10">
-		<table class="min-w-full text-sm">
-			<thead>
-				<tr class="bg-gray-50 text-gray-700">
-					<th class="py-2 px-3 text-left">Nama Kelas</th>
-					<th class="py-2 px-3 text-left">Tingkat</th>
-					<th class="py-2 px-3 text-left">Jurusan</th>
-					<th class="py-2 px-3 text-left">Wali Kelas</th>
-					<th class="py-2 px-3 text-center">Jumlah Siswa</th>
-					<th class="py-2 px-3 text-center">Status</th>
-					<th class="py-2 px-3 text-center">Aksi</th>
-				</tr>
-			</thead>
-			<tbody>
-				@foreach($kelas as $k)
-				<tr class="border-b last:border-0 hover:bg-blue-50/30">
-					<td class="py-2 px-3 font-semibold">{{ $k['nama_kelas'] }}</td>
-					<td class="py-2 px-3">{{ $k['tingkat'] }}</td>
-					<td class="py-2 px-3">{{ $k['jurusan'] }}</td>
-					<td class="py-2 px-3">{{ $k['wali_kelas'] ?? '-' }}</td>
-					<td class="py-2 px-3 text-center">{{ $k['jumlah_siswa'] }}</td>
-					<td class="py-2 px-3 text-center">
-						@if($k['status'] === 'Aktif')
-							<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-xs font-medium"><i data-lucide="check-circle" class="w-4 h-4"></i>Aktif</span>
-						@else
-							<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gray-200 text-gray-600 text-xs font-medium"><i data-lucide="x-circle" class="w-4 h-4"></i>Tidak Aktif</span>
-						@endif
-					</td>
-					<td class="py-2 px-3 text-center">
-						<button class="inline-flex items-center gap-1 px-3 py-1.5 rounded-md bg-gray-100 hover:bg-blue-100 text-blue-600 font-semibold text-xs mr-1"><i data-lucide="eye" class="w-4 h-4"></i>Detail</button>
-						<button class="inline-flex items-center gap-1 px-3 py-1.5 rounded-md bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs"><i data-lucide="edit-3" class="w-4 h-4"></i>Edit</button>
-					</td>
-				</tr>
-				@endforeach
-			</tbody>
-		</table>
-	</div>
-	<!-- Form Tambah/Edit Kelas (Card Inline) -->
-	<div id="formKelas" class="max-w-2xl mx-auto mb-8 hidden">
-		<div class="bg-white border rounded-2xl shadow p-8">
-			<div class="flex items-center gap-2 mb-4">
-				<i data-lucide="plus-square" class="w-5 h-5 text-blue-500"></i>
-				<h2 class="text-lg font-semibold text-gray-800">Tambah / Edit Kelas</h2>
+
+	<!-- Stats Cards -->
+	<div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+		<div class="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
+			<div class="flex items-center justify-between mb-2">
+				<div class="w-9 h-9 rounded-xl bg-violet-50 flex items-center justify-center">
+					<i data-lucide="layers" class="w-4 h-4 text-violet-600"></i>
+				</div>
+				<span class="text-2xl font-extrabold text-gray-900">{{ $totalKelas }}</span>
 			</div>
-			<form>
-				<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+			<p class="text-[11px] text-gray-400 font-medium uppercase tracking-wider">Total Kelas</p>
+		</div>
+		<div class="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
+			<div class="flex items-center justify-between mb-2">
+				<div class="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center">
+					<i data-lucide="users" class="w-4 h-4 text-blue-600"></i>
+				</div>
+				<span class="text-2xl font-extrabold text-blue-600">{{ $totalSiswa }}</span>
+			</div>
+			<p class="text-[11px] text-gray-400 font-medium uppercase tracking-wider">Total Siswa</p>
+		</div>
+		<div class="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
+			<div class="flex items-center justify-between mb-2">
+				<div class="w-9 h-9 rounded-xl bg-emerald-50 flex items-center justify-center">
+					<i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-600"></i>
+				</div>
+				<span class="text-2xl font-extrabold text-emerald-600">{{ $kelasAktif }}</span>
+			</div>
+			<p class="text-[11px] text-gray-400 font-medium uppercase tracking-wider">Kelas Aktif</p>
+		</div>
+		<div class="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
+			<div class="flex items-center justify-between mb-2">
+				<div class="w-9 h-9 rounded-xl bg-amber-50 flex items-center justify-center">
+					<i data-lucide="alert-triangle" class="w-4 h-4 text-amber-500"></i>
+				</div>
+				<span class="text-2xl font-extrabold text-amber-500">{{ $kelasTanpaWali }}</span>
+			</div>
+			<p class="text-[11px] text-gray-400 font-medium uppercase tracking-wider">Tanpa Wali</p>
+		</div>
+	</div>
+
+	<!-- Filter Bar -->
+	<div class="bg-white border border-gray-100 rounded-2xl shadow-sm p-4 mb-5">
+		<div class="flex flex-wrap items-center gap-3">
+			<div class="relative flex-1 min-w-[200px]">
+				<div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+					<i data-lucide="search" class="w-4 h-4 text-gray-400"></i>
+				</div>
+				<input type="text" placeholder="Cari kelas atau wali kelas..." class="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-400 focus:bg-white transition-all">
+			</div>
+			<select class="px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-400 transition-all min-w-[180px]">
+				<option value="">Semua Jurusan</option>
+				@foreach($daftarJurusan as $j)
+					<option>{{ $j }}</option>
+				@endforeach
+			</select>
+			<select class="px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-400 transition-all min-w-[130px]">
+				<option value="">Semua Tingkat</option>
+				@foreach($daftarTingkat as $t)
+					<option>{{ $t }}</option>
+				@endforeach
+			</select>
+		</div>
+	</div>
+
+	<!-- Table -->
+	<div class="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden mb-8">
+		<div class="px-5 py-3.5 border-b border-gray-100 flex items-center justify-between">
+			<div class="flex items-center gap-2">
+				<i data-lucide="list" class="w-4 h-4 text-violet-500"></i>
+				<span class="text-sm font-bold text-gray-700">Daftar Kelas</span>
+			</div>
+			<span class="text-xs text-gray-400">{{ count($kelas) }} kelas</span>
+		</div>
+		<div class="overflow-x-auto">
+			<table class="min-w-full text-sm">
+				<thead>
+					<tr class="bg-gray-50/80">
+						<th class="px-5 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider">Kelas</th>
+						<th class="px-5 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider">Jurusan</th>
+						<th class="px-5 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider">Wali Kelas</th>
+						<th class="px-5 py-3 text-center text-[10px] font-bold text-gray-400 uppercase tracking-wider">Siswa</th>
+						<th class="px-5 py-3 text-center text-[10px] font-bold text-gray-400 uppercase tracking-wider">Status</th>
+						<th class="px-5 py-3 text-center text-[10px] font-bold text-gray-400 uppercase tracking-wider">Aksi</th>
+					</tr>
+				</thead>
+				<tbody class="divide-y divide-gray-50">
+					@foreach($kelas as $k)
+					<tr class="hover:bg-violet-50/20 transition-colors">
+						<td class="px-5 py-3.5">
+							<div class="flex items-center gap-3">
+								<div class="w-10 h-10 rounded-xl bg-gradient-to-br {{ $k['tingkat'] === 'X' ? 'from-blue-500 to-indigo-600' : ($k['tingkat'] === 'XI' ? 'from-emerald-500 to-teal-600' : 'from-amber-500 to-orange-600') }} flex items-center justify-center shadow-sm">
+									<span class="text-white text-[10px] font-extrabold">{{ $k['tingkat'] }}</span>
+								</div>
+								<div>
+									<p class="font-bold text-gray-800">{{ $k['nama_kelas'] }}</p>
+									<p class="text-[10px] text-gray-400">Tingkat {{ $k['tingkat'] }}</p>
+								</div>
+							</div>
+						</td>
+						<td class="px-5 py-3.5">
+							<span class="text-xs text-gray-600">{{ $k['jurusan'] }}</span>
+						</td>
+						<td class="px-5 py-3.5">
+							@if($k['wali_kelas'])
+								<div class="flex items-center gap-2">
+									<div class="w-7 h-7 rounded-lg bg-violet-100 flex items-center justify-center">
+										<i data-lucide="user" class="w-3.5 h-3.5 text-violet-600"></i>
+									</div>
+									<span class="text-xs font-medium text-gray-700">{{ $k['wali_kelas'] }}</span>
+								</div>
+							@else
+								<span class="inline-flex items-center gap-1 text-[10px] font-bold text-amber-600 bg-amber-50 px-2 py-1 rounded-full border border-amber-100">
+									<i data-lucide="alert-circle" class="w-3 h-3"></i> Belum ditugaskan
+								</span>
+							@endif
+						</td>
+						<td class="px-5 py-3.5 text-center">
+							<div>
+								<span class="text-sm font-bold text-gray-800">{{ $k['jumlah_siswa'] }}</span>
+								<div class="flex items-center justify-center gap-2 mt-0.5">
+									<span class="text-[9px] text-blue-500 font-medium">♂ {{ $k['jumlah_laki'] }}</span>
+									<span class="text-[9px] text-pink-500 font-medium">♀ {{ $k['jumlah_perempuan'] }}</span>
+								</div>
+							</div>
+						</td>
+						<td class="px-5 py-3.5 text-center">
+							@if($k['status'] === 'Aktif')
+								<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-bold uppercase tracking-wider border border-emerald-100">
+									<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Aktif
+								</span>
+							@else
+								<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-red-50 text-red-600 text-[10px] font-bold uppercase tracking-wider border border-red-100">
+									<span class="w-1.5 h-1.5 rounded-full bg-red-400"></span> Non-Aktif
+								</span>
+							@endif
+						</td>
+						<td class="px-5 py-3.5 text-center">
+							<div class="flex items-center justify-center gap-1.5">
+								<button class="w-8 h-8 rounded-lg bg-gray-50 hover:bg-violet-100 flex items-center justify-center transition-colors group" title="Detail">
+									<i data-lucide="eye" class="w-3.5 h-3.5 text-gray-400 group-hover:text-violet-600"></i>
+								</button>
+								<button class="w-8 h-8 rounded-lg bg-blue-50 hover:bg-blue-100 flex items-center justify-center transition-colors group" title="Edit">
+									<i data-lucide="pencil" class="w-3.5 h-3.5 text-blue-500 group-hover:text-blue-700"></i>
+								</button>
+								<button class="w-8 h-8 rounded-lg bg-red-50 hover:bg-red-100 flex items-center justify-center transition-colors group" title="Hapus">
+									<i data-lucide="trash-2" class="w-3.5 h-3.5 text-red-400 group-hover:text-red-600"></i>
+								</button>
+							</div>
+						</td>
+					</tr>
+					@endforeach
+				</tbody>
+			</table>
+		</div>
+		<div class="px-5 py-3 border-t border-gray-100 flex items-center justify-between">
+			<p class="text-xs text-gray-400">Menampilkan 1–{{ count($kelas) }} dari {{ count($kelas) }} kelas</p>
+			<div class="flex gap-1">
+				<button class="w-8 h-8 rounded-lg bg-violet-600 text-white text-xs font-bold">1</button>
+			</div>
+		</div>
+	</div>
+
+	<!-- Form Tambah (Slide down) -->
+	<div x-show="showForm" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 -translate-y-4" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0 -translate-y-4" class="max-w-2xl mx-auto mb-10">
+		<div class="bg-white border border-gray-100 rounded-2xl shadow-lg overflow-hidden">
+			<div class="bg-gradient-to-r from-violet-600 to-purple-600 px-6 py-4">
+				<div class="flex items-center gap-2">
+					<i data-lucide="plus-square" class="w-5 h-5 text-violet-200"></i>
+					<span class="text-white text-sm font-bold uppercase tracking-wider">Tambah Kelas Baru</span>
+				</div>
+				<p class="text-violet-200 text-xs mt-1">Isi data kelas dan tetapkan wali kelas</p>
+			</div>
+			<form class="p-6">
+				<div class="grid grid-cols-1 md:grid-cols-2 gap-5">
 					<div>
-						<label class="block text-sm font-medium text-gray-700 mb-1">Nama Kelas</label>
-						<input type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" placeholder="Contoh: X RPL 1">
+						<label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Nama Kelas <span class="text-red-400">*</span></label>
+						<input class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-400 focus:bg-white transition-all" placeholder="cth: XII RPL 1">
 					</div>
 					<div>
-						<label class="block text-sm font-medium text-gray-700 mb-1">Tingkat</label>
-						<select class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
+						<label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Tingkat <span class="text-red-400">*</span></label>
+						<select class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-400 transition-all">
 							<option value="">Pilih Tingkat</option>
-							<option value="X">X</option>
-							<option value="XI">XI</option>
-							<option value="XII">XII</option>
+							<option>X</option><option>XI</option><option>XII</option>
 						</select>
 					</div>
 					<div>
-						<label class="block text-sm font-medium text-gray-700 mb-1">Jurusan</label>
-						<input type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" placeholder="Contoh: Rekayasa Perangkat Lunak">
-					</div>
-					<div>
-						<label class="block text-sm font-medium text-gray-700 mb-1">Wali Kelas</label>
-						<select class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
-							<option value="">Pilih Wali Kelas</option>
-							@foreach($waliKelas as $w)
-								<option value="{{ $w['nama'] }}">{{ $w['nama'] }}</option>
+						<label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Jurusan <span class="text-red-400">*</span></label>
+						<select class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-400 transition-all">
+							<option value="">Pilih Jurusan</option>
+							@foreach($daftarJurusan as $j)
+								<option>{{ $j }}</option>
 							@endforeach
 						</select>
 					</div>
 					<div>
-						<label class="block text-sm font-medium text-gray-700 mb-1">Status Kelas</label>
-						<select class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
-							<option value="Aktif">Aktif</option>
-							<option value="Tidak Aktif">Tidak Aktif</option>
+						<label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Wali Kelas</label>
+						<select class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-400 transition-all">
+							<option value="">Pilih Wali Kelas</option>
+							@foreach($waliKelas as $w)
+								<option>{{ $w['nama'] }}</option>
+							@endforeach
+						</select>
+					</div>
+					<div>
+						<label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Status</label>
+						<select class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-400 transition-all">
+							<option>Aktif</option>
+							<option>Tidak Aktif</option>
 						</select>
 					</div>
 				</div>
-				<div class="flex justify-end gap-2 mt-8">
-					<button
-	type="button"
-	onclick="toggleFormKelas()"
-	class="px-6 py-2 rounded-lg border border-gray-300 bg-gray-50 text-gray-700 font-semibold hover:bg-gray-100">
-	Batal
-</button>
-					<button type="submit" class="flex items-center gap-2 px-7 py-2.5 bg-blue-600 text-white rounded-lg font-semibold shadow hover:bg-blue-700 transition">
-						<i data-lucide="save" class="w-5 h-5"></i>
-						Simpan
+				<div class="flex justify-end gap-2.5 mt-6 pt-5 border-t border-gray-100">
+					<button type="button" @click="showForm = false" class="px-5 py-2.5 border border-gray-200 rounded-xl bg-white hover:bg-gray-50 text-gray-600 font-semibold text-sm transition-all">Batal</button>
+					<button type="submit" class="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white rounded-xl font-bold text-sm shadow-lg shadow-violet-200 transition-all active:scale-95">
+						<i data-lucide="save" class="w-4 h-4"></i>
+						Simpan Kelas
 					</button>
 				</div>
 			</form>
 		</div>
 	</div>
+
 </div>
 @endsection
 
@@ -234,17 +277,5 @@
 document.addEventListener('DOMContentLoaded', function() {
 	if (window.lucide) lucide.createIcons();
 });
-
-function toggleFormKelas() {
-	const form = document.getElementById('formKelas');
-	if (!form) return;
-
-	form.classList.toggle('hidden');
-
-	// scroll ke form kalau dibuka
-	if (!form.classList.contains('hidden')) {
-		form.scrollIntoView({ behavior: 'smooth', block: 'start' });
-	}
-}
 </script>
 @endpush

@@ -6,6 +6,8 @@
   <title>@yield('title', 'Dashboard') - GOEDU</title>
 
   <link rel="stylesheet" href="{{ asset('css/app.css') }}">
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
   @stack('styles')
 </head>
 
@@ -39,5 +41,6 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 @stack('scripts')
+<script>if(typeof lucide!=='undefined')lucide.createIcons();</script>
 </body>
 </html>

@@ -461,7 +461,6 @@ function toggleAkademik() {
         </div>
       </div>
     </div>
-    a
   </aside>
 
   <!-- MAIN CONTENT -->

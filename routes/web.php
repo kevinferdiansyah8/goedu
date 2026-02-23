@@ -60,30 +60,71 @@ Route::post('/login', function (Request $request) {
 
 /*
 |--------------------------------------------------------------------------
+| PPDB ROUTES (Frontend Only)
+|--------------------------------------------------------------------------
+*/
+
+// Landing PPDB
+Route::view('/ppdb', 'ppdb.index')->name('ppdb.index');
+
+// ================= JENJANG =================
+Route::view('/ppdb/sd', 'ppdb.jenjang.sd')->name('ppdb.sd');
+Route::view('/ppdb/smp', 'ppdb.jenjang.smp')->name('ppdb.smp');
+Route::view('/ppdb/sma', 'ppdb.jenjang.sma')->name('ppdb.sma');
+Route::view('/ppdb/smk', 'ppdb.jenjang.smk')->name('ppdb.smk');
+
+// Alias dengan prefix /jenjang/
+Route::view('/ppdb/jenjang/sd', 'ppdb.jenjang.sd')->name('ppdb.jenjang.sd');
+Route::view('/ppdb/jenjang/smp', 'ppdb.jenjang.smp')->name('ppdb.jenjang.smp');
+Route::view('/ppdb/jenjang/sma', 'ppdb.jenjang.sma')->name('ppdb.jenjang.sma');
+Route::view('/ppdb/jenjang/smk', 'ppdb.jenjang.smk')->name('ppdb.jenjang.smk');
+
+// ================= REGISTER SD =================
+Route::view('/ppdb/register/sd/step1', 'ppdb.sd.step1')->name('ppdb.register.sd.step1');
+Route::view('/ppdb/register/sd/step2', 'ppdb.sd.step2')->name('ppdb.register.sd.step2');
+Route::view('/ppdb/register/sd/step3', 'ppdb.sd.step3')->name('ppdb.register.sd.step3');
+Route::view('/ppdb/register/sd/success', 'ppdb.sd.success')->name('ppdb.register.sd.success');
+
+// ================= REGISTER SMP =================
+Route::view('/ppdb/register/smp/step1', 'ppdb.smp.step1')->name('ppdb.register.smp.step1');
+Route::view('/ppdb/register/smp/step2', 'ppdb.smp.step2')->name('ppdb.register.smp.step2');
+Route::view('/ppdb/register/smp/step3', 'ppdb.smp.step3')->name('ppdb.register.smp.step3');
+Route::view('/ppdb/register/smp/success', 'ppdb.smp.success')->name('ppdb.register.smp.success');
+
+// ================= REGISTER SMA =================
+Route::view('/ppdb/register/sma/step1', 'ppdb.sma.step1')->name('ppdb.register.sma.step1');
+Route::view('/ppdb/register/sma/step2', 'ppdb.sma.step2')->name('ppdb.register.sma.step2');
+Route::view('/ppdb/register/sma/step3', 'ppdb.sma.step3')->name('ppdb.register.sma.step3');
+Route::view('/ppdb/register/sma/success', 'ppdb.sma.success')->name('ppdb.register.sma.success');
+
+// ================= REGISTER SMK =================
+Route::view('/ppdb/register/smk/step1', 'ppdb.smk.step1')->name('ppdb.register.smk.step1');
+Route::view('/ppdb/register/smk/step2', 'ppdb.smk.step2')->name('ppdb.register.smk.step2');
+Route::view('/ppdb/register/smk/step3', 'ppdb.smk.step3')->name('ppdb.register.smk.step3');
+Route::view('/ppdb/register/smk/success', 'ppdb.smk.success')->name('ppdb.register.smk.success');
+
+
+
+
+
+// ================= LOGIN PPDB =================
+Route::view('/ppdb/login', 'ppdb.login')->name('ppdb.login');
+
+// ================= CEK STATUS PPDB =================
+Route::view('/ppdb/cek-status', 'ppdb.cek-status')->name('ppdb.cek-status');
+
+// ================= CETAK BUKTI PPDB =================
+Route::view('/ppdb/cetak-bukti', 'ppdb.cetak-bukti')->name('ppdb.cetak-bukti');
+
+// ================= DASHBOARD PPDB =================
+Route::view('/ppdb/dashboard', 'ppdb.dashboard')->name('ppdb.dashboard');
+/*
+|--------------------------------------------------------------------------
 | ADMIN AREA
 |--------------------------------------------------------------------------
 */
 Route::prefix('admin')->group(function () {
-                // ========================
-                // PPDB
-                // ========================
-                Route::prefix('ppdb')->group(function () {
-                    Route::get('/data-pendaftar', function () {
-                        return view('admin.ppdb.data-pendaftar');
-                    })->name('admin.ppdb.data-pendaftar');
-
-                    Route::get('/verifikasi-berkas', function () {
-                        return view('admin.ppdb.verifikasi-berkas');
-                    })->name('admin.ppdb.verifikasi-berkas');
-
-                    Route::get('/seleksi', function () {
-                        return view('admin.ppdb.seleksi');
-                    })->name('admin.ppdb.seleksi');
-
-                    Route::get('/pembayaran', function () {
-                        return view('admin.ppdb.pembayaran');
-                    })->name('admin.ppdb.pembayaran');
-                });
+                
             // ========================
             // KEPEGAWAIAN
             // ========================
@@ -212,6 +253,23 @@ Route::get('/users', function () {
         Route::get('/pengumuman', function () {
             return view('admin.kegiatan.pengumuman.index');
         })->name('admin.kegiatan.pengumuman.index');
+    });
+    // ========================
+    // PPDB (ADMIN)
+    // ========================
+    Route::prefix('ppdb')->group(function () {
+        Route::get('/data-pendaftar', function () {
+            return view('admin.ppdb.data-pendaftar');
+        })->name('admin.ppdb.data-pendaftar');
+        Route::get('/verifikasi-berkas', function () {
+            return view('admin.ppdb.verifikasi-berkas');
+        })->name('admin.ppdb.verifikasi-berkas');
+        Route::get('/seleksi', function () {
+            return view('admin.ppdb.seleksi');
+        })->name('admin.ppdb.seleksi');
+        Route::get('/pembayaran', function () {
+            return view('admin.ppdb.pembayaran');
+        })->name('admin.ppdb.pembayaran');
     });
     // ========================
     // LAPORAN

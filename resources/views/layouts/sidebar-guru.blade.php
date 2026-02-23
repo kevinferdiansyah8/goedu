@@ -162,9 +162,9 @@ function toggleAkademik() {
                 <i data-lucide="book" class="size-6 text-secondary group-hover:text-foreground transition-all duration-300"></i>
                 <span class="font-medium text-secondary group-hover:text-foreground transition-all duration-300">Akademik</span>
               </div>
-              <i id="arrowAkademik" data-lucide="chevron-down" class="w-4 h-4 text-secondary transition-transform duration-300 {{ request()->is('admin/akademik*') ? 'rotate-180' : '' }}"></i>
+              <i id="arrowAkademik" data-lucide="chevron-down" class="w-4 h-4 text-secondary transition-transform duration-300 {{ request()->is('guru/akademik*') ? 'rotate-180' : '' }}"></i>
             </button>
-            <div id="menuAkademik" class="ml-4 mt-2 space-y-2 {{ request()->is('admin/akademik*') ? '' : 'hidden' }}">
+            <div id="menuAkademik" class="ml-4 mt-2 space-y-2 {{ request()->is('guru/akademik*') ? '' : 'hidden' }}">
             
             <a href="{{ route('guru.akademik.jadwal-mengajar') }}"
    class="submenu-item flex items-center gap-3 rounded-xl px-4 py-3 text-sm
@@ -270,6 +270,7 @@ function toggleAkademik() {
         Rekap Nilai
     </a>
     </div>
+    </div> {{-- Close Akademik Group --}}
     {{-- Text --}}
    
       
@@ -353,6 +354,7 @@ function toggleAkademik() {
     </a>
 
 </div>
+</div> {{-- Close Absensi Group --}}
 
                     
                <!-- Kegiatan Dropdown -->
@@ -436,6 +438,9 @@ function toggleAkademik() {
                 </a>
 
 
+        
+        </div> {{-- Close Menu Kegiatan --}}
+    </div> {{-- Close Group Kegiatan --}}
          
           <!-- Materi & Tugas -->
     <div class="group cursor-pointer">
@@ -516,7 +521,7 @@ function toggleAkademik() {
   </a>
 
 </div>
-
+</div> {{-- Close Materi Group --}}
               
 
       </div>
