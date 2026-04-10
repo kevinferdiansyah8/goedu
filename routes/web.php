@@ -45,6 +45,9 @@ Route::post('/login', function (Request $request) {
     } elseif ($email === 'ortu@gmail.com') {
         $role = 'orangtua';
         $redirect = '/orangtua/dashboard';
+    } elseif ($email === 'keuangan@gmail.com') {
+        $role = 'keuangan';
+        $redirect = '/keuangan/dashboard';
     }
 
     if ($role && $redirect) {
@@ -129,9 +132,10 @@ Route::prefix('admin')->group(function () {
             // KEPEGAWAIAN
             // ========================
             Route::prefix('kepegawaian')->group(function () {
-                Route::get('/data-guru', function () {
-                    return view('admin.kepegawaian.data-guru');
-                })->name('admin.kepegawaian.data-guru');
+                Route::get('/data-guru', [\App\Http\Controllers\Admin\TeacherController::class, 'index'])->name('admin.kepegawaian.data-guru');
+                Route::post('/data-guru', [\App\Http\Controllers\Admin\TeacherController::class, 'store'])->name('admin.kepegawaian.data-guru.store');
+                Route::put('/data-guru/{id}', [\App\Http\Controllers\Admin\TeacherController::class, 'update'])->name('admin.kepegawaian.data-guru.update');
+                Route::delete('/data-guru/{id}', [\App\Http\Controllers\Admin\TeacherController::class, 'destroy'])->name('admin.kepegawaian.data-guru.destroy');
 
                 Route::get('/jadwal-mengajar', function () {
                     return view('admin.kepegawaian.jadwal-mengajar');
@@ -177,13 +181,15 @@ Route::prefix('admin')->group(function () {
             return view('admin.akademik.rapor');
         })->name('admin.akademik.rapor');
 
-        Route::get('/kelas-wali-kelas', function () {
-            return view('admin.akademik.kelas-wali-kelas');
-        })->name('admin.akademik.kelas-wali-kelas');
+        Route::get('/kelas-wali-kelas', [\App\Http\Controllers\Admin\SchoolClassController::class, 'index'])->name('admin.akademik.kelas-wali-kelas');
+        Route::post('/kelas-wali-kelas', [\App\Http\Controllers\Admin\SchoolClassController::class, 'store'])->name('admin.akademik.kelas-wali-kelas.store');
+        Route::put('/kelas-wali-kelas/{id}', [\App\Http\Controllers\Admin\SchoolClassController::class, 'update'])->name('admin.akademik.kelas-wali-kelas.update');
+        Route::delete('/kelas-wali-kelas/{id}', [\App\Http\Controllers\Admin\SchoolClassController::class, 'destroy'])->name('admin.akademik.kelas-wali-kelas.destroy');
 
-        Route::get('/mata-pelajaran', function () {
-            return view('admin.akademik.mata-pelajaran');
-        })->name('admin.akademik.mata-pelajaran');
+        Route::get('/mata-pelajaran', [\App\Http\Controllers\Admin\SubjectController::class, 'index'])->name('admin.akademik.mata-pelajaran');
+        Route::post('/mata-pelajaran', [\App\Http\Controllers\Admin\SubjectController::class, 'store'])->name('admin.akademik.mata-pelajaran.store');
+        Route::put('/mata-pelajaran/{id}', [\App\Http\Controllers\Admin\SubjectController::class, 'update'])->name('admin.akademik.mata-pelajaran.update');
+        Route::delete('/mata-pelajaran/{id}', [\App\Http\Controllers\Admin\SubjectController::class, 'destroy'])->name('admin.akademik.mata-pelajaran.destroy');
     });
 
     // ========================
@@ -195,15 +201,10 @@ Route::prefix('admin')->group(function () {
     // ========================
     // USERS 
     // ========================
-Route::get('/users', function () {
-    $users = [
-        ['name'=>'Budi','status'=>'Active'],
-        ['name'=>'Siti','status'=>'Active'],
-        ['name'=>'Agus','status'=>'Pending'],
-    ];
-
-    return view('admin.users', compact('users'));
-})->name('admin.users');
+Route::get('/users', [\App\Http\Controllers\Admin\StudentController::class, 'index'])->name('admin.users');
+Route::post('/users', [\App\Http\Controllers\Admin\StudentController::class, 'store'])->name('admin.users.store');
+Route::put('/users/{id}', [\App\Http\Controllers\Admin\StudentController::class, 'update'])->name('admin.users.update');
+Route::delete('/users/{id}', [\App\Http\Controllers\Admin\StudentController::class, 'destroy'])->name('admin.users.destroy');
 
 
     // ========================
@@ -299,156 +300,88 @@ Route::get('/users', function () {
     });
 });
 
-    // ========================
+// ========================
 // GURU AREA
 // ========================
-Route::prefix('guru')->group(function () {
-
+Route::prefix('guru')->name('guru.')->group(function () {
     // Dashboard
-    Route::get('/dashboard', function () {
-        return view('guru.dashboard.index');
-    });
-
-    Route::get('/dashboard/index', function () {
-        return view('guru.dashboard.index');
-    })->name('guru.dashboard');
+    Route::get('/dashboard', [\App\Http\Controllers\GuruController::class, 'dashboard'])->name('dashboard');
 
     // Akademik
-   Route::prefix('guru')->name('guru.')->group(function () {
-
-    // Dashboard
-    Route::get('/dashboard', function () {
-        return view('guru.dashboard.index');
-    })->name('dashboard');
-
-    // =====================
-    // AKADEMIK GURU
-    // =====================
     Route::prefix('akademik')->name('akademik.')->group(function () {
+        Route::get('/mata-pelajaran', [\App\Http\Controllers\GuruController::class, 'mataPelajaran'])->name('mata-pelajaran');
+        Route::post('/mata-pelajaran', [\App\Http\Controllers\GuruController::class, 'storeMataPelajaran'])->name('mata-pelajaran.store');
+        Route::put('/mata-pelajaran/{id}', [\App\Http\Controllers\GuruController::class, 'updateMataPelajaran'])->name('mata-pelajaran.update');
+        Route::delete('/mata-pelajaran/{id}', [\App\Http\Controllers\GuruController::class, 'destroyMataPelajaran'])->name('mata-pelajaran.destroy');
 
-        Route::get('/jadwal-mengajar', function () {
-            return view('guru.akademik.jadwal-mengajar');
-        })->name('jadwal-mengajar');
-
-        Route::get('/kelas-siswa', function () {
-            return view('guru.akademik.kelas-siswa');
-        })->name('kelas');
-
-        Route::get('/input-nilai-tugas', function () {
-            return view('guru.akademik.input-nilai-tugas');
-        })->name('nilai.tugas');
-
-        Route::get('/input-nilai-rapor', function () {
-            return view('guru.akademik.input-nilai-rapor');
-        })->name('nilai.rapor');
-
-        Route::get('/rekap-nilai', function () {
-            return view('guru.akademik.rekap-nilai');
-        })->name('rekap');
-
+        Route::get('/jadwal-mengajar', [\App\Http\Controllers\GuruController::class, 'jadwalMengajar'])->name('jadwal-mengajar');
+        Route::get('/kelas-siswa', [\App\Http\Controllers\GuruController::class, 'kelasSiswa'])->name('kelas');
+        
+        // Student Management
+        Route::post('/siswa', [\App\Http\Controllers\GuruController::class, 'storeStudent'])->name('siswa.store');
+        Route::put('/siswa/{id}', [\App\Http\Controllers\GuruController::class, 'updateStudent'])->name('siswa.update');
+        Route::delete('/siswa/{id}', [\App\Http\Controllers\GuruController::class, 'destroyStudent'])->name('siswa.destroy');
+        Route::post('/siswa/update-catatan/{id}', [\App\Http\Controllers\GuruController::class, 'updateStudentNote'])->name('siswa.update-catatan');
+        
+        // Class Management
+        Route::post('/kelas', [\App\Http\Controllers\GuruController::class, 'storeClass'])->name('kelas.store');
+        Route::put('/kelas/{id}', [\App\Http\Controllers\GuruController::class, 'updateClass'])->name('kelas.update');
+        Route::delete('/kelas/{id}', [\App\Http\Controllers\GuruController::class, 'destroyClass'])->name('kelas.destroy');
+        
+        Route::get('/rekap-nilai', [\App\Http\Controllers\GuruController::class, 'rekapNilai'])->name('rekap');
+        Route::get('/nilai-tugas', [\App\Http\Controllers\GuruController::class, 'inputNilaiTugas'])->name('nilai.tugas');
+        Route::post('/nilai-tugas', [\App\Http\Controllers\GuruController::class, 'storeNilaiTugas'])->name('nilai.tugas.store');
+        Route::get('/nilai-rapor', [\App\Http\Controllers\GuruController::class, 'inputNilaiRapor'])->name('nilai.rapor');
+        Route::post('/nilai-rapor', [\App\Http\Controllers\GuruController::class, 'storeNilaiRapor'])->name('nilai.rapor.store');
     });
-
-});
-
-
 
     // Absensi
-    Route::get('/absensi', function () {
-        return view('guru.absensi.index');
+    Route::prefix('absensi')->name('absensi.')->group(function () {
+        Route::get('/', function () { return view('guru.absensi.index'); })->name('index');
+        Route::get('/absensi-pertemuan', [\App\Http\Controllers\GuruController::class, 'absensiPertemuan'])->name('pertemuan');
+        Route::get('/izin-sakit-alpha', function () { return view('guru.absensi.izin-sakit-alpha'); })->name('izin');
+        Route::get('/rekap-absensi', function () { return view('guru.absensi.rekap-absensi'); })->name('rekap');
+        
+        // Reports CRUD
+        Route::get('/reports', [\App\Http\Controllers\GuruController::class, 'reportsIndex'])->name('reports.index');
+        Route::post('/reports', [\App\Http\Controllers\GuruController::class, 'storeReport'])->name('reports.store');
+        Route::put('/reports/{id}', [\App\Http\Controllers\GuruController::class, 'updateReport'])->name('reports.update');
+        Route::delete('/reports/{id}', [\App\Http\Controllers\GuruController::class, 'destroyReport'])->name('reports.destroy');
     });
 
-    Route::get('/absensi/absensi-pertemuan', function () {
-        return view('guru.absensi.absensi-pertemuan');
-    });
-
-    Route::get('/absensi/izin-sakit-alpha', function () {
-        return view('guru.absensi.izin-sakit-alpha');
-    });
-
-    Route::get('/absensi/rekap-absensi', function () {
-        return view('guru.absensi.rekap-absensi');
-    });
-
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | Materi & Tugas
-    |--------------------------------------------------------------------------
-    */
+    // Materi & Tugas (CRUD)
     Route::prefix('materi')->group(function () {
-
-        Route::get('/upload', function () {
-            return view('guru.materi-tugas.upload');
-        })->name('guru.materi.upload');
-
-        Route::get('/materi', function () {
-            return view('guru.materi-tugas.materi');
-        })->name('guru.materi.index');
-
-        Route::get('/tugas', function () {
-            return view('guru.materi-tugas.tugas');
-        })->name('guru.tugas.index');
-
-        Route::get('/penilaian', function () {
-            return view('guru.materi-tugas.penilaian-tugas');
-        })->name('guru.tugas.penilaian');
-
-        Route::get('/feedback', function () {
-            return view('guru.materi-tugas.komentar-feedback');
-        })->name('guru.tugas.feedback');
-
+        Route::get('/materi', [\App\Http\Controllers\GuruController::class, 'materiIndex'])->name('materi.index');
+        Route::get('/upload', [\App\Http\Controllers\GuruController::class, 'uploadForm'])->name('materi.upload');
+        Route::post('/upload', [\App\Http\Controllers\GuruController::class, 'storeMateri'])->name('materi.store');
+        Route::put('/materi/{id}', [\App\Http\Controllers\GuruController::class, 'updateMateri'])->name('materi.update');
+        Route::delete('/materi/{id}', [\App\Http\Controllers\GuruController::class, 'destroyMateri'])->name('materi.destroy');
+        
+        Route::get('/tugas', [\App\Http\Controllers\GuruController::class, 'tugasIndex'])->name('tugas.index');
+        Route::post('/tugas', [\App\Http\Controllers\GuruController::class, 'storeTugas'])->name('tugas.store');
+        Route::put('/tugas/{id}', [\App\Http\Controllers\GuruController::class, 'updateTugas'])->name('tugas.update');
+        Route::delete('/tugas/{id}', [\App\Http\Controllers\GuruController::class, 'destroyTugas'])->name('tugas.destroy');
+        
+        Route::get('/penilaian', [\App\Http\Controllers\GuruController::class, 'penilaianIndex'])->name('tugas.penilaian');
+        Route::put('/penilaian/{id}', [\App\Http\Controllers\GuruController::class, 'updateNilai'])->name('tugas.penilaian.update');
+        Route::get('/feedback', function () { return view('guru.materi-tugas.komentar-feedback'); })->name('tugas.feedback');
     });
 
+    // Kegiatan (masih statis)
+    Route::prefix('kegiatan')->group(function () {
+        Route::get('/agenda', function () { return view('guru.kegiatan.agenda'); });
+        Route::get('/event', function () { return view('guru.kegiatan.event'); });
+        Route::get('/pengumuman', function () { return view('guru.kegiatan.pengumuman'); });
+    });
+
+    // Profil (masih statis)
+    Route::prefix('profil')->name('profil.')->group(function () {
+        Route::get('/biodata', function () { return view('guru.profil.biodata'); })->name('biodata');
+        Route::get('/riwayat-mengajar', function () { return view('guru.profil.riwayat-mengajar'); })->name('riwayat');
+        Route::get('/arsip-dokumen', function () { return view('guru.profil.arsip-dokumen'); })->name('arsip');
+        Route::get('/ganti-password', function () { return view('guru.profil.ganti-password'); })->name('password');
+    });
 });
-
-
-    // Kegiatan
-    
-    Route::prefix('guru')->group(function () {
-
-    Route::get('/kegiatan/agenda', function () {
-        return view('guru.kegiatan.agenda');
-    });
-
-    Route::get('/kegiatan/event', function () {
-        return view('guru.kegiatan.event');
-    });
-
-    Route::get('/kegiatan/pengumuman', function () {
-        return view('guru.kegiatan.pengumuman');
-    });
-
-});
-
-
-    // Profil
-  
-
-    /*
-    |--------------------------------------------------------------------------
-    | Profil Guru
-    |--------------------------------------------------------------------------
-    */
-    Route::prefix('profil')->group(function () {
-
-        Route::get('/biodata', function () {
-            return view('guru.profil.biodata');
-        })->name('guru.profil.biodata');
-
-        Route::get('/riwayat-mengajar', function () {
-            return view('guru.profil.riwayat-mengajar');
-        })->name('guru.profil.riwayat');
-
-        Route::get('/arsip-dokumen', function () {
-            return view('guru.profil.arsip-dokumen');
-        })->name('guru.profil.arsip');
-
-        Route::get('/ganti-password', function () {
-            return view('guru.profil.ganti-password');
-        })->name('guru.profil.password');
-
-    });
 
     // ========================
     // ORANG TUA AREA
@@ -530,6 +463,7 @@ Route::prefix('guru')->group(function () {
         Route::prefix('pembelajaran')->group(function () {
             Route::get('/materi', [\App\Http\Controllers\SiswaController::class, 'pembelajaranMateri'])->name('siswa.pembelajaran.materi');
             Route::get('/tugas', [\App\Http\Controllers\SiswaController::class, 'pembelajaranTugas'])->name('siswa.pembelajaran.tugas');
+            Route::post('/tugas/submit/{id}', [\App\Http\Controllers\SiswaController::class, 'submitTugas'])->name('siswa.pembelajaran.tugas.submit');
             Route::get('/nilai', [\App\Http\Controllers\SiswaController::class, 'pembelajaranNilai'])->name('siswa.pembelajaran.nilai');
         });
 
@@ -548,31 +482,40 @@ Route::prefix('guru')->group(function () {
         });
     });
 
-    Route::prefix('guru/materi')->name('guru.materi.')->group(function () {
 
-    // tampil form
-    Route::get('/upload', function () {
-        return view('guru.materi-tugas.upload');
-    })->name('upload');
 
-    // simpan upload
-    Route::post('/upload', function (\Illuminate\Http\Request $request) {
+// ========================
+// KEUANGAN AREA
+// ========================
+Route::prefix('keuangan')->group(function () {
+    Route::get('/dashboard', [\App\Http\Controllers\KeuanganController::class, 'index'])->name('keuangan.dashboard');
 
-        $request->validate([
-            'kelas' => 'required',
-            'judul' => 'required',
-            'file'  => 'required|file'
-        ]);
+    // Pembayaran Siswa
+    Route::prefix('pembayaran-siswa')->group(function () {
+        Route::get('/tagihan', [\App\Http\Controllers\KeuanganController::class, 'tagihanSpp'])->name('keuangan.pembayaran.tagihan');
+        Route::get('/riwayat', [\App\Http\Controllers\KeuanganController::class, 'riwayatPembayaran'])->name('keuangan.pembayaran.riwayat');
+        Route::get('/verifikasi', [\App\Http\Controllers\KeuanganController::class, 'verifikasiPembayaran'])->name('keuangan.pembayaran.verifikasi');
+    });
 
-        $fileName = time().'_'.$request->file('file')->getClientOriginalName();
-        $request->file('file')->storeAs('materi', $fileName, 'public');
+    // PPDB Keuangan
+    Route::prefix('ppdb')->group(function () {
+        Route::get('/biaya-pendaftaran', [\App\Http\Controllers\KeuanganController::class, 'biayaPPDB'])->name('keuangan.ppdb.biaya');
+        Route::get('/pembayaran', [\App\Http\Controllers\KeuanganController::class, 'pembayaranPPDB'])->name('keuangan.ppdb.pembayaran');
+        Route::get('/rekap', [\App\Http\Controllers\KeuanganController::class, 'rekapPPDB'])->name('keuangan.ppdb.rekap');
+    });
 
-        return back()->with('success', 'Materi berhasil diupload');
-    })->name('upload.store');
+    // Laporan Keuangan
+    Route::get('/laporan', [\App\Http\Controllers\KeuanganController::class, 'laporan'])->name('keuangan.laporan');
+    Route::post('/laporan/transaksi', [\App\Http\Controllers\KeuanganController::class, 'storeTransaksi'])->name('keuangan.laporan.store');
 
+    Route::put('/pembayaran-siswa/verifikasi/{id}', [\App\Http\Controllers\KeuanganController::class, 'updateVerifikasi'])->name('keuangan.pembayaran.verifikasi.update');
 });
 
-
-
-
+// ========================
+// NOTIFICATIONS
+// ========================
+Route::middleware(['web'])->group(function () {
+    Route::post('/notifications/mark-all-as-read', [\App\Http\Controllers\NotificationController::class, 'markAllAsRead'])->name('notifications.markAllAsRead');
+    Route::post('/notifications/{id}/mark-as-read', [\App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('notifications.markAsRead');
+});
 

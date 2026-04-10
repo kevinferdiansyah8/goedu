@@ -166,35 +166,45 @@ function toggleAkademik() {
             </button>
             <div id="menuAkademik" class="ml-4 mt-2 space-y-2 {{ request()->is('guru/akademik*') ? '' : 'hidden' }}">
             
-            <a href="{{ route('guru.akademik.jadwal-mengajar') }}"
+            <a href="{{ route('guru.akademik.mata-pelajaran') }}"
    class="submenu-item flex items-center gap-3 rounded-xl px-4 py-3 text-sm
-   {{ request()->routeIs('guru.akademik.jadwal-mengajar')
+   {{ request()->routeIs('guru.akademik.mata-pelajaran')
       ? 'bg-muted text-foreground font-semibold'
       : 'text-secondary hover:bg-muted hover:text-foreground' }}">
 
     <span class="menu-bullet flex-shrink-0">
         <span class="menu-bullet-outer w-5 h-5 rounded-full border-2
-        {{ request()->routeIs('guru.akademik.jadwal-mengajar')
+        {{ request()->routeIs('guru.akademik.mata-pelajaran')
             ? 'border-primary'
             : 'border-gray-300' }}
         flex items-center justify-center">
 
             <span class="menu-bullet-inner w-2.5 h-2.5 rounded-full
-            {{ request()->routeIs('guru.akademik.jadwal-mengajar')
+            {{ request()->routeIs('guru.akademik.mata-pelajaran')
                 ? 'bg-primary'
                 : 'bg-transparent' }}">
             </span>
         </span>
     </span>
 
-    <span class="flex-1">Jadwal Mengajar</span>
+    <span class="flex-1">Manajemen Mapel</span>
 </a>
 
-<a href="{{ route('guru.akademik.kelas') }}"
-   class="submenu-item flex items-center gap-3 rounded-xl px-4 py-3 text-sm
-   {{ request()->routeIs('guru.akademik.kelas')
-      ? 'bg-muted text-foreground font-semibold'
-      : 'text-secondary hover:bg-muted hover:text-foreground' }}">
+            <a href="{{ route('guru.akademik.jadwal-mengajar') }}"
+               class="submenu-item flex items-center gap-3 rounded-xl px-4 py-3 text-sm
+               {{ request()->routeIs('guru.akademik.jadwal-mengajar') ? 'bg-muted text-foreground font-semibold' : 'text-secondary hover:bg-muted hover:text-foreground' }}">
+                <span class="menu-bullet flex-shrink-0">
+                    <span class="menu-bullet-outer w-5 h-5 rounded-full border-2 {{ request()->routeIs('guru.akademik.jadwal-mengajar') ? 'border-primary' : 'border-gray-300' }} flex items-center justify-center">
+                        <span class="menu-bullet-inner w-2.5 h-2.5 rounded-full {{ request()->routeIs('guru.akademik.jadwal-mengajar') ? 'bg-primary' : 'bg-transparent' }}"></span>
+                    </span>
+                </span>
+                <span class="flex-1">Jadwal Mengajar</span>
+            </a>
+
+            <a href="{{ route('guru.akademik.kelas') }}"
+               class="submenu-item flex items-center gap-3 rounded-xl px-4 py-3 text-sm
+               {{ request()->routeIs('guru.akademik.kelas') ? 'bg-muted text-foreground font-semibold' : 'text-secondary hover:bg-muted hover:text-foreground' }}">
+
 
     <span class="menu-bullet flex-shrink-0">
         <span class="menu-bullet-outer w-5 h-5 rounded-full border-2
@@ -302,9 +312,9 @@ function toggleAkademik() {
                   {{ request()->is('guru/absensi*') ? '' : 'hidden' }}">
 
                 {{-- Absensi Guru --}}
-                <a href="{{ url('/guru/absensi/absensi-pertemuan') }}"
+                <a href="{{ route('guru.absensi.pertemuan') }}"
                   class="submenu-item flex items-center gap-3 rounded-xl px-4 py-3 text-sm
-                  {{ request()->is('guru/absensi/absensi-pertemuan') ? 'bg-muted text-foreground font-semibold' : 'text-secondary hover:bg-muted hover:text-foreground' }}">
+                  {{ request()->routeIs('guru.absensi.pertemuan') ? 'bg-muted text-foreground font-semibold' : 'text-secondary hover:bg-muted hover:text-foreground' }}">
 
                   <span class="menu-bullet flex-shrink-0">
                     <span class="menu-bullet-outer w-5 h-5 rounded-full border-2
@@ -593,16 +603,14 @@ function toggleAkademik() {
       <h2 class="hidden lg:block font-bold text-2xl text-foreground">Dashboard Guru</h2>
       <!-- Right actions -->
       <div class="flex items-center gap-3 ml-auto">
-        <button class="size-11 flex items-center justify-center rounded-xl ring-1 ring-border hover:ring-primary transition-all duration-300 cursor-pointer relative" aria-label="Notifications">
-          <i data-lucide="bell" class="size-6 text-secondary"></i>
-          <span class="absolute -top-1 -right-1 h-5 px-1.5 rounded-full bg-error text-white text-xs font-medium flex items-center justify-center">3</span>
-        </button>
+        @include('components.notification-dropdown')
         <div class="hidden md:flex items-center gap-3 pl-3 border-l border-border">
-          <div class="text-right">
-            <p class="font-semibold text-foreground text-sm">Pak Bambang</p>
-            <p class="text-secondary text-xs">Guru Matematika</p>
-          </div>
-          <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop" alt="Profile" class="size-11 rounded-full object-cover ring-2 ring-border">
+          @include('components.profile-dropdown', [
+              'userName' => 'Pak Bambang',
+              'userRole' => 'Guru Matematika',
+              'userEmail' => 'guru@gmail.com',
+              'userPhoto' => 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop'
+          ])
         </div>
       </div>
     </div>

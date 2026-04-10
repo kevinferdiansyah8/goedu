@@ -1,225 +1,195 @@
 @extends('layouts.admin')
 
-@section('title', 'Data Guru & Staff')
+@section('title', 'Data Guru & Staf')
 
 @section('content')
-@php
-$pegawai = [
-    [
-        'id' => 1,
-        'nama' => 'Budi Santoso',
-        'nip' => '198712121',
-        'role' => 'Guru',
-        'mapel' => 'Pemrograman Dasar',
-        'status' => 'Aktif',
-        'email' => 'budi@sekolah.id',
-    ],
-    [
-        'id' => 2,
-        'nama' => 'Siti Aminah',
-        'nip' => '198811222',
-        'role' => 'Guru',
-        'mapel' => 'Basis Data',
-        'status' => 'Aktif',
-        'email' => 'siti@sekolah.id',
-    ],
-    [
-        'id' => 3,
-        'nama' => 'Andi Wijaya',
-        'nip' => '199001334',
-        'role' => 'Staff',
-        'mapel' => '-',
-        'status' => 'Aktif',
-        'email' => 'andi@sekolah.id',
-    ],
-    [
-        'id' => 4,
-        'nama' => 'Dewi Lestari',
-        'nip' => '198905556',
-        'role' => 'Guru',
-        'mapel' => 'Akuntansi',
-        'status' => 'Nonaktif',
-        'email' => 'dewi@sekolah.id',
-    ],
-];
 
-$totalPegawai = count($pegawai);
-$totalGuru = collect($pegawai)->where('role','Guru')->count();
-$totalStaff = collect($pegawai)->where('role','Staff')->count();
-@endphp
+<div class="max-w-7xl mx-auto" x-data="{ 
+	showForm: false, 
+	isEdit: false, 
+	formAction: '{{ route('admin.kepegawaian.data-guru.store') }}',
+	formMethod: 'POST',
+	guru: {
+		nip: '',
+		nama: '',
+		telepon: ''
+	},
+	edit(g) {
+		this.isEdit = true;
+		this.showForm = true;
+		this.formAction = '/admin/kepegawaian/data-guru/' + g.id;
+		this.formMethod = 'PUT';
+		this.guru = {
+			nip: g.nip,
+			nama: g.nama,
+			telepon: g.telepon
+		};
+	},
+	resetForm() {
+		this.isEdit = false;
+		this.showForm = false;
+		this.formAction = '{{ route('admin.kepegawaian.data-guru.store') }}';
+		this.formMethod = 'POST';
+		this.guru = {nip: '', nama: '', telepon: ''};
+	}
+}">
 
-<div class="max-w-7xl mx-auto px-4 py-8">
+	<!-- Header -->
+	<div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-6">
+		<div>
+			<div class="flex items-center gap-3 mb-1">
+				<div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-200">
+					<i data-lucide="users" class="w-5 h-5 text-white"></i>
+				</div>
+				<div>
+					<h1 class="text-2xl font-extrabold text-gray-900">Data Guru</h1>
+					<p class="text-gray-400 text-xs">Kelola data informasi guru sekolah</p>
+				</div>
+			</div>
+		</div>
+		<button @click="resetForm(); showForm = true" class="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl font-bold text-sm shadow-lg shadow-blue-200 transition-all active:scale-95">
+			<i data-lucide="user-plus" class="w-4 h-4"></i>
+			Tambah Guru
+		</button>
+	</div>
 
-  <!-- HEADER -->
-  <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
-    <div>
-      <h1 class="text-4xl font-extrabold text-gray-900 mb-1">Data Guru & Staff</h1>
-      <p class="text-lg text-gray-400">Kelola data kepegawaian sekolah</p>
-    </div>
-    <button onclick="toggleForm()"
-      class="flex items-center gap-2 px-6 py-2.5 bg-blue-600 text-white rounded-xl font-semibold shadow-lg hover:bg-blue-700 hover:scale-105 transition-all duration-200">
-      <i data-lucide="plus" class="w-5 h-5"></i>
-      Tambah Pegawai
-    </button>
-  </div>
+	<!-- Alerts -->
+	@if(session('success'))
+	<div class="mb-4 bg-emerald-50 text-emerald-700 p-4 rounded-xl border border-emerald-100 flex items-center gap-3">
+		<i data-lucide="check-circle" class="w-5 h-5"></i>
+		<div>{{ session('success') }}</div>
+	</div>
+	@endif
+	@if($errors->any())
+	<div class="mb-4 bg-red-50 text-red-700 p-4 rounded-xl border border-red-100 flex items-center gap-3">
+		<i data-lucide="alert-circle" class="w-5 h-5"></i>
+		<div>
+			<ul class="list-disc pl-5">
+				@foreach($errors->all() as $error)
+					<li>{{ $error }}</li>
+				@endforeach
+			</ul>
+		</div>
+	</div>
+	@endif
 
-  <!-- STATISTIK -->
-  <div class="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-8">
-    <div class="card-stat bg-gradient-to-br from-blue-100 to-blue-50 border-2 border-blue-200">
-      <div class="flex items-center gap-3 mb-2">
-        <i class="fa fa-users text-blue-500 text-2xl"></i>
-        <span class="text-gray-500 font-medium">Total Pegawai</span>
-      </div>
-      <div class="text-3xl font-extrabold text-blue-700">{{ $totalPegawai }}</div>
-    </div>
-    <div class="card-stat bg-gradient-to-br from-green-100 to-green-50 border-2 border-green-200">
-      <div class="flex items-center gap-3 mb-2">
-        <i class="fa fa-chalkboard-teacher text-green-500 text-2xl"></i>
-        <span class="text-gray-500 font-medium">Total Guru</span>
-      </div>
-      <div class="text-3xl font-extrabold text-green-700">{{ $totalGuru }}</div>
-    </div>
-    <div class="card-stat bg-gradient-to-br from-pink-100 to-pink-50 border-2 border-pink-200">
-      <div class="flex items-center gap-3 mb-2">
-        <i class="fa fa-user-tie text-pink-500 text-2xl"></i>
-        <span class="text-gray-500 font-medium">Total Staff</span>
-      </div>
-      <div class="text-3xl font-extrabold text-pink-700">{{ $totalStaff }}</div>
-    </div>
-  </div>
+	<!-- Filter Bar -->
+	<div class="bg-white border border-gray-100 rounded-2xl shadow-sm p-4 mb-5">
+		<form method="GET" class="flex flex-wrap items-center gap-3">
+			<div class="relative flex-1 min-w-[200px]">
+				<div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+					<i data-lucide="search" class="w-4 h-4 text-gray-400"></i>
+				</div>
+				<input type="text" name="search" value="{{ request('search') }}" placeholder="Cari nama atau NIP..." class="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 focus:bg-white transition-all">
+			</div>
+			
+			<button type="submit" class="px-4 py-2.5 bg-blue-50 text-blue-600 font-bold text-sm rounded-xl hover:bg-blue-100 transition-all border border-blue-100">
+				Cari
+			</button>
+			<a href="{{ route('admin.kepegawaian.data-guru') }}" class="px-4 py-2.5 bg-gray-50 text-gray-600 font-bold text-sm rounded-xl hover:bg-gray-100 transition-all border border-gray-200">
+				Reset
+			</a>
+		</form>
+	</div>
 
-  <!-- FILTER -->
-  <div class="flex flex-wrap gap-4 mb-6">
-    <select id="filterRole" class="border rounded-xl px-5 py-2 text-base shadow-sm focus:ring-2 focus:ring-blue-400">
-      <option value="">Semua Role</option>
-      <option value="Guru">Guru</option>
-      <option value="Staff">Staff</option>
-    </select>
-    <select id="filterStatus" class="border rounded-xl px-5 py-2 text-base shadow-sm focus:ring-2 focus:ring-blue-400">
-      <option value="">Semua Status</option>
-      <option value="Aktif">Aktif</option>
-      <option value="Nonaktif">Nonaktif</option>
-    </select>
-  </div>
+	<!-- Table -->
+	<div class="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden mb-8">
+		<div class="px-5 py-3.5 border-b border-gray-100 flex items-center justify-between">
+			<div class="flex items-center gap-2">
+				<i data-lucide="list" class="w-4 h-4 text-blue-500"></i>
+				<span class="text-sm font-bold text-gray-700">Daftar Guru ({{ $totalGuru }})</span>
+			</div>
+		</div>
+		<div class="overflow-x-auto">
+			<table class="min-w-full text-sm">
+				<thead>
+					<tr class="bg-gray-50/80">
+						<th class="px-5 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider">NIP</th>
+						<th class="px-5 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider">Nama Guru</th>
+						<th class="px-5 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider">No. Telepon</th>
+						<th class="px-5 py-3 text-center text-[10px] font-bold text-gray-400 uppercase tracking-wider">Aksi</th>
+					</tr>
+				</thead>
+				<tbody class="divide-y divide-gray-50">
+					@forelse($guru as $g)
+					<tr class="hover:bg-blue-50/30 transition-colors">
+						<td class="px-5 py-3.5 text-xs text-gray-600">{{ $g->nip ?: '-' }}</td>
+						<td class="px-5 py-3.5 font-semibold text-gray-800">{{ $g->nama }}</td>
+						<td class="px-5 py-3.5 text-xs text-gray-600">{{ $g->telepon ?: '-' }}</td>
+						<td class="px-5 py-3.5 text-center">
+							<div class="flex items-center justify-center gap-1.5">
+								<button @click="edit({{ json_encode($g) }})" class="w-8 h-8 rounded-lg bg-blue-50 hover:bg-blue-100 flex items-center justify-center transition-colors group" title="Edit">
+									<i data-lucide="pencil" class="w-3.5 h-3.5 text-blue-500 group-hover:text-blue-700"></i>
+								</button>
+								<form action="{{ route('admin.kepegawaian.data-guru.destroy', $g->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus data ini?')">
+									@csrf
+									@method('DELETE')
+									<button type="submit" class="w-8 h-8 rounded-lg bg-red-50 hover:bg-red-100 flex items-center justify-center transition-colors group" title="Hapus">
+										<i data-lucide="trash-2" class="w-3.5 h-3.5 text-red-500 group-hover:text-red-700"></i>
+									</button>
+								</form>
+							</div>
+						</td>
+					</tr>
+					@empty
+					<tr>
+						<td colspan="4" class="px-5 py-10 text-center text-gray-500 text-sm">Tidak ada data guru</td>
+					</tr>
+					@endforelse
+				</tbody>
+			</table>
+		</div>
+		<!-- Pagination -->
+		<div class="px-5 py-3 border-t border-gray-100">
+			{{ $guru->links('pagination::tailwind') }}
+		</div>
+	</div>
 
-  <!-- TABEL -->
-  <div class="bg-white/95 rounded-2xl shadow-2xl overflow-x-auto p-2">
-    <table class="w-full text-base">
-      <thead class="bg-slate-100 text-blue-900">
-        <tr>
-          <th class="px-5 py-3 text-left font-bold rounded-tl-xl">Nama</th>
-          <th class="px-5 py-3">NIP</th>
-          <th class="px-5 py-3">Role</th>
-          <th class="px-5 py-3">Mapel</th>
-          <th class="px-5 py-3">Status</th>
-          <th class="px-5 py-3 text-center rounded-tr-xl">Aksi</th>
-        </tr>
-      </thead>
-      <tbody id="pegawaiTable">
-        @foreach($pegawai as $p)
-        @php
-          $status = strtolower($p['status']);
-          $badge = $status == 'aktif' ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-600';
-          $icon = $status == 'aktif' ? 'fa-check-circle' : 'fa-minus-circle';
-        @endphp
-        <tr data-role="{{ $p['role'] }}" data-status="{{ $p['status'] }}" class="group bg-white even:bg-blue-50/40 hover:shadow-lg hover:scale-[1.01] transition rounded-xl">
-          <td class="px-5 py-3 flex items-center gap-3">
-            <span class='w-10 h-10 rounded-full bg-gradient-to-br from-blue-200 to-blue-400 text-blue-800 font-bold flex items-center justify-center shadow'>{{ collect(explode(' ', $p['nama']))->map(fn($n)=>$n[0])->join('') }}</span>
-            <span class="font-medium text-gray-800">{{ $p['nama'] }}</span>
-          </td>
-          <td class="px-5 py-3">{{ $p['nip'] }}</td>
-          <td class="px-5 py-3">{{ $p['role'] }}</td>
-          <td class="px-5 py-3">{{ $p['mapel'] }}</td>
-          <td class="px-5 py-3">
-            <span class="px-3 py-1 rounded-full {{$badge}} text-xs font-semibold flex items-center gap-1 justify-center"><i class='fa {{$icon}}'></i> {{ $p['status'] }}</span>
-          </td>
-          <td class="px-5 py-3 text-center">
-            <button class="btn-edit flex items-center gap-1"><i class="fa fa-edit"></i> Edit</button>
-          </td>
-        </tr>
-        @endforeach
-      </tbody>
-    </table>
-  </div>
-
-  <!-- FORM TAMBAH -->
-  <div id="formPegawai" class="hidden max-w-2xl mx-auto mt-10">
-    <div class="bg-white/95 rounded-2xl shadow-2xl p-8">
-      <h2 class="text-2xl font-bold mb-4 text-blue-700 flex items-center gap-2"><i class="fa fa-user-plus"></i> Tambah Pegawai</h2>
-      <form>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <input class="input border rounded-xl px-4 py-2 focus:ring-2 focus:ring-blue-400" placeholder="Nama Lengkap">
-          <input class="input border rounded-xl px-4 py-2 focus:ring-2 focus:ring-blue-400" placeholder="NIP / NIK">
-          <select class="input border rounded-xl px-4 py-2 focus:ring-2 focus:ring-blue-400">
-            <option>Guru</option>
-            <option>Staff</option>
-          </select>
-          <input class="input border rounded-xl px-4 py-2 focus:ring-2 focus:ring-blue-400" placeholder="Mata Pelajaran (jika guru)">
-          <input class="input border rounded-xl px-4 py-2 focus:ring-2 focus:ring-blue-400" placeholder="Email">
-          <select class="input border rounded-xl px-4 py-2 focus:ring-2 focus:ring-blue-400">
-            <option>Aktif</option>
-            <option>Nonaktif</option>
-          </select>
-        </div>
-        <div class="flex justify-end gap-2 mt-6">
-          <button type="button" onclick="toggleForm()" class="px-5 py-2 border rounded-xl">Batal</button>
-          <button class="px-5 py-2 bg-blue-600 text-white rounded-xl shadow hover:bg-blue-700 hover:scale-105 transition-all">Simpan</button>
-        </div>
-      </form>
-    </div>
-  </div>
+	<!-- Form Tambah/Edit (Slide down) -->
+	<div x-show="showForm" style="display: none;" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 -translate-y-4" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0 -translate-y-4" class="max-w-xl mx-auto mb-10">
+		<div class="bg-white border border-gray-100 rounded-2xl shadow-lg overflow-hidden">
+			<div class="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4">
+				<div class="flex items-center gap-2">
+					<i data-lucide="user-plus" class="w-5 h-5 text-blue-200" x-show="!isEdit"></i>
+					<i data-lucide="edit" class="w-5 h-5 text-blue-200" x-show="isEdit" style="display: none;"></i>
+					<span class="text-white text-sm font-bold uppercase tracking-wider" x-text="isEdit ? 'Edit Data Guru' : 'Tambah Data Guru'"></span>
+				</div>
+			</div>
+			<form :action="formAction" method="POST" class="p-6">
+				@csrf
+				<template x-if="isEdit"><input type="hidden" name="_method" value="PUT"></template>
+				<div class="space-y-4">
+					<div>
+						<label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">NIP</label>
+						<input name="nip" x-model="guru.nip" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-all" placeholder="Nomor Induk Pegawai">
+					</div>
+					<div>
+						<label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Nama Guru <span class="text-red-400">*</span></label>
+						<input name="nama" x-model="guru.nama" required class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-all" placeholder="Nama Lengkap dengan Gelar">
+					</div>
+					<div>
+						<label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">No. Telepon</label>
+						<input name="telepon" x-model="guru.telepon" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-all" placeholder="08xxx">
+					</div>
+				</div>
+				<div class="flex justify-end gap-2.5 mt-6 pt-5 border-t border-gray-100">
+					<button type="button" @click="resetForm()" class="px-5 py-2.5 border border-gray-200 rounded-xl bg-white hover:bg-gray-50 text-gray-600 font-semibold text-sm transition-all">Batal</button>
+					<button type="submit" class="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl font-bold text-sm shadow-lg shadow-blue-200 transition-all active:scale-95">
+						<i data-lucide="save" class="w-4 h-4"></i>
+						Simpan Data
+					</button>
+				</div>
+			</form>
+		</div>
+	</div>
 
 </div>
 @endsection
 
 @push('scripts')
 <script>
-lucide.createIcons();
-function toggleForm() {
-  document.getElementById('formPegawai').classList.toggle('hidden');
-}
-const roleFilter = document.getElementById('filterRole');
-const statusFilter = document.getElementById('filterStatus');
-function applyFilter() {
-  document.querySelectorAll('#pegawaiTable tr').forEach(row => {
-    const role = row.dataset.role;
-    const status = row.dataset.status;
-    const show =
-      (!roleFilter.value || role === roleFilter.value) &&
-      (!statusFilter.value || status === statusFilter.value);
-    row.style.display = show ? '' : 'none';
-  });
-}
-roleFilter.addEventListener('change', applyFilter);
-statusFilter.addEventListener('change', applyFilter);
+document.addEventListener('DOMContentLoaded', function() {
+	if (window.lucide) lucide.createIcons();
+});
 </script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"/>
-<style>
-.card-stat {
-  border-radius: 20px;
-  box-shadow: 0 2px 12px #2563eb11;
-  min-height: 110px;
-  padding: 1.5rem 1.5rem 1.2rem 1.5rem;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: center;
-  transition: box-shadow .2s, transform .2s;
-}
-.card-stat:hover { box-shadow: 0 4px 24px #2563eb22; transform: scale(1.03); }
-.btn-edit {
-  background:#2563eb;
-  color:white;
-  padding:6px 18px;
-  border-radius:8px;
-  font-size:14px;
-  font-weight:600;
-  box-shadow:0 2px 8px #2563eb22;
-  transition:all .15s;
-  display:inline-flex;
-  align-items:center;
-  gap:6px;
-}
-.btn-edit:hover { background:#1746a2; box-shadow:0 4px 16px #2563eb33; transform:scale(1.05); }
-</style>
 @endpush

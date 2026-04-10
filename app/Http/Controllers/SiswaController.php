@@ -3,260 +3,275 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\Student;
+use App\Models\Schedule;
+use App\Models\Attendance;
+use App\Models\Assignment;
+use App\Models\StudentAssignment;
+use App\Models\Event;
+use App\Models\Grade;
+use App\Models\Book;
+use App\Models\BookLoan;
+use App\Models\LearningMaterial;
 
 class SiswaController extends Controller
 {
+    // Mock user session fetching
+    private function getStudent() {
+        return Student::first(); 
+    }
+
     public function index()
     {
-        // Data Dummy untuk Dashboard Siswa
+        $student = $this->getStudent();
+        
+        $jadwal_hari_ini = Schedule::where('kelas', $student->kelas)
+            ->where('hari', 'Senin') // mock for today
+            ->with('subject.teacher')
+            ->get()->map(function($j) {
+                return ['jam' => $j->jam_mulai . ' - ' . $j->jam_selesai, 'mapel' => $j->subject->nama, 'guru' => $j->subject->teacher->nama ?? '-'];
+            });
 
-        // 1. Ringkasan Aktivitas
-        // Jadwal Hari Ini
-        $jadwal_hari_ini = [
-            ['jam' => '07:00 - 08:30', 'mapel' => 'Matematika', 'guru' => 'Budi Santoso'],
-            ['jam' => '08:30 - 10:00', 'mapel' => 'Bahasa Indonesia', 'guru' => 'Siti Aminah'],
-            ['jam' => '10:15 - 11:45', 'mapel' => 'Fisika', 'guru' => 'Agus Dermawan'],
-        ];
-
-        // Kehadiran (Semester Ini)
         $kehadiran = [
-            'hadir' => 95, // Persentase
-            'sakit' => 2,  // Jumlah hari
-            'izin'  => 1,  // Jumlah hari
-            'alpha' => 0,  // Jumlah hari
+            'hadir' => Attendance::where('student_id', $student->id)->where('status', 'Hadir')->count() * 10, // mock percentage 
+            'sakit' => Attendance::where('student_id', $student->id)->where('status', 'Sakit')->count(),
+            'izin'  => Attendance::where('student_id', $student->id)->where('status', 'Izin')->count(),
+            'alpha' => Attendance::where('student_id', $student->id)->where('status', 'Alpha')->count(),
         ];
 
-        // Tugas Aktif (Belum dikerjakan / Deadline dekat)
-        $tugas_aktif = [
-            ['mapel' => 'Matematika', 'judul' => 'Latihan Soal Aljabar', 'deadline' => '2023-10-25', 'status' => 'Belum'],
-            ['mapel' => 'Fisika', 'judul' => 'Laporan Praktikum', 'deadline' => '2023-10-27', 'status' => 'Proses'],
-            ['mapel' => 'Bahasa Inggris', 'judul' => 'Essay Writing', 'deadline' => '2023-10-28', 'status' => 'Belum'],
-        ];
+        $tugas_aktif = Assignment::whereHas('subject', function($q) use($student) {
+                $q->whereHas('schedules', fn($sq) => $sq->where('kelas', $student->kelas));
+            })->get()->map(function($t) use($student) {
+                $sa = StudentAssignment::where('student_id', $student->id)->where('assignment_id', $t->id)->first();
+                return [
+                    'mapel' => $t->subject->nama,
+                    'judul' => $t->judul,
+                    'deadline' => $t->deadline,
+                    'status' => $sa ? $sa->status : 'Belum'
+                ];
+            });
 
-        // Pengumuman Terbaru
-        $pengumuman = [
-            ['judul' => 'Libur Nasional Hari Pahlawan', 'tanggal' => '2023-10-20', 'isi' => 'Sekolah diliburkan pada tanggal 10 November unt...'],
-            ['judul' => 'Jadwal Ujian Tengah Semester', 'tanggal' => '2023-10-15', 'isi' => 'Ujian Tengah Semester akan dilaksanakan mulai...'],
-        ];
+        $pengumuman = Event::where('tipe_info', 'Pengumuman')->latest()->take(2)->get()->map(function($e) {
+            return ['judul' => $e->judul, 'tanggal' => $e->tanggal_pelaksanaan, 'isi' => substr($e->deskripsi, 0, 50) . '...'];
+        });
 
         return view('siswa.dashboard.index', compact('jadwal_hari_ini', 'kehadiran', 'tugas_aktif', 'pengumuman'));
     }
+
     public function akademikJadwal()
     {
-        $jadwal = [
-            'Senin' => [
-                ['jam' => '07:00 - 08:30', 'mapel' => 'Matematika', 'guru' => 'Budi Santoso'],
-                ['jam' => '08:30 - 10:00', 'mapel' => 'Bahasa Indonesia', 'guru' => 'Siti Aminah'],
-            ],
-            'Selasa' => [
-                ['jam' => '07:00 - 08:30', 'mapel' => 'Fisika', 'guru' => 'Agus Dermawan'],
-                ['jam' => '08:30 - 10:00', 'mapel' => 'Kimia', 'guru' => 'Ratna Sari'],
-            ],
-            'Rabu' => [
-                ['jam' => '07:00 - 08:30', 'mapel' => 'Biologi', 'guru' => 'Eko Prasetyo'],
-                ['jam' => '08:30 - 10:00', 'mapel' => 'Sejarah', 'guru' => 'Dewi Lestari'],
-            ],
-            'Kamis' => [
-                ['jam' => '07:00 - 08:30', 'mapel' => 'Bahasa Inggris', 'guru' => 'John Doe'],
-                ['jam' => '08:30 - 10:00', 'mapel' => 'Seni Budaya', 'guru' => 'Rina Wati'],
-            ],
-            'Jumat' => [
-                ['jam' => '07:00 - 08:30', 'mapel' => 'Penjaskes', 'guru' => 'Bambang Pamungkas'],
-                ['jam' => '08:30 - 10:00', 'mapel' => 'Prakarya', 'guru' => 'Sri Wahyuni'],
-            ],
-        ];
+        $student = $this->getStudent();
+        $schedules = Schedule::where('kelas', $student->kelas)->with('subject.teacher')->get();
+        $jadwal = [];
+        foreach (['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'] as $hari) {
+            $jadwal[$hari] = $schedules->where('hari', $hari)->map(function($j){
+                return ['jam' => $j->jam_mulai . ' - ' . $j->jam_selesai, 'mapel' => $j->subject->nama, 'guru' => $j->subject->teacher->nama ?? '-'];
+            })->values()->toArray();
+        }
         return view('siswa.akademik.jadwal', compact('jadwal'));
     }
 
     public function akademikTugas()
     {
-        $tugas = [
-            ['mapel' => 'Matematika', 'judul' => 'Latihan Soal Aljabar', 'deadline' => '2023-10-25', 'status' => 'Belum', 'deskripsi' => 'Kerjakan halaman 10-12 buku paket.'],
-            ['mapel' => 'Fisika', 'judul' => 'Laporan Praktikum', 'deadline' => '2023-10-27', 'status' => 'Proses', 'deskripsi' => 'Buat laporan praktikum hukum newton.'],
-            ['mapel' => 'Bahasa Inggris', 'judul' => 'Essay Writing', 'deadline' => '2023-10-28', 'status' => 'Selesai', 'deskripsi' => 'Write an essay about your holiday.'],
-             ['mapel' => 'Biologi', 'judul' => 'Gambar Sel Hewan', 'deadline' => '2023-10-30', 'status' => 'Belum', 'deskripsi' => 'Gambar dan jelaskan bagian sel hewan di kertas A3.'],
-        ];
+        $student = $this->getStudent();
+        $class = \App\Models\SchoolClass::where('nama_kelas', $student->kelas)->first();
+        $classId = $class ? $class->id : 0;
+
+        $tugas = Assignment::where('school_class_id', $classId)->get()->map(function($t) use($student) {
+                $sa = StudentAssignment::where('student_id', $student->id)->where('assignment_id', $t->id)->first();
+                return [
+                    'mapel' => $t->subject->nama,
+                    'judul' => $t->judul,
+                    'deadline' => $t->deadline,
+                    'status' => $sa ? $sa->status : 'Belum',
+                    'deskripsi' => $t->deskripsi
+                ];
+            });
         return view('siswa.akademik.tugas', compact('tugas'));
     }
 
     public function akademikNilai()
     {
-        $nilai = [
-            ['mapel' => 'Matematika', 'uh' => 85, 'uts' => 80, 'uas' => 88, 'akhir' => 85],
-            ['mapel' => 'Bahasa Indonesia', 'uh' => 90, 'uts' => 88, 'uas' => 92, 'akhir' => 90],
-            ['mapel' => 'Fisika', 'uh' => 78, 'uts' => 75, 'uas' => 80, 'akhir' => 78],
-            ['mapel' => 'Kimia', 'uh' => 82, 'uts' => 80, 'uas' => 85, 'akhir' => 82],
-            ['mapel' => 'Biologi', 'uh' => 88, 'uts' => 85, 'uas' => 90, 'akhir' => 88],
-        ];
+        $student = $this->getStudent();
+        $nilai = Grade::where('student_id', $student->id)->with('subject')->get()->map(function($g){
+            return [
+                'mapel' => $g->subject->nama,
+                'uh' => $g->nilai_uh,
+                'uts' => $g->nilai_uts,
+                'uas' => $g->nilai_uas,
+                'akhir' => $g->nilai_akhir
+            ];
+        });
         return view('siswa.akademik.nilai', compact('nilai'));
     }
 
     public function kehadiranRiwayat()
     {
-        $riwayat = [
-            ['tanggal' => '2023-10-24', 'jam_masuk' => '06:55', 'jam_pulang' => '14:00', 'status' => 'Hadir', 'keterangan' => '-'],
-            ['tanggal' => '2023-10-23', 'jam_masuk' => '06:58', 'jam_pulang' => '14:05', 'status' => 'Hadir', 'keterangan' => '-'],
-            ['tanggal' => '2023-10-20', 'jam_masuk' => '-', 'jam_pulang' => '-', 'status' => 'Izin', 'keterangan' => 'Acara Keluarga'],
-            ['tanggal' => '2023-10-19', 'jam_masuk' => '06:50', 'jam_pulang' => '14:00', 'status' => 'Hadir', 'keterangan' => '-'],
-            ['tanggal' => '2023-10-18', 'jam_masuk' => '07:05', 'jam_pulang' => '14:10', 'status' => 'Terlambat', 'keterangan' => 'Ban bocor'],
-        ];
+        $student = $this->getStudent();
+        $riwayat = Attendance::where('student_id', $student->id)->orderByDesc('tanggal')->get();
         return view('siswa.kehadiran.riwayat', compact('riwayat'));
     }
 
     public function kehadiranIzin()
     {
-        $riwayat_izin = [
-            ['tanggal_mulai' => '2023-10-20', 'tanggal_selesai' => '2023-10-20', 'jenis' => 'Izin', 'keterangan' => 'Acara Keluarga', 'status' => 'Disetujui'],
-            ['tanggal_mulai' => '2023-09-15', 'tanggal_selesai' => '2023-09-17', 'jenis' => 'Sakit', 'keterangan' => 'Demam Tinggi', 'status' => 'Disetujui'],
-        ];
+        $riwayat_izin = []; // Can be derived or separate table, mock for now
         return view('siswa.kehadiran.izin', compact('riwayat_izin'));
     }
 
     public function kehadiranRekap()
     {
         $rekap = [
-            ['bulan' => 'Oktober', 'hadir' => 20, 'sakit' => 0, 'izin' => 1, 'alpha' => 0, 'terlambat' => 1],
-            ['bulan' => 'September', 'hadir' => 22, 'sakit' => 2, 'izin' => 0, 'alpha' => 0, 'terlambat' => 0],
-            ['bulan' => 'Agustus', 'hadir' => 23, 'sakit' => 0, 'izin' => 0, 'alpha' => 0, 'terlambat' => 2],
-            ['bulan' => 'Juli', 'hadir' => 15, 'sakit' => 0, 'izin' => 0, 'alpha' => 0, 'terlambat' => 0],
+            ['bulan' => 'Oktober', 'hadir' => 20, 'sakit' => 0, 'izin' => 1, 'alpha' => 0, 'terlambat' => 0],
         ];
         return view('siswa.kehadiran.rekap', compact('rekap'));
     }
+
     public function kegiatanEvent()
     {
-        $events = [
-            ['judul' => 'Pentas Seni Tahunan', 'tanggal' => '2023-11-15', 'lokasi' => 'Aula Utama', 'deskripsi' => 'Pertunjukan seni dari seluruh siswa.', 'gambar' => 'pensi.jpg'],
-            ['judul' => 'Lomba 17 Agustus', 'tanggal' => '2023-08-17', 'lokasi' => 'Lapangan Sekolah', 'deskripsi' => 'Berbagai lomba tradisional memeriahkan kemerdekaan.', 'gambar' => 'lomba.jpg'],
-            ['judul' => 'Seminar Pendidikan', 'tanggal' => '2023-10-05', 'lokasi' => 'Ruang Multimedia', 'deskripsi' => 'Seminar tentang pentingnya teknologi dalam pendidikan.', 'gambar' => 'seminar.jpg'],
-        ];
+        $events = Event::where('tipe_info', 'Event')->get();
         return view('siswa.kegiatan.event', compact('events'));
     }
 
     public function kegiatanAgenda()
     {
-        $agenda = [
-            ['tanggal' => '2023-10-25', 'kegiatan' => 'Upacara Sumpah Pemuda', 'waktu' => '07:00 - 08:00', 'tempat' => 'Lapangan Utama'],
-            ['tanggal' => '2023-10-27', 'kegiatan' => 'Kerja Bakti Sekolah', 'waktu' => '08:00 - 10:00', 'tempat' => 'Lingkungan Sekolah'],
-            ['tanggal' => '2023-11-01', 'kegiatan' => 'Ujian Tengah Semester', 'waktu' => '07:30 - 12:00', 'tempat' => 'Ruang Kelas'],
-        ];
+        $agenda = Event::where('tipe_info', 'Agenda')->get()->map(function($e){
+            return ['tanggal' => $e->tanggal_pelaksanaan, 'kegiatan' => $e->judul, 'waktu' => $e->waktu_pelaksanaan, 'tempat' => $e->lokasi];
+        });
         return view('siswa.kegiatan.agenda', compact('agenda'));
     }
 
     public function kegiatanDokumentasi()
     {
-        $dokumentasi = [
-            ['judul' => 'Kunjungan Industri 2023', 'tanggal' => '2023-09-10', 'gambar' => 'kunjungan.jpg'],
-            ['judul' => 'Class Meeting Semester Genap', 'tanggal' => '2023-06-15', 'gambar' => 'classmeet.jpg'],
-            ['judul' => 'Perpisahan Kelas XII', 'tanggal' => '2023-05-20', 'gambar' => 'perpisahan.jpg'],
-            ['judul' => 'Study Tour Bali', 'tanggal' => '2023-04-10', 'gambar' => 'bali.jpg'],
-            ['judul' => 'Buka Bersama OSIS', 'tanggal' => '2023-03-25', 'gambar' => 'bukber.jpg'],
-            ['judul' => 'Hari Guru Nasional', 'tanggal' => '2022-11-25', 'gambar' => 'hariguru.jpg'],
-        ];
+        $dokumentasi = Event::where('tipe_info', 'Dokumentasi')->get();
         return view('siswa.kegiatan.dokumentasi', compact('dokumentasi'));
     }
 
     public function pembelajaranMateri()
     {
-        $materi = [
-            ['mapel' => 'Matematika', 'judul' => 'Bab 3: Aljabar Linear', 'guru' => 'Budi Santoso', 'tanggal' => '2023-10-20', 'file' => 'aljabar-linear.pdf', 'ukuran' => '2.5 MB'],
-            ['mapel' => 'Fisika', 'judul' => 'Hukum Newton II', 'guru' => 'Agus Dermawan', 'tanggal' => '2023-10-18', 'file' => 'hukum-newton.pptx', 'ukuran' => '5.1 MB'],
-            ['mapel' => 'Bahasa Inggris', 'judul' => 'Tenses Cheat Sheet', 'guru' => 'John Doe', 'tanggal' => '2023-10-15', 'file' => 'tenses.pdf', 'ukuran' => '1.2 MB'],
-            ['mapel' => 'Biologi', 'judul' => 'Struktur Sel', 'guru' => 'Eko Prasetyo', 'tanggal' => '2023-10-12', 'file' => 'sel.pdf', 'ukuran' => '3.0 MB'],
-        ];
+        $student = $this->getStudent();
+        $class = \App\Models\SchoolClass::where('nama_kelas', $student->kelas)->first();
+        $classId = $class ? $class->id : 0;
+
+        $materi = LearningMaterial::where('school_class_id', $classId)->with('subject.teacher')->get()->map(function($m){
+            return [
+                'mapel' => $m->subject->nama,
+                'judul' => $m->judul,
+                'guru' => $m->subject->teacher->nama ?? '-',
+                'tanggal' => $m->tanggal_upload,
+                'file' => $m->file_path,
+                'ukuran' => $m->ukuran_file
+            ];
+        });
         return view('siswa.pembelajaran.materi', compact('materi'));
     }
 
     public function pembelajaranTugas()
     {
-        // Tugas yang belum dikerjakan bisa diambil dari sini atau query DB
-        $tugas_pending = [
-            ['id' => 1, 'mapel' => 'Matematika', 'judul' => 'Latihan Soal Aljabar', 'deadline' => '2023-10-25', 'deskripsi' => 'Kerjakan di kertas folio, scan, dan upload.'],
-            ['id' => 2, 'mapel' => 'Biologi', 'judul' => 'Gambar Sel Hewan', 'deadline' => '2023-10-30', 'deskripsi' => 'Gambar manual dan foto hasilnya.'],
-        ];
+        $student = $this->getStudent();
+        $class = \App\Models\SchoolClass::where('nama_kelas', $student->kelas)->first();
+        $classId = $class ? $class->id : 0;
+
+        $tugas_pending = Assignment::where('school_class_id', $classId)
+            ->whereDoesntHave('studentAssignments', function($q) use($student) {
+                $q->where('student_id', $student->id);
+            })->get();
+            
         return view('siswa.pembelajaran.tugas', compact('tugas_pending'));
+    }
+
+    public function submitTugas(Request $request, $id)
+    {
+        $request->validate([
+            'file' => 'required|file|max:10240', // 10MB limit
+        ]);
+
+        $student = $this->getStudent();
+        $file = $request->file('file');
+        $fileName = time() . '_' . $file->getClientOriginalName();
+        $filePath = $file->storeAs('kbm/jawaban', $fileName, 'public');
+
+        StudentAssignment::create([
+            'student_id' => $student->id,
+            'assignment_id' => $id,
+            'tanggal_kumpul' => now()->toDateTimeString(),
+            'file_jawaban' => $filePath,
+            'status' => 'Terkumpul'
+        ]);
+
+        return redirect()->back()->with('success', 'Jawaban berhasil diunggah!');
     }
 
     public function pembelajaranNilai()
     {
-        $nilai_tugas = [
-            ['mapel' => 'Bahasa Inggris', 'judul' => 'Essay Writing', 'tanggal_kumpul' => '2023-10-18', 'nilai' => 88, 'feedback' => 'Good grammar, but pay attention to structure.', 'status' => 'Dinilai'],
-            ['mapel' => 'Fisika', 'judul' => 'Laporan Praktikum', 'tanggal_kumpul' => '2023-10-15', 'nilai' => 90, 'feedback' => 'Laporan sangat lengkap.', 'status' => 'Dinilai'],
-            ['mapel' => 'Kimia', 'judul' => 'Tabel Periodik', 'tanggal_kumpul' => '2023-10-10', 'nilai' => null, 'feedback' => null, 'status' => 'Menunggu Penilaian'],
-        ];
+        $student = $this->getStudent();
+        $nilai_tugas = StudentAssignment::where('student_id', $student->id)->with('assignment.subject')->get()->map(function($sa) {
+            return [
+                'mapel' => $sa->assignment->subject->nama,
+                'judul' => $sa->assignment->judul,
+                'tanggal_kumpul' => $sa->tanggal_kumpul,
+                'nilai' => $sa->nilai,
+                'feedback' => $sa->feedback,
+                'status' => 'Dinilai'
+            ];
+        });
         return view('siswa.pembelajaran.nilai', compact('nilai_tugas'));
     }
 
     public function perpustakaanKatalog()
     {
-        $buku = [
-            ['judul' => 'Laskar Pelangi', 'penulis' => 'Andrea Hirata', 'kategori' => 'Novel', 'stok' => 5, 'gambar' => 'laskar-pelangi.jpg'],
-            ['judul' => 'Bumi', 'penulis' => 'Tere Liye', 'kategori' => 'Fiksi', 'stok' => 3, 'gambar' => 'bumi.jpg'],
-            ['judul' => 'Filosofi Teras', 'penulis' => 'Henry Manampiring', 'kategori' => 'Self Improvement', 'stok' => 8, 'gambar' => 'filosofi-teras.jpg'],
-            ['judul' => 'Atomic Habits', 'penulis' => 'James Clear', 'kategori' => 'Self Improvement', 'stok' => 2, 'gambar' => 'atomic-habits.jpg'],
-            ['judul' => 'Sejarah Dunia yang Disembunyikan', 'penulis' => 'Jonathan Black', 'kategori' => 'Sejarah', 'stok' => 1, 'gambar' => 'sejarah.jpg'],
-        ];
+        $buku = Book::all();
         return view('siswa.perpustakaan.katalog', compact('buku'));
     }
 
     public function perpustakaanPinjam()
     {
-        // Data buku untuk dropdown
-        $buku_list = [
-            'Laskar Pelangi', 'Bumi', 'Filosofi Teras', 'Atomic Habits', 'Sejarah Dunia yang Disembunyikan'
-        ];
+        $buku_list = Book::pluck('judul')->toArray();
         return view('siswa.perpustakaan.pinjam', compact('buku_list'));
     }
 
     public function perpustakaanRiwayat()
     {
-        $riwayat_pinjam = [
-            ['judul' => 'Bumi', 'tgl_pinjam' => '2023-10-01', 'tgl_kembali' => '2023-10-08', 'status' => 'Dikembalikan', 'denda' => 0],
-            ['judul' => 'Laskar Pelangi', 'tgl_pinjam' => '2023-10-15', 'tgl_kembali' => '2023-10-22', 'status' => 'Dipinjam', 'denda' => 0],
-            ['judul' => 'Atomic Habits', 'tgl_pinjam' => '2023-09-01', 'tgl_kembali' => '2023-09-08', 'status' => 'Terlambat', 'denda' => 5000],
-        ];
+        $student = $this->getStudent();
+        $riwayat_pinjam = BookLoan::where('student_id', $student->id)->with('book')->get()->map(function($b){
+            return [
+                'judul' => $b->book->judul,
+                'tgl_pinjam' => $b->tanggal_pinjam,
+                'tgl_kembali' => $b->tanggal_kembali,
+                'status' => $b->status,
+                'denda' => $b->denda
+            ];
+        });
         return view('siswa.perpustakaan.riwayat', compact('riwayat_pinjam'));
     }
 
     public function profilBiodata()
     {
+        $student = $this->getStudent();
         $siswa = [
-            'nama' => 'Kevin Ferdiansyah',
-            'nis' => '12345678',
+            'nama' => $student->nama,
+            'nis' => $student->nis,
             'nisn' => '0012345678',
             'tempat_lahir' => 'Jakarta',
             'tanggal_lahir' => '2006-05-15',
             'jenis_kelamin' => 'Laki-laki',
             'agama' => 'Islam',
-            'alamat' => 'Jl. Merdeka No. 10, Jakarta Selatan',
+            'alamat' => 'Jl. Merdeka No. 10',
             'telepon' => '081234567890',
-            'email' => 'siswa@gmail.com',
-            'kelas' => 'XII IPA 1',
-            'foto' => 'https://ui-avatars.com/api/?name=Kevin+Ferdiansyah&background=0D8ABC&color=fff',
+            'email' => 'siswa@goedu.com',
+            'kelas' => $student->kelas,
+            'foto' => 'https://ui-avatars.com/api/?name='.urlencode($student->nama).'&background=0D8ABC&color=fff',
         ];
         return view('siswa.profil.biodata', compact('siswa'));
     }
 
     public function profilOrangtua()
     {
+        $student = $this->getStudent();
+        $p = $student->parentProfile; // need to ensure relationship exisits
         $orangtua = [
-            'ayah' => [
-                'nama' => 'Budi Santoso',
-                'pekerjaan' => 'Wiraswasta',
-                'telepon' => '081122334455',
-                'alamat' => 'Jl. Merdeka No. 10, Jakarta Selatan'
-            ],
-            'ibu' => [
-                'nama' => 'Siti Aminah',
-                'pekerjaan' => 'Ibu Rumah Tangga',
-                'telepon' => '081122334466',
-                'alamat' => 'Jl. Merdeka No. 10, Jakarta Selatan'
-            ],
-            'wali' => [
-                'nama' => '-',
-                'pekerjaan' => '-',
-                'telepon' => '-',
-                'alamat' => '-'
-            ]
+            'ayah' => ['nama' => $p->nama_ayah ?? '-', 'pekerjaan' => $p->pekerjaan_ayah ?? '-', 'telepon' => $p->telepon_ayah ?? '-', 'alamat' => $p->alamat ?? '-'],
+            'ibu' => ['nama' => $p->nama_ibu ?? '-', 'pekerjaan' => $p->pekerjaan_ibu ?? '-', 'telepon' => $p->telepon_ibu ?? '-', 'alamat' => $p->alamat ?? '-'],
+            'wali' => ['nama' => '-', 'pekerjaan' => '-', 'telepon' => '-', 'alamat' => '-']
         ];
         return view('siswa.profil.orangtua', compact('orangtua'));
     }

@@ -319,16 +319,14 @@
       <h2 class="hidden lg:block font-bold text-2xl text-foreground">Dashboard Siswa</h2>
       <!-- Right actions -->
       <div class="flex items-center gap-3 ml-auto">
-        <button class="size-11 flex items-center justify-center rounded-xl ring-1 ring-border hover:ring-primary transition-all duration-300 cursor-pointer relative" aria-label="Notifications">
-          <i data-lucide="bell" class="size-6 text-secondary"></i>
-          <span class="absolute -top-1 -right-1 h-5 px-1.5 rounded-full bg-error text-white text-xs font-medium flex items-center justify-center">2</span>
-        </button>
+        @include('components.notification-dropdown')
         <div class="hidden md:flex items-center gap-3 pl-3 border-l border-border">
-          <div class="text-right">
-            <p class="font-semibold text-foreground text-sm">Siswa</p>
-            <p class="text-secondary text-xs">Pelajar</p>
-          </div>
-          <img src="https://ui-avatars.com/api/?name=Siswa&background=random" alt="Profile" class="size-11 rounded-full object-cover ring-2 ring-border">
+          @include('components.profile-dropdown', [
+              'userName' => 'Siswa',
+              'userRole' => 'Pelajar',
+              'userEmail' => 'siswa@gmail.com',
+              'userPhoto' => 'https://ui-avatars.com/api/?name=Siswa&background=165DFF&color=fff&size=100'
+          ])
         </div>
       </div>
     </div>

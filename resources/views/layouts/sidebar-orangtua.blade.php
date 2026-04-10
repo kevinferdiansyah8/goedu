@@ -349,16 +349,14 @@ function toggleAkademik() {
       <h2 class="hidden lg:block font-bold text-2xl text-foreground">Dashboard Orang Tua</h2>
       <!-- Right actions -->
       <div class="flex items-center gap-3 ml-auto">
-        <button class="size-11 flex items-center justify-center rounded-xl ring-1 ring-border hover:ring-primary transition-all duration-300 cursor-pointer relative" aria-label="Notifications">
-          <i data-lucide="bell" class="size-6 text-secondary"></i>
-          <span class="absolute -top-1 -right-1 h-5 px-1.5 rounded-full bg-error text-white text-xs font-medium flex items-center justify-center">3</span>
-        </button>
+        @include('components.notification-dropdown')
         <div class="hidden md:flex items-center gap-3 pl-3 border-l border-border">
-          <div class="text-right">
-            <p class="font-semibold text-foreground text-sm">Bapak/Ibu Orang Tua</p>
-            <p class="text-secondary text-xs">Wali Murid</p>
-          </div>
-          <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop" alt="Profile" class="size-11 rounded-full object-cover ring-2 ring-border">
+          @include('components.profile-dropdown', [
+              'userName' => 'Bapak/Ibu Orang Tua',
+              'userRole' => 'Wali Murid',
+              'userEmail' => 'ortu@gmail.com',
+              'userPhoto' => 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop'
+          ])
         </div>
       </div>
     </div>

@@ -24,6 +24,8 @@
     @include('layouts.sidebar-orangtua')
   @elseif(session('role') === 'siswa')
     @include('layouts.sidebar-siswa')
+  @elseif(session('role') === 'keuangan')
+    @include('layouts.sidebar-keuangan')
   @endif
 
   {{-- MAIN CONTENT --}}

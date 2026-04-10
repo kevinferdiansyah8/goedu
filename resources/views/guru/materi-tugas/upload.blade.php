@@ -33,12 +33,33 @@
         </div>
 
         <form 
-            action="{{ route('guru.materi.upload.store') }}" 
+            action="{{ route('guru.materi.store') }}" 
             method="POST" 
             enctype="multipart/form-data"
             class="space-y-7">
             
             @csrf
+
+            <!-- Mata Pelajaran Input -->
+            <div class="group">
+                <div class="flex items-center mb-3">
+                    <div class="w-2 h-5 bg-gradient-to-b from-blue-500 to-indigo-600 rounded-full mr-3"></div>
+                    <label class="text-sm font-semibold text-gray-800">Mata Pelajaran</label>
+                </div>
+                <div class="relative">
+                    <select name="subject_id" required class="w-full px-5 py-4 bg-gray-50 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:bg-white transition-all duration-300 appearance-none outline-none hover:border-gray-300">
+                        <option value="" class="text-gray-400">-- Pilih Mata Pelajaran --</option>
+                        @foreach($subjects as $s)
+                        <option value="{{ $s->id }}" class="py-2">{{ $s->nama }}</option>
+                        @endforeach
+                    </select>
+                    <div class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none">
+                        <svg class="h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                </div>
+            </div>
 
             <!-- Kelas Input -->
             <div class="group">
@@ -47,13 +68,11 @@
                     <label class="text-sm font-semibold text-gray-800">Kelas</label>
                 </div>
                 <div class="relative">
-                    <select name="kelas" class="w-full px-5 py-4 bg-gray-50 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:bg-white transition-all duration-300 appearance-none outline-none hover:border-gray-300">
+                    <select name="school_class_id" required class="w-full px-5 py-4 bg-gray-50 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:bg-white transition-all duration-300 appearance-none outline-none hover:border-gray-300">
                         <option value="" class="text-gray-400">-- Pilih Kelas --</option>
-                        <option value="X IPA 1" class="py-2">X IPA 1</option>
-                        <option value="X IPA 2" class="py-2">X IPA 2</option>
-                        <option value="X IPA 3" class="py-2">X IPA 3</option>
-                        <option value="XI IPA 1" class="py-2">XI IPA 1</option>
-                        <option value="XI IPA 2" class="py-2">XI IPA 2</option>
+                        @foreach($kelas as $k)
+                        <option value="{{ $k->id }}" class="py-2">{{ $k->tingkat }} - {{ $k->nama_kelas }}</option>
+                        @endforeach
                     </select>
                     <div class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none">
                         <svg class="h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">

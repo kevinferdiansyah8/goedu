@@ -3,44 +3,78 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\Student;
+use App\Models\ParentProfile;
+use App\Models\Attendance;
+use App\Models\Grade;
+use App\Models\SppBill;
+use App\Models\Transaction;
+use App\Models\Assignment;
+use App\Models\StudentAssignment;
+use App\Models\Schedule;
+use App\Models\Event;
 
 class OrangtuaController extends Controller
 {
+    // Mock user session fetching for Parent
+    private function getStudent() {
+        return Student::first(); // Assuming the parent is viewing their first child
+    }
+
     public function monitoringPresensi()
     {
-        return view('orangtua.monitoring.presensi');
+        $student = $this->getStudent();
+        $kehadiran = [
+            'hadir' => Attendance::where('student_id', $student->id)->where('status', 'Hadir')->count() * 10,
+            'sakit' => Attendance::where('student_id', $student->id)->where('status', 'Sakit')->count(),
+            'izin'  => Attendance::where('student_id', $student->id)->where('status', 'Izin')->count(),
+            'alpha' => Attendance::where('student_id', $student->id)->where('status', 'Alpha')->count(),
+        ];
+        return view('orangtua.monitoring.presensi', compact('kehadiran'));
     }
 
     public function monitoringNilai()
     {
-        return view('orangtua.monitoring.nilai');
+        $student = $this->getStudent();
+        $nilai = Grade::where('student_id', $student->id)->with('subject')->get();
+        return view('orangtua.monitoring.nilai', compact('nilai'));
     }
 
     public function monitoringSpp()
     {
-        return view('orangtua.monitoring.spp');
+        $student = $this->getStudent();
+        $tagihan = SppBill::where('student_id', $student->id)->get();
+        return view('orangtua.monitoring.spp', compact('tagihan'));
     }
 
     // Monitoring Akademik
     public function akademikTugas()
     {
-        return view('orangtua.akademik.tugas');
+        $student = $this->getStudent();
+        $tugas = StudentAssignment::where('student_id', $student->id)->with('assignment.subject')->get();
+        return view('orangtua.akademik.tugas', compact('tugas'));
     }
 
     public function akademikRapor()
     {
-        return view('orangtua.akademik.rapor');
+        $student = $this->getStudent();
+        $rapor = Grade::where('student_id', $student->id)->with('subject')->get();
+        return view('orangtua.akademik.rapor', compact('rapor'));
     }
 
     public function akademikJadwal()
     {
-        return view('orangtua.akademik.jadwal');
+        $student = $this->getStudent();
+        $jadwal = Schedule::where('kelas', $student->kelas)->with('subject.teacher')->get();
+        return view('orangtua.akademik.jadwal', compact('jadwal'));
     }
 
     // Absensi Anak
     public function absensiRiwayat()
     {
-        return view('orangtua.absensi.riwayat');
+        $student = $this->getStudent();
+        $riwayat = Attendance::where('student_id', $student->id)->orderByDesc('tanggal')->get();
+        return view('orangtua.absensi.riwayat', compact('riwayat'));
     }
 
     public function absensiIzin()
@@ -56,12 +90,19 @@ class OrangtuaController extends Controller
     // Keuangan
     public function keuanganTagihan()
     {
-        return view('orangtua.keuangan.tagihan');
+        $student = $this->getStudent();
+        $tagihan = SppBill::where('student_id', $student->id)->get();
+        return view('orangtua.keuangan.tagihan', compact('tagihan'));
     }
 
     public function keuanganRiwayat()
     {
-        return view('orangtua.keuangan.riwayat');
+        $student = $this->getStudent();
+        $riwayat = Transaction::where('transactionable_type', SppBill::class)
+            ->whereHasMorph('transactionable', [SppBill::class], function($q) use($student){
+                $q->where('student_id', $student->id);
+            })->get();
+        return view('orangtua.keuangan.riwayat', compact('riwayat'));
     }
 
     public function keuanganBukti()
@@ -72,28 +113,34 @@ class OrangtuaController extends Controller
     // Kegiatan & Info
     public function kegiatanAgenda()
     {
-        return view('orangtua.kegiatan.agenda');
+        $agenda = Event::where('tipe_info', 'Agenda')->get();
+        return view('orangtua.kegiatan.agenda', compact('agenda'));
     }
 
     public function kegiatanEvent()
     {
-        return view('orangtua.kegiatan.event');
+        $events = Event::where('tipe_info', 'Event')->get();
+        return view('orangtua.kegiatan.event', compact('events'));
     }
 
     public function kegiatanPengumuman()
     {
-        return view('orangtua.kegiatan.pengumuman');
+        $pengumuman = Event::where('tipe_info', 'Pengumuman')->get();
+        return view('orangtua.kegiatan.pengumuman', compact('pengumuman'));
     }
 
     // Profil Orang Tua
     public function profilDataDiri()
     {
-        return view('orangtua.profil.datadiri');
+        $student = $this->getStudent();
+        $profil = $student->parentProfile;
+        return view('orangtua.profil.datadiri', compact('profil'));
     }
 
     public function profilDataAnak()
     {
-        return view('orangtua.profil.dataanak');
+        $student = $this->getStudent();
+        return view('orangtua.profil.dataanak', compact('student'));
     }
 
     public function profilPassword()
