@@ -315,6 +315,9 @@ Route::prefix('guru')->name('guru.')->group(function () {
         Route::delete('/mata-pelajaran/{id}', [\App\Http\Controllers\GuruController::class, 'destroyMataPelajaran'])->name('mata-pelajaran.destroy');
 
         Route::get('/jadwal-mengajar', [\App\Http\Controllers\GuruController::class, 'jadwalMengajar'])->name('jadwal-mengajar');
+        Route::post('/jadwal-mengajar', [\App\Http\Controllers\GuruController::class, 'storeSchedule'])->name('jadwal-mengajar.store');
+        Route::put('/jadwal-mengajar/{id}', [\App\Http\Controllers\GuruController::class, 'updateSchedule'])->name('jadwal-mengajar.update');
+        Route::delete('/jadwal-mengajar/{id}', [\App\Http\Controllers\GuruController::class, 'destroySchedule'])->name('jadwal-mengajar.destroy');
         Route::get('/kelas-siswa', [\App\Http\Controllers\GuruController::class, 'kelasSiswa'])->name('kelas');
         
         // Student Management

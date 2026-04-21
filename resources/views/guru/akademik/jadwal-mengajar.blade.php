@@ -5,15 +5,24 @@
 @section('content')
 <div class="min-h-screen bg-gray-50/50 pb-10" x-data="jadwalPage()">
     
+    @if(request('subject_id'))
+        <x-academic-flow-nav :active-step="2" :subject-id="request('subject_id')" />
+    @endif
+
     {{-- HEADER SECTION --}}
-    <div class="mb-8 flex justify-between items-end">
+    <div class="mb-8 flex flex-col md:flex-row md:items-end md:justify-between gap-4">
         <div>
             <h1 class="text-3xl font-bold text-gray-900 tracking-tight">Jadwal Mengajar</h1>
-            <p class="text-sm text-gray-500 mt-1">Jadwal kegiatan belajar mengajar berdasarkan data akademik terbaru.</p>
+            <p class="text-sm text-gray-500 mt-1">Kelola hari, jam, dan kelas kegiatan belajar mengajar Anda.</p>
         </div>
-        <div class="text-right hidden md:block">
-            <div class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Hari Ini</div>
-            <div class="text-lg font-bold text-indigo-600">{{ \Carbon\Carbon::now()->translatedFormat('l, d F Y') }}</div>
+        <div class="flex items-center gap-3">
+            <button @click="openModal()" class="px-5 py-2.5 bg-indigo-600 text-white rounded-xl font-bold text-sm hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100 flex items-center gap-2">
+                <i data-lucide="plus-circle" class="w-4 h-4 text-white"></i> Tambah Jadwal
+            </button>
+            <div class="text-right hidden xl:block border-l border-gray-200 pl-4 ml-2">
+                <div class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Hari Ini</div>
+                <div class="text-lg font-bold text-indigo-600 leading-none">{{ \Carbon\Carbon::now()->translatedFormat('l, d F Y') }}</div>
+            </div>
         </div>
     </div>
 
@@ -95,13 +104,27 @@
 
                 <h3 class="text-xl font-bold text-gray-900 mb-1" x-text="s.subject"></h3>
                 <div class="flex items-center text-xs text-gray-400 font-medium mb-6 gap-4">
-                    <div class="flex items-center gap-1"><i data-lucide="users" class="w-3.5 h-3.5"></i> <span x-text="s.class"></span></div>
+                    <div class="flex items-center gap-1"><i data-lucide="users" class="w-3.5 h-3.5"></i> <span x-text="s.kelas"></span></div>
                     <div class="flex items-center gap-1"><i data-lucide="map-pin" class="w-3.5 h-3.5"></i> <span x-text="s.room"></span></div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-2 translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
-                    <a href="{{ route('guru.absensi.pertemuan') }}" class="px-3 py-2 bg-indigo-600 text-white text-[10px] font-bold rounded-lg text-center hover:bg-indigo-700 transition-colors">MULAI ABSENSI</a>
-                    <a href="{{ route('guru.akademik.nilai.tugas') }}" class="px-3 py-2 bg-gray-900 text-white text-[10px] font-bold rounded-lg text-center hover:bg-black transition-colors">INPUT NILAI</a>
+                <div class="flex justify-between items-center mt-auto">
+                    <div class="flex gap-2">
+                        <button @click="openModal(s)" class="p-2 bg-gray-50 text-gray-500 rounded-lg hover:bg-gray-100 transition-colors" title="Edit Jadwal">
+                            <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
+                        </button>
+                        <form :action="'{{ route('guru.akademik.jadwal-mengajar.destroy', ['id' => 'ID_PLACEHOLDER']) }}'.replace('ID_PLACEHOLDER', s.id)" method="POST" onsubmit="return confirm('Hapus jadwal ini?')">
+                            @csrf @method('DELETE')
+                            <button type="submit" class="p-2 bg-rose-50 text-rose-500 rounded-lg hover:bg-rose-100 transition-colors" title="Hapus Jadwal">
+                                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2 mt-4 translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
+                    <a :href="'{{ route('guru.absensi.pertemuan') }}?subject_id=' + s.subject_id + '&class_id=' + s.class_id" class="px-3 py-2 bg-indigo-100 text-indigo-700 text-[10px] font-bold rounded-lg text-center hover:bg-indigo-600 hover:text-white transition-colors">ABSENSI</a>
+                    <a :href="'{{ route('guru.akademik.kelas') }}?subject_id=' + s.subject_id + '&class_id=' + s.class_id" class="px-3 py-2 bg-gray-900 text-white text-[10px] font-bold rounded-lg text-center hover:bg-black transition-colors">LANJUT</a>
                 </div>
             </div>
         </template>
@@ -131,6 +154,74 @@
         </template>
     </div>
 
+    {{-- MODAL FORM --}}
+    <div x-show="showModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm" x-cloak x-transition>
+        <div class="bg-white rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden" @click.away="closeModal()">
+            <div class="bg-indigo-600 p-6 text-white flex justify-between items-center">
+                <div>
+                    <h3 class="text-xl font-bold" x-text="isEdit ? 'Ubah Jadwal' : 'Tambah Jadwal Baru'"></h3>
+                    <p class="text-xs opacity-70 mt-1">Lengkapi data jadwal mengajar Anda di bawah ini.</p>
+                </div>
+                <button @click="closeModal()" class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+            
+            <form :action="isEdit ? '{{ route('guru.akademik.jadwal-mengajar.update', ['id' => 'ID_PLACEHOLDER']) }}'.replace('ID_PLACEHOLDER', formData.id) : '{{ route('guru.akademik.jadwal-mengajar.store') }}'" method="POST" class="p-8 space-y-6">
+                @csrf
+                <template x-if="isEdit">
+                    <input type="hidden" name="_method" value="PUT">
+                </template>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="md:col-span-2">
+                        <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Mata Pelajaran</label>
+                        <select name="subject_id" x-model="formData.subject_id" required class="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm font-bold focus:ring-4 focus:ring-indigo-50 focus:border-indigo-400 appearance-none">
+                            <option value="">Pilih Mata Pelajaran...</option>
+                            @foreach($subjects as $sub)
+                                <option value="{{ $sub->id }}">{{ $sub->nama }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Pilih Kelas</label>
+                        <select name="kelas" x-model="formData.kelas" required class="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm font-bold focus:ring-4 focus:ring-indigo-50 focus:border-indigo-400 appearance-none">
+                            <option value="">Pilih Kelas...</option>
+                            @foreach($classes as $c)
+                                <option value="{{ $c->tingkat }}-{{ $c->nama_kelas }}">{{ $c->tingkat }} - {{ $c->nama_kelas }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Pilih Hari</label>
+                        <select name="hari" x-model="formData.hari" required class="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm font-bold focus:ring-4 focus:ring-indigo-50 focus:border-indigo-400 appearance-none">
+                            @foreach(['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'] as $h)
+                                <option value="{{ $h }}">{{ $h }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Jam Mulai</label>
+                        <input type="time" name="jam_mulai" x-model="formData.jam_mulai" required class="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm font-bold focus:ring-4 focus:ring-indigo-50 focus:border-indigo-400">
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Jam Selesai</label>
+                        <input type="time" name="jam_selesai" x-model="formData.jam_selesai" required class="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm font-bold focus:ring-4 focus:ring-indigo-50 focus:border-indigo-400">
+                    </div>
+                </div>
+
+                <div class="pt-4 flex gap-3">
+                    <button type="button" @click="closeModal()" class="flex-1 px-6 py-3.5 bg-gray-50 text-gray-500 font-bold rounded-2xl hover:bg-gray-100 transition-all text-sm">Batal</button>
+                    <button type="submit" class="flex-2 px-6 py-3.5 bg-indigo-600 text-white font-bold rounded-2xl hover:bg-indigo-700 shadow-lg shadow-indigo-100 transition-all text-sm">Simpan Jadwal</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
 </div>
 @endsection
 
@@ -142,8 +233,27 @@ document.addEventListener('alpine:init', () => {
         selectedDay: 'all',
         search: '',
         currentDay: '{{ \Carbon\Carbon::now()->translatedFormat('l') }}',
+        showModal: false,
+        isEdit: false,
+        formData: { id: '', subject_id: '{{ request('subject_id') }}', kelas: '', hari: 'Senin', jam_mulai: '', jam_selesai: '' },
         
         schedules: @json($schedules),
+
+        openModal(schedule = null) {
+            if (schedule) {
+                this.isEdit = true;
+                this.formData = { ...schedule };
+            } else {
+                this.isEdit = false;
+                this.formData = { id: '', subject_id: '{{ request('subject_id') }}', kelas: '', hari: 'Senin', jam_mulai: '', jam_selesai: '' };
+            }
+            this.showModal = true;
+            setTimeout(() => { if (window.lucide) lucide.createIcons(); }, 100);
+        },
+
+        closeModal() {
+            this.showModal = false;
+        },
 
         get filteredSchedules() {
             return this.schedules.filter(s => {

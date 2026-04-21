@@ -217,6 +217,9 @@ class GuruController extends Controller
     public function jadwalMengajar()
     {
         $teacher = $this->getTeacher();
+        $subjects = Subject::where('teacher_id', $teacher->id)->get();
+        $classes = SchoolClass::orderBy('tingkat')->orderBy('nama_kelas')->get();
+
         $schedules = Schedule::with(['subject'])
             ->whereHas('subject', function($query) use ($teacher) {
                 $query->where('teacher_id', $teacher->id);
@@ -225,18 +228,88 @@ class GuruController extends Controller
             ->orderBy('jam_mulai')
             ->get()
             ->map(function($s) {
+                // Try to resolve class_id from the 'kelas' string
+                $classId = null;
+                $kelasParts = explode('-', $s->kelas);
+                if (count($kelasParts) == 2) {
+                    $schoolClass = SchoolClass::where('tingkat', $kelasParts[0])
+                        ->where('nama_kelas', $kelasParts[1])
+                        ->first();
+                    $classId = $schoolClass ? $schoolClass->id : null;
+                } else {
+                    $schoolClass = SchoolClass::where('nama_kelas', $s->kelas)->first();
+                    $classId = $schoolClass ? $schoolClass->id : null;
+                }
+
                 return [
                     'id' => $s->id,
                     'hari' => $s->hari,
+                    'jam_mulai' => $s->jam_mulai,
+                    'jam_selesai' => $s->jam_selesai,
                     'timeStart' => \Carbon\Carbon::parse($s->jam_mulai)->format('H:i'),
                     'timeEnd' => \Carbon\Carbon::parse($s->jam_selesai)->format('H:i'),
                     'subject' => $s->subject->nama,
-                    'class' => $s->kelas,
+                    'subject_id' => $s->subject_id,
+                    'kelas' => $s->kelas,
+                    'class_id' => $classId,
                     'room' => 'R.' . ($s->id + 100),
                 ];
             });
 
-        return view('guru.akademik.jadwal-mengajar', compact('schedules'));
+        return view('guru.akademik.jadwal-mengajar', compact('schedules', 'subjects', 'classes'));
+    }
+
+    public function storeSchedule(Request $request)
+    {
+        $teacher = $this->getTeacher();
+        $validated = $request->validate([
+            'subject_id' => 'required|exists:subjects,id',
+            'kelas' => 'required|string',
+            'hari' => 'required|string',
+            'jam_mulai' => 'required',
+            'jam_selesai' => 'required',
+        ]);
+
+        // Verify ownership
+        Subject::where('id', $request->subject_id)->where('teacher_id', $teacher->id)->firstOrFail();
+
+        Schedule::create($validated);
+        return redirect()->back()->with('success', 'Jadwal berhasil ditambahkan!');
+    }
+
+    public function updateSchedule(Request $request, $id)
+    {
+        $teacher = $this->getTeacher();
+        $schedule = Schedule::findOrFail($id);
+        
+        // Verify ownership
+        Subject::where('id', $schedule->subject_id)->where('teacher_id', $teacher->id)->firstOrFail();
+
+        $validated = $request->validate([
+            'subject_id' => 'required|exists:subjects,id',
+            'kelas' => 'required|string',
+            'hari' => 'required|string',
+            'jam_mulai' => 'required',
+            'jam_selesai' => 'required',
+        ]);
+
+        // Verify new subject ownership too
+        Subject::where('id', $request->subject_id)->where('teacher_id', $teacher->id)->firstOrFail();
+
+        $schedule->update($validated);
+        return redirect()->back()->with('success', 'Jadwal berhasil diperbarui!');
+    }
+
+    public function destroySchedule($id)
+    {
+        $teacher = $this->getTeacher();
+        $schedule = Schedule::findOrFail($id);
+        
+        // Verify ownership
+        Subject::where('id', $schedule->subject_id)->where('teacher_id', $teacher->id)->firstOrFail();
+
+        $schedule->delete();
+        return redirect()->back()->with('success', 'Jadwal berhasil dihapus!');
     }
 
     // --- Nilai Rapor ---
@@ -298,6 +371,7 @@ class GuruController extends Controller
         $classes = SchoolClass::orderBy('tingkat')->orderBy('nama_kelas')->get();
         
         $selectedClassId = $request->input('class_id', $classes->first()->id ?? null);
+        $selectedSubjectId = $request->input('subject_id');
 
         $students = [];
         if ($selectedClassId) {
@@ -317,7 +391,7 @@ class GuruController extends Controller
             $students = $students->sortByDesc('score');
         }
 
-        return view('guru.akademik.rekap-nilai', compact('students', 'classes', 'selectedClassId'));
+        return view('guru.akademik.rekap-nilai', compact('students', 'classes', 'selectedClassId', 'selectedSubjectId'));
     }
 
     // ==========================================

@@ -5,10 +5,21 @@
 @section('content')
 <div class="min-h-screen bg-gray-50/50 pb-20" x-data="inputNilaiPage()">
     
+    @if(request('subject_id'))
+        <x-academic-flow-nav :active-step="4" :subject-id="request('subject_id')" :class-id="$selectedClassId" />
+    @endif
+
     {{-- PAGE HEADER --}}
-    <div class="mb-8">
-        <h1 class="text-2xl font-bold text-gray-900 tracking-tight">Input Nilai Tugas / Ulangan</h1>
-        <p class="text-sm text-gray-500 mt-1">Kelola penilaian siswa dengan sistem validasi otomatis.</p>
+    <div class="mb-8 flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900 tracking-tight">Input Nilai Tugas / Ulangan</h1>
+            <p class="text-sm text-gray-500 mt-1">Kelola penilaian siswa dengan sistem validasi otomatis.</p>
+        </div>
+        @if(request('subject_id') && $selectedClassId)
+            <a href="{{ route('guru.akademik.nilai.rapor', ['subject_id' => request('subject_id'), 'class_id' => $selectedClassId]) }}" class="px-5 py-2.5 bg-emerald-600 text-white rounded-xl font-bold text-sm hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-200 flex items-center gap-2">
+                Lanjut ke Rapor <i data-lucide="arrow-right" class="w-4 h-4 text-white"></i>
+            </a>
+        @endif
     </div>
 
     @if(session('success'))

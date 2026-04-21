@@ -5,6 +5,10 @@
 @section('content')
 <div class="min-h-screen bg-gray-50/50 pb-32" x-data="inputRaporPage()">
     
+    @if(request('subject_id'))
+        <x-academic-flow-nav :active-step="5" :subject-id="request('subject_id')" :class-id="$selectedClassId" />
+    @endif
+
     {{-- HEADER --}}
     <div class="mb-8 flex flex-col md:flex-row md:items-end md:justify-between gap-4">
         <div>
@@ -12,6 +16,11 @@
             <p class="text-gray-500 mt-1">Kelola nilai akhir semester siswa secara kolektif.</p>
         </div>
         <div class="flex gap-3">
+            @if(request('subject_id') && $selectedClassId)
+                <a href="{{ route('guru.akademik.rekap', ['subject_id' => request('subject_id'), 'class_id' => $selectedClassId]) }}" class="px-5 py-2.5 bg-emerald-600 text-white rounded-xl font-bold text-sm hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-200 flex items-center gap-2">
+                    Hasil Rekap <i data-lucide="line-chart" class="w-4 h-4 text-white"></i>
+                </a>
+            @endif
              <button @click="showStats = !showStats" class="px-5 py-2.5 bg-white border border-gray-200 text-gray-700 rounded-xl font-bold text-sm hover:bg-gray-50 transition-all shadow-sm flex items-center gap-2">
                 <i data-lucide="bar-chart-3" class="w-4 h-4 text-indigo-600"></i> <span x-text="showStats ? 'Tutup Statistik' : 'Lihat Statistik'"></span>
             </button>

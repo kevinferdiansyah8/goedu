@@ -5,11 +5,22 @@
 @section('content')
 <div class="min-h-screen bg-gray-50/50 pb-20" x-data="rekapNilaiPage()">
     
+    @if(request('subject_id'))
+        <x-academic-flow-nav :active-step="6" :subject-id="request('subject_id')" :class-id="$selectedClassId" />
+    @endif
+
     {{-- PAGE HEADER --}}
     <div class="mb-8 flex flex-col xl:flex-row xl:items-center justify-between gap-6">
-        <div>
-            <h1 class="text-3xl font-bold text-gray-900 tracking-tight">Rekap Nilai Kelas</h1>
-            <p class="text-gray-500 mt-1">Analisis performa akademik dan peringkat siswa berdasarkan rata-rata nilai.</p>
+        <div class="flex flex-col md:flex-row md:items-center gap-6">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900 tracking-tight">Rekap Nilai Kelas</h1>
+                <p class="text-gray-500 mt-1">Analisis performa akademik dan peringkat siswa berdasarkan rata-rata nilai.</p>
+            </div>
+            @if(request('subject_id'))
+                <a href="{{ route('guru.dashboard') }}" class="px-6 py-3 bg-indigo-600 text-white rounded-xl text-sm font-bold shadow-lg shadow-indigo-100 flex items-center gap-2 hover:bg-indigo-700 transition-all">
+                    Selesai & Dashboard <i data-lucide="check-circle" class="w-4 h-4 text-white"></i>
+                </a>
+            @endif
         </div>
         
         <div class="flex flex-wrap gap-4 items-center bg-white p-2 rounded-2xl shadow-sm border border-gray-100">

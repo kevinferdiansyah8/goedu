@@ -43,6 +43,10 @@
     }
 }">
     
+    @if(request('subject_id'))
+        <x-academic-flow-nav :active-step="3" :subject-id="request('subject_id')" :class-id="$selectedClassId" />
+    @endif
+    
     {{-- HEADER --}}
     <div class="mb-8 flex flex-col md:flex-row md:items-end md:justify-between gap-4">
         <div>
@@ -50,6 +54,11 @@
             <p class="text-gray-500 mt-1">Kelola data akademik dan pemantauan aktivitas kelas.</p>
         </div>
         <div class="flex gap-3">
+            @if(request('subject_id') && $selectedClassId)
+                <a href="{{ route('guru.akademik.nilai.tugas', ['subject_id' => request('subject_id'), 'class_id' => $selectedClassId]) }}" class="px-5 py-2.5 bg-emerald-600 text-white rounded-xl font-bold text-sm hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-200 flex items-center gap-2">
+                    Lanjut Input Nilai <i data-lucide="arrow-right" class="w-4 h-4 text-white"></i>
+                </a>
+            @endif
             <button @click="openClassModal()" class="px-5 py-2.5 bg-white border border-gray-200 text-gray-700 rounded-xl font-bold text-sm hover:bg-gray-50 transition-all shadow-sm flex items-center gap-2">
                 <i data-lucide="plus-square" class="w-4 h-4 text-indigo-600"></i> Tambah Kelas
             </button>

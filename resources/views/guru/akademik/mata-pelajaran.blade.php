@@ -134,6 +134,9 @@
 						</td>
 						<td class="px-6 py-4">
 							<div class="flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+								<a href="{{ route('guru.akademik.jadwal-mengajar', ['subject_id' => $mp->id]) }}" class="p-2 bg-emerald-50 text-emerald-600 rounded-xl hover:bg-emerald-600 hover:text-white transition-all shadow-sm" title="Kelola Alur Akademik">
+									<i data-lucide="external-link" class="w-4 h-4"></i>
+								</a>
 								<button @click="edit({{ json_encode($mp) }})" class="p-2 bg-indigo-50 text-indigo-600 rounded-xl hover:bg-indigo-600 hover:text-white transition-all shadow-sm" title="Edit">
 									<i data-lucide="edit-3" class="w-4 h-4"></i>
 								</button>
