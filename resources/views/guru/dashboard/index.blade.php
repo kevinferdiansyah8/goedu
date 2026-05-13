@@ -1,6 +1,6 @@
-@extends('layouts.admin')
+@extends('layouts.sidebar-guru')
 
-@section('title', 'Dashboard EduGo')
+@section('title', 'Dashboard Guru - EDUGO')
 
 @section('content')
 <div class="min-h-screen bg-gray-50/50 pb-20" x-data="dashboardPage()">
@@ -9,8 +9,8 @@
     <div class="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
             <div class="flex items-center gap-3 mb-1">
-                <h1 class="text-2xl font-bold text-gray-900 tracking-tight">Selamat Datang, Pak Budi 👋</h1>
-                <span class="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-bold rounded-full uppercase tracking-wide">Guru Admin</span>
+                <h1 class="text-2xl font-bold text-gray-900 tracking-tight">Selamat Datang, {{ Auth::user()->name }} 👋</h1>
+                <span class="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-bold rounded-full uppercase tracking-wide">{{ Auth::user()->role }}</span>
             </div>
             <p class="text-gray-500 text-sm">Berikut adalah ringkasan aktivitas akademik Anda hari ini.</p>
         </div>

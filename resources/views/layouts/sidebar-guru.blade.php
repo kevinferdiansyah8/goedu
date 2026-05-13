@@ -606,10 +606,10 @@ function toggleAkademik() {
         @include('components.notification-dropdown')
         <div class="hidden md:flex items-center gap-3 pl-3 border-l border-border">
           @include('components.profile-dropdown', [
-              'userName' => 'Pak Bambang',
-              'userRole' => 'Guru Matematika',
-              'userEmail' => 'guru@gmail.com',
-              'userPhoto' => 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop'
+              'userName' => Auth::user()->name,
+              'userRole' => ucfirst(Auth::user()->role),
+              'userEmail' => Auth::user()->email,
+              'userPhoto' => 'https://ui-avatars.com/api/?name=' . urlencode(Auth::user()->name) . '&background=random'
           ])
         </div>
       </div>

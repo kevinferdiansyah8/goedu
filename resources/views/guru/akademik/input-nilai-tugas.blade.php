@@ -201,8 +201,6 @@
             fillValue: '',
             students: @json($students),
             
-            students: @json($students),
-            
             getStudentById(id) {
                 return this.students.find(s => s.id == id) || { score: null };
             },

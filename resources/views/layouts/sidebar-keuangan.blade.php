@@ -225,15 +225,18 @@
 
     <!-- Bottom Help Card -->
     <div class="absolute bottom-0 left-0 w-[280px]">
-      <div class="flex items-center justify-between border-t bg-white border-border p-5 gap-3">
-        <div class="min-w-0">
-          <p class="font-semibold text-foreground">Staff Keuangan</p>
-          <a href="/login" class="cursor-pointer"><span class="text-sm text-secondary hover:text-primary hover:underline transition-all duration-300">Logout</span></a>
-        </div>
-        <div class="size-11 bg-primary/10 rounded-xl flex items-center justify-center flex-shrink-0">
-          <i data-lucide="log-out" class="size-6 text-primary"></i>
-        </div>
-      </div>
+      <form action="{{ route('logout') }}" method="POST" class="w-full">
+        @csrf
+        <button type="submit" class="flex items-center justify-between border-t bg-white border-border p-5 gap-3 w-full cursor-pointer hover:bg-red-50 transition-colors">
+          <div class="min-w-0 text-left">
+            <p class="font-semibold text-foreground">{{ Auth::user()->name }}</p>
+            <span class="text-sm text-red-600">Keluar</span>
+          </div>
+          <div class="size-11 bg-red-50 rounded-xl flex items-center justify-center flex-shrink-0">
+            <i data-lucide="log-out" class="size-6 text-red-500"></i>
+          </div>
+        </button>
+      </form>
     </div>
   </aside>
 
@@ -251,11 +254,12 @@
       <div class="flex items-center gap-3 ml-auto">
         @include('components.notification-dropdown')
         <div class="hidden md:flex items-center gap-3 pl-3 border-l border-border">
-          <div class="text-right">
-            <p class="font-semibold text-foreground text-sm">Staff Keuangan</p>
-            <p class="text-secondary text-xs">Bendahara</p>
-          </div>
-          <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop" alt="Profile" class="size-11 rounded-full object-cover ring-2 ring-border">
+          @include('components.profile-dropdown', [
+              'userName' => Auth::user()->name,
+              'userRole' => ucfirst(Auth::user()->role),
+              'userEmail' => Auth::user()->email,
+              'userPhoto' => 'https://ui-avatars.com/api/?name=' . urlencode(Auth::user()->name) . '&background=random'
+          ])
         </div>
       </div>
     </div>

@@ -112,7 +112,7 @@
                 <a href="{{ route('guru.tugas.penilaian') }}" class="flex-1 py-2 text-center rounded-lg bg-orange-50 text-orange-600 hover:bg-orange-100 transition-colors font-bold text-xs" title="Lihat Nilai">
                     Lihat Pengumpulan
                 </a>
-                <button @click="edit({{ json_encode($t) }})" class="w-8 h-8 flex items-center justify-center rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors cursor-pointer" title="Edit">
+                <button @click="isEdit = true; showForm = true; formAction = '/guru/materi/tugas/{{ $t->id }}'; formMethod = 'PUT'; tugas = { subject_id: '{{ $t->subject_id }}', school_class_id: '{{ $t->school_class_id }}', judul: '{{ addslashes($t->judul) }}', deskripsi: '{{ addslashes($t->deskripsi) }}', deadline: '{{ $t->deadline }}', file_path: '{{ $t->file_path ?? '' }}' }; window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' })" class="w-8 h-8 flex items-center justify-center rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors cursor-pointer" title="Edit">
                     <i data-lucide="pencil" class="w-4 h-4"></i>
                 </button>
                 <form action="{{ route('guru.tugas.destroy', $t->id) }}" method="POST" onsubmit="return confirm('Hapus tugas ini? Ini akan menghapus jawaban siswa yang sudah terkumpul juga.')">

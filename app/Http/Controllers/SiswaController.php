@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use App\Models\Student;
 use App\Models\Schedule;
 use App\Models\Attendance;
@@ -10,22 +11,21 @@ use App\Models\Assignment;
 use App\Models\StudentAssignment;
 use App\Models\Event;
 use App\Models\Grade;
-use App\Models\Book;
-use App\Models\BookLoan;
+
 use App\Models\LearningMaterial;
 
 class SiswaController extends Controller
 {
     // Mock user session fetching
     private function getStudent() {
-        return Student::first(); 
+        return Auth::user()->student ?? Student::first(); 
     }
 
     public function index()
     {
         $student = $this->getStudent();
         
-        $jadwal_hari_ini = Schedule::where('kelas', $student->kelas)
+        $jadwal_hari_ini = Schedule::where('school_class_id', $student->school_class_id)
             ->where('hari', 'Senin') // mock for today
             ->with('subject.teacher')
             ->get()->map(function($j) {
@@ -149,56 +149,77 @@ class SiswaController extends Controller
     public function pembelajaranMateri()
     {
         $student = $this->getStudent();
-        $class = \App\Models\SchoolClass::where('nama_kelas', $student->kelas)->first();
-        $classId = $class ? $class->id : 0;
+        $classId = $student->school_class_id;
 
-        $materi = LearningMaterial::where('school_class_id', $classId)->with('subject.teacher')->get()->map(function($m){
-            return [
-                'mapel' => $m->subject->nama,
-                'judul' => $m->judul,
-                'guru' => $m->subject->teacher->nama ?? '-',
-                'tanggal' => $m->tanggal_upload,
-                'file' => $m->file_path,
-                'ukuran' => $m->ukuran_file
-            ];
-        });
+        $materi = LearningMaterial::where('school_class_id', $classId)
+            ->with(['subject.teacher'])
+            ->latest()
+            ->get()
+            ->map(function($m){
+                return [
+                    'mapel' => $m->subject->nama ?? 'Umum',
+                    'judul' => $m->judul,
+                    'guru' => $m->subject->teacher->nama ?? 'Guru',
+                    'tanggal' => $m->tanggal_upload ?? $m->created_at->toDateString(),
+                    'file' => $m->file_path,
+                    'ukuran' => $m->ukuran_file ?? '0 MB'
+                ];
+            });
         return view('siswa.pembelajaran.materi', compact('materi'));
     }
 
     public function pembelajaranTugas()
     {
         $student = $this->getStudent();
-        $class = \App\Models\SchoolClass::where('nama_kelas', $student->kelas)->first();
-        $classId = $class ? $class->id : 0;
+        $classId = $student->school_class_id;
 
         $tugas_pending = Assignment::where('school_class_id', $classId)
+            ->with(['subject.teacher'])
             ->whereDoesntHave('studentAssignments', function($q) use($student) {
                 $q->where('student_id', $student->id);
-            })->get();
+            })->latest()->get();
             
         return view('siswa.pembelajaran.tugas', compact('tugas_pending'));
     }
 
     public function submitTugas(Request $request, $id)
     {
-        $request->validate([
-            'file' => 'required|file|max:10240', // 10MB limit
-        ]);
+        try {
+            $request->validate([
+                'file' => 'required|file|max:10240', // 10MB limit
+            ]);
 
-        $student = $this->getStudent();
-        $file = $request->file('file');
-        $fileName = time() . '_' . $file->getClientOriginalName();
-        $filePath = $file->storeAs('kbm/jawaban', $fileName, 'public');
+            $student = $this->getStudent();
+            if (!$student) {
+                return redirect()->back()->withErrors(['error' => 'Data siswa tidak ditemukan.']);
+            }
 
-        StudentAssignment::create([
-            'student_id' => $student->id,
-            'assignment_id' => $id,
-            'tanggal_kumpul' => now()->toDateTimeString(),
-            'file_jawaban' => $filePath,
-            'status' => 'Terkumpul'
-        ]);
+            $file = $request->file('file');
+            $fileName = time() . '_' . str_replace(' ', '_', $file->getClientOriginalName());
+            
+            // Ensure directory exists
+            if (!\Illuminate\Support\Facades\Storage::disk('public')->exists('kbm/jawaban')) {
+                \Illuminate\Support\Facades\Storage::disk('public')->makeDirectory('kbm/jawaban');
+            }
 
-        return redirect()->back()->with('success', 'Jawaban berhasil diunggah!');
+            $filePath = $file->storeAs('kbm/jawaban', $fileName, 'public');
+
+            StudentAssignment::updateOrCreate(
+                [
+                    'student_id' => $student->id,
+                    'assignment_id' => $id,
+                ],
+                [
+                    'tanggal_kumpul' => now()->toDateTimeString(),
+                    'file_jawaban' => $filePath,
+                    'status' => 'Terkumpul'
+                ]
+            );
+
+            return redirect()->back()->with('success', 'Jawaban berhasil diunggah!');
+        } catch (\Exception $e) {
+            return redirect()->back()->withErrors(['error' => 'Gagal mengunggah: ' . $e->getMessage()]);
+        }
     }
 
     public function pembelajaranNilai()
@@ -217,32 +238,7 @@ class SiswaController extends Controller
         return view('siswa.pembelajaran.nilai', compact('nilai_tugas'));
     }
 
-    public function perpustakaanKatalog()
-    {
-        $buku = Book::all();
-        return view('siswa.perpustakaan.katalog', compact('buku'));
-    }
-
-    public function perpustakaanPinjam()
-    {
-        $buku_list = Book::pluck('judul')->toArray();
-        return view('siswa.perpustakaan.pinjam', compact('buku_list'));
-    }
-
-    public function perpustakaanRiwayat()
-    {
-        $student = $this->getStudent();
-        $riwayat_pinjam = BookLoan::where('student_id', $student->id)->with('book')->get()->map(function($b){
-            return [
-                'judul' => $b->book->judul,
-                'tgl_pinjam' => $b->tanggal_pinjam,
-                'tgl_kembali' => $b->tanggal_kembali,
-                'status' => $b->status,
-                'denda' => $b->denda
-            ];
-        });
-        return view('siswa.perpustakaan.riwayat', compact('riwayat_pinjam'));
-    }
+    // Methods removed as Perpustakaan feature was deleted.
 
     public function profilBiodata()
     {

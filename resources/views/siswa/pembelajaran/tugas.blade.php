@@ -7,12 +7,12 @@
     selectedTugasId: '',
     selectedTugasTitle: '',
     selectedTugasMapel: '',
-    formAction: '#',
-    selectTugas(tugas) {
-        this.selectedTugasId = tugas.id;
-        this.selectedTugasTitle = tugas.judul;
-        this.selectedTugasMapel = tugas.subject.nama;
-        this.formAction = '/siswa/pembelajaran/tugas/submit/' + tugas.id;
+    selectedFileName: '',
+    selectTugas(id, judul, mapel) {
+        this.selectedTugasId = id;
+        this.selectedTugasTitle = judul;
+        this.selectedTugasMapel = mapel;
+        this.$refs.uploadForm.action = '/siswa/pembelajaran/tugas/submit/' + id;
         window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
     }
 }">
@@ -46,7 +46,7 @@
             @forelse($tugas_pending as $tugas)
             <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col md:flex-row gap-4 items-start md:items-center justify-between hover:shadow-md transition-shadow">
                 <div>
-                     <span class="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-orange-100 text-orange-600 mb-2 uppercase">{{ $tugas->subject->nama }}</span>
+                    <span class="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-orange-100 text-orange-600 mb-2 uppercase">{{ $tugas->subject->nama ?? 'Umum' }}</span>
                     <h3 class="text-lg font-bold text-gray-800 max-w-md">{{ $tugas->judul }}</h3>
                     <p class="text-gray-500 text-sm mt-1">{{ $tugas->deskripsi ?: 'Tidak ada instruksi khusus.' }}</p>
                     
@@ -67,13 +67,12 @@
                         </span>
                     </div>
                 </div>
-                <!-- Disable if past deadline or optionally allow late submission -->
                 @if(\Carbon\Carbon::parse($tugas->deadline)->isPast())
                 <button disabled title="Tenggat waktu telah berakhir" class="w-full md:w-auto px-5 py-2.5 bg-gray-300 text-gray-500 font-bold rounded-lg cursor-not-allowed">
                     Terlewat
                 </button>
                 @else
-                <button @click="selectTugas({{ htmlspecialchars(json_encode($tugas)) }})" class="w-full md:w-auto px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all shadow-md shadow-blue-200 active:scale-95 whitespace-nowrap">
+                <button @click="selectTugas({{ $tugas->id }}, '{{ addslashes($tugas->judul) }}', '{{ addslashes($tugas->subject->nama ?? "Umum") }}')" class="w-full md:w-auto px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all shadow-md shadow-blue-200 active:scale-95 whitespace-nowrap cursor-pointer">
                     Pilih & Upload
                 </button>
                 @endif
@@ -96,7 +95,7 @@
                     <i data-lucide="file-up" class="w-5 h-5 text-white"></i>
                     <h3 class="font-bold text-sm text-white uppercase tracking-wider">Form Pengumpulan</h3>
                 </div>
-                <form :action="formAction" method="POST" enctype="multipart/form-data" class="p-6">
+                <form x-ref="uploadForm" action="#" method="POST" enctype="multipart/form-data" class="p-6">
                     @csrf
                     <div class="space-y-5">
                         <!-- Message when nothing selected -->
@@ -105,7 +104,7 @@
                             <p class="text-xs text-orange-600 font-medium">Pilih salah satu tugas dari daftar di samping untuk mulai mengunggah jawaban.</p>
                         </div>
 
-                        <div x-show="selectedTugasId" style="display: none;" class="space-y-4">
+                        <div x-show="selectedTugasId" x-cloak class="space-y-4">
                             <div>
                                 <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Tugas Terpilih</label>
                                 <div class="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 flex flex-col items-start gap-1">
@@ -116,15 +115,30 @@
 
                             <div>
                                 <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">File Jawaban <span class="text-red-500">*</span></label>
-                                <div class="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:bg-blue-50/50 hover:border-blue-400 transition-colors cursor-pointer relative group">
-                                    <input type="file" name="file" required accept=".pdf,.doc,.docx,.jpg,.png,.jpeg" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
-                                    <i data-lucide="upload-cloud" class="w-8 h-8 text-gray-300 group-hover:text-blue-500 mx-auto mb-2 transition-colors"></i>
-                                    <p class="text-sm font-bold text-gray-700">Pilih berkas jawaban Anda</p>
-                                    <p class="text-[11px] text-gray-400 mt-1 font-medium">Batas maksimal: 10MB (PDF/Word/Images)</p>
+                                <div class="border-2 border-dashed rounded-xl p-6 text-center transition-colors cursor-pointer relative group"
+                                     :class="selectedFileName ? 'border-emerald-400 bg-emerald-50/50' : 'border-gray-300 hover:bg-blue-50/50 hover:border-blue-400'">
+                                    <input type="file" name="file" required accept=".pdf,.doc,.docx,.jpg,.png,.jpeg" 
+                                           class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                                           @change="selectedFileName = $event.target.files[0]?.name || ''">
+                                    
+                                    <template x-if="!selectedFileName">
+                                        <div>
+                                            <i data-lucide="upload-cloud" class="w-8 h-8 text-gray-300 group-hover:text-blue-500 mx-auto mb-2 transition-colors"></i>
+                                            <p class="text-sm font-bold text-gray-700">Pilih berkas jawaban Anda</p>
+                                            <p class="text-[11px] text-gray-400 mt-1 font-medium">Batas maksimal: 10MB (PDF/Word/Images)</p>
+                                        </div>
+                                    </template>
+                                    <template x-if="selectedFileName">
+                                        <div>
+                                            <i data-lucide="file-check" class="w-8 h-8 text-emerald-500 mx-auto mb-2"></i>
+                                            <p class="text-sm font-bold text-emerald-700" x-text="selectedFileName"></p>
+                                            <p class="text-[11px] text-emerald-500 mt-1 font-medium">File siap diunggah ✓</p>
+                                        </div>
+                                    </template>
                                 </div>
                             </div>
                             
-                            <button type="submit" class="w-full py-3 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 transition-colors shadow-lg shadow-emerald-200 flex items-center justify-center gap-2">
+                            <button type="submit" class="w-full py-3 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 transition-colors shadow-lg shadow-emerald-200 flex items-center justify-center gap-2 cursor-pointer">
                                 <i data-lucide="send" class="w-4 h-4"></i> Unggah Jawaban
                             </button>
                         </div>
@@ -134,7 +148,6 @@
         </div>
     </div>
 </div>
-
 @endsection
 
 @push('scripts')

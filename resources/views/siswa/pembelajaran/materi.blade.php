@@ -32,10 +32,14 @@
                         <td class="px-6 py-4">{{ $item['guru'] }}</td>
                         <td class="px-6 py-4">{{ \Carbon\Carbon::parse($item['tanggal'])->format('d M Y') }}</td>
                         <td class="px-6 py-4 text-center">
-                            <button class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-600 rounded-md text-xs font-semibold hover:bg-blue-100 transition-colors">
+                            @if($item['file'])
+                            <a href="{{ Storage::url($item['file']) }}" target="_blank" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-600 rounded-md text-xs font-semibold hover:bg-blue-100 transition-colors">
                                 <i data-lucide="download" class="w-4 h-4"></i>
                                 Download
-                            </button>
+                            </a>
+                            @else
+                            <span class="text-xs text-gray-400">No File</span>
+                            @endif
                         </td>
                     </tr>
                     @endforeach

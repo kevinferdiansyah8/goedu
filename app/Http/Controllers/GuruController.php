@@ -13,13 +13,14 @@ use App\Models\TeachingReport;
 use App\Models\Grade;
 use App\Models\Student;
 use App\Models\Schedule;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
 class GuruController extends Controller
 {
     // Mock user session fetching for Guru
     private function getTeacher() {
-        return Teacher::first(); 
+        return Auth::user()->teacher ?? Teacher::first(); // Fallback to first if not linked yet for testing
     }
 
     public function dashboard()
@@ -170,48 +171,8 @@ class GuruController extends Controller
         return view('guru.akademik.mata-pelajaran', compact('mataPelajaran', 'totalAktif', 'totalJam'));
     }
 
-    public function storeMataPelajaran(Request $request)
-    {
-        $teacher = $this->getTeacher();
-        $validated = $request->validate([
-            'kode' => 'required|unique:subjects,kode',
-            'nama' => 'required',
-            'jurusan' => 'nullable',
-            'tingkat' => 'required',
-            'jumlah_jam' => 'required|integer',
-            'status' => 'required|in:Aktif,Tidak Aktif',
-        ]);
+    // CRUD removed - Subjects are managed by Admin
 
-        $validated['teacher_id'] = $teacher->id;
-
-        Subject::create($validated);
-        return redirect()->back()->with('success', 'Mata Pelajaran berhasil ditambahkan!');
-    }
-
-    public function updateMataPelajaran(Request $request, $id)
-    {
-        $teacher = $this->getTeacher();
-        $subject = Subject::where('teacher_id', $teacher->id)->findOrFail($id);
-        
-        $validated = $request->validate([
-            'kode' => 'required|unique:subjects,kode,' . $id,
-            'nama' => 'required',
-            'jurusan' => 'nullable',
-            'tingkat' => 'required',
-            'jumlah_jam' => 'required|integer',
-            'status' => 'required|in:Aktif,Tidak Aktif',
-        ]);
-
-        $subject->update($validated);
-        return redirect()->back()->with('success', 'Mata Pelajaran berhasil diperbarui!');
-    }
-
-    public function destroyMataPelajaran($id)
-    {
-        $teacher = $this->getTeacher();
-        Subject::where('teacher_id', $teacher->id)->findOrFail($id)->delete();
-        return redirect()->back()->with('success', 'Mata Pelajaran berhasil dihapus!');
-    }
 
     // --- Jadwal Mengajar ---
     public function jadwalMengajar()
@@ -371,19 +332,34 @@ class GuruController extends Controller
         $classes = SchoolClass::orderBy('tingkat')->orderBy('nama_kelas')->get();
         
         $selectedClassId = $request->input('class_id', $classes->first()->id ?? null);
-        $selectedSubjectId = $request->input('subject_id');
+        $subjects = Subject::where('teacher_id', $teacher->id)->get();
+        $selectedSubjectId = $request->input('subject_id', $subjects->first()->id ?? null);
 
         $students = [];
-        if ($selectedClassId) {
+        if ($selectedClassId && $selectedSubjectId) {
             $students = Student::where('school_class_id', $selectedClassId)
-                ->with(['grades'])
+                ->with(['grades' => function($q) use ($selectedSubjectId) {
+                    $q->where('subject_id', $selectedSubjectId);
+                }])
                 ->get()
                 ->map(function($s) {
+                    $grades = $s->grades;
+                    $periodicGrade = $grades->where('type', null)->first();
+                    $raporGrade = $grades->where('type', 'Rapor')->first();
+                    
+                    $score = 0;
+                    if ($raporGrade) {
+                        $score = $raporGrade->score;
+                    } elseif ($periodicGrade) {
+                        $pScores = array_filter([$periodicGrade->nilai_uh, $periodicGrade->nilai_uts, $periodicGrade->nilai_uas]);
+                        $score = count($pScores) > 0 ? array_sum($pScores) / count($pScores) : 0;
+                    }
+
                     return [
                         'id' => $s->id,
                         'name' => $s->nama,
                         'nis' => $s->nis,
-                        'score' => $s->grades->avg('score') ?? 0,
+                        'score' => (float)$score,
                     ];
                 });
             
@@ -391,7 +367,7 @@ class GuruController extends Controller
             $students = $students->sortByDesc('score');
         }
 
-        return view('guru.akademik.rekap-nilai', compact('students', 'classes', 'selectedClassId', 'selectedSubjectId'));
+        return view('guru.akademik.rekap-nilai', compact('students', 'classes', 'subjects', 'selectedClassId', 'selectedSubjectId'));
     }
 
     // ==========================================

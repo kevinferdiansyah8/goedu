@@ -71,19 +71,7 @@
                 Lihat Detail <i data-lucide="arrow-right" class="w-5 h-5"></i>
             </a>
         </div>
-        <!-- Perpustakaan -->
-        <div class="bg-white border border-indigo-100 rounded-3xl shadow-xl p-8 flex flex-col justify-between hover:shadow-2xl transition group">
-            <div class="flex items-center gap-3 mb-4">
-                <span class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-indigo-100">
-                    <i data-lucide="library" class="w-6 h-6 text-indigo-600"></i>
-                </span>
-                <h3 class="font-bold text-indigo-700 text-lg group-hover:text-indigo-600">Laporan Perpustakaan</h3>
-            </div>
-            <p class="text-base text-gray-500 mb-6">Peminjaman, pengembalian, dan denda buku</p>
-            <a href="{{ route('admin.laporan.perpustakaan') }}" class="inline-flex items-center gap-2 text-base font-bold text-indigo-600 hover:underline">
-                Lihat Detail <i data-lucide="arrow-right" class="w-5 h-5"></i>
-            </a>
-        </div>
+
         <!-- Kegiatan -->
         <div class="bg-white border border-red-100 rounded-3xl shadow-xl p-8 flex flex-col justify-between hover:shadow-2xl transition group">
             <div class="flex items-center gap-3 mb-4">

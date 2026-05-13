@@ -439,10 +439,7 @@ function toggleAkademik() {
                 <span class="menu-bullet flex-shrink-0"><span class="menu-bullet-outer w-5 h-5 rounded-full border-2 {{ request()->routeIs('admin.laporan.ppdb') ? 'border-primary' : 'border-gray-300' }} flex items-center justify-center"><span class="menu-bullet-inner w-2.5 h-2.5 rounded-full {{ request()->routeIs('admin.laporan.ppdb') ? 'bg-primary' : 'bg-transparent' }}"></span></span></span>
                 <span class="flex-1">Laporan PPDB</span>
               </a>
-              <a href="{{ route('admin.laporan.perpustakaan') }}" class="submenu-item flex items-center gap-3 rounded-xl px-4 py-3 text-sm {{ request()->routeIs('admin.laporan.perpustakaan') ? 'bg-muted text-foreground font-semibold' : 'text-secondary hover:bg-muted hover:text-foreground' }}">
-                <span class="menu-bullet flex-shrink-0"><span class="menu-bullet-outer w-5 h-5 rounded-full border-2 {{ request()->routeIs('admin.laporan.perpustakaan') ? 'border-primary' : 'border-gray-300' }} flex items-center justify-center"><span class="menu-bullet-inner w-2.5 h-2.5 rounded-full {{ request()->routeIs('admin.laporan.perpustakaan') ? 'bg-primary' : 'bg-transparent' }}"></span></span></span>
-                <span class="flex-1">Laporan Perpustakaan</span>
-              </a>
+
               <a href="{{ route('admin.laporan.kegiatan') }}" class="submenu-item flex items-center gap-3 rounded-xl px-4 py-3 text-sm {{ request()->routeIs('admin.laporan.kegiatan') ? 'bg-muted text-foreground font-semibold' : 'text-secondary hover:bg-muted hover:text-foreground' }}">
                 <span class="menu-bullet flex-shrink-0"><span class="menu-bullet-outer w-5 h-5 rounded-full border-2 {{ request()->routeIs('admin.laporan.kegiatan') ? 'border-primary' : 'border-gray-300' }} flex items-center justify-center"><span class="menu-bullet-inner w-2.5 h-2.5 rounded-full {{ request()->routeIs('admin.laporan.kegiatan') ? 'bg-primary' : 'bg-transparent' }}"></span></span></span>
                 <span class="flex-1">Laporan Kegiatan</span>
@@ -478,10 +475,10 @@ function toggleAkademik() {
         @include('components.notification-dropdown')
         <div class="hidden md:flex items-center gap-3 pl-3 border-l border-border">
           @include('components.profile-dropdown', [
-              'userName' => 'Admin User',
-              'userRole' => 'Administrator',
-              'userEmail' => 'admin@gmail.com',
-              'userPhoto' => 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop'
+              'userName' => Auth::user()->name,
+              'userRole' => ucfirst(Auth::user()->role),
+              'userEmail' => Auth::user()->email,
+              'userPhoto' => 'https://ui-avatars.com/api/?name=' . urlencode(Auth::user()->name) . '&background=random'
           ])
         </div>
       </div>

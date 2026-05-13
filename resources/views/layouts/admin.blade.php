@@ -16,17 +16,19 @@
 <div class="flex min-h-screen">
 
   {{-- SIDEBAR (ROLE BASED) --}}
-  @if(session('role') === 'admin')
-    @include('layouts.sidebar-admin')
-  @elseif(session('role') === 'guru')
-    @include('layouts.sidebar-guru')
-  @elseif(session('role') === 'orangtua')
-    @include('layouts.sidebar-orangtua')
-  @elseif(session('role') === 'siswa')
-    @include('layouts.sidebar-siswa')
-  @elseif(session('role') === 'keuangan')
-    @include('layouts.sidebar-keuangan')
-  @endif
+  @auth
+    @if(Auth::user()->role === 'admin')
+      @include('layouts.sidebar-admin')
+    @elseif(Auth::user()->role === 'guru')
+      @include('layouts.sidebar-guru')
+    @elseif(Auth::user()->role === 'orangtua')
+      @include('layouts.sidebar-orangtua')
+    @elseif(Auth::user()->role === 'siswa')
+      @include('layouts.sidebar-siswa')
+    @elseif(Auth::user()->role === 'keuangan')
+      @include('layouts.sidebar-keuangan')
+    @endif
+  @endauth
 
   {{-- MAIN CONTENT --}}
   <div class="flex-1 flex flex-col">

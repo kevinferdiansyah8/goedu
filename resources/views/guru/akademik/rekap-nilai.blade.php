@@ -24,11 +24,19 @@
         </div>
         
         <div class="flex flex-wrap gap-4 items-center bg-white p-2 rounded-2xl shadow-sm border border-gray-100">
-            <form method="GET" action="{{ route('guru.akademik.rekap') }}" class="flex gap-4 items-center">
+            <form method="GET" action="{{ route('guru.akademik.rekap') }}" class="flex flex-wrap gap-4 items-center">
                 <div class="relative">
                     <select name="class_id" onchange="this.form.submit()" class="appearance-none bg-gray-50 border border-transparent text-gray-700 py-2.5 pl-4 pr-10 rounded-xl focus:ring-4 focus:ring-indigo-100 font-bold transition-all cursor-pointer hover:bg-gray-100 outline-none">
                         @foreach($classes as $c)
                             <option value="{{ $c->id }}" {{ $selectedClassId == $c->id ? 'selected' : '' }}>Kelas {{ $c->tingkat }} - {{ $c->nama_kelas }}</option>
+                        @endforeach
+                    </select>
+                    <i data-lucide="chevron-down" class="w-4 h-4 text-gray-400 absolute right-3 top-3.5 pointer-events-none"></i>
+                </div>
+                <div class="relative">
+                    <select name="subject_id" onchange="this.form.submit()" class="appearance-none bg-gray-50 border border-transparent text-gray-700 py-2.5 pl-4 pr-10 rounded-xl focus:ring-4 focus:ring-indigo-100 font-bold transition-all cursor-pointer hover:bg-gray-100 outline-none">
+                        @foreach($subjects as $s)
+                            <option value="{{ $s->id }}" {{ $selectedSubjectId == $s->id ? 'selected' : '' }}>{{ $s->nama }}</option>
                         @endforeach
                     </select>
                     <i data-lucide="chevron-down" class="w-4 h-4 text-gray-400 absolute right-3 top-3.5 pointer-events-none"></i>

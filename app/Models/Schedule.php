@@ -9,4 +9,5 @@ class Schedule extends Model
     protected $guarded = [];
 
     public function subject() { return $this->belongsTo(Subject::class); }
+    public function schoolClass() { return $this->belongsTo(SchoolClass::class); }
 }

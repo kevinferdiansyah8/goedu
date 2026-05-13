@@ -1,13 +1,13 @@
-@extends('layouts.admin')
+@extends('layouts.sidebar-siswa')
 
-@section('title', 'Dashboard Siswa')
+@section('title', 'Dashboard Siswa - EDUGO')
 
 @section('content')
 <div class="container mx-auto px-4 py-6">
     
     <!-- Welcome Section -->
     <div class="mb-8">
-        <h1 class="text-3xl font-bold text-gray-800">Selamat Datang, Siswa!</h1>
+        <h1 class="text-3xl font-bold text-gray-800">Selamat Datang, {{ Auth::user()->name }}!</h1>
         <p class="text-gray-600">Terus semangat belajar dan raih prestasimu.</p>
     </div>
 

@@ -118,15 +118,18 @@
 
         {{-- Logout --}}
         <div class="border-t border-gray-100 p-3">
-            <a href="/login" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-red-600 hover:bg-red-50 transition-all duration-200 group">
-                <div class="size-9 rounded-xl bg-red-50 flex items-center justify-center group-hover:bg-red-100 transition-colors">
-                    <i data-lucide="log-out" class="size-[18px] text-red-500"></i>
-                </div>
-                <div class="flex-1 text-left">
-                    <p class="font-semibold">Keluar</p>
-                    <p class="text-xs text-red-400">Logout dari akun</p>
-                </div>
-            </a>
+            <form action="{{ route('logout') }}" method="POST" id="logout-form">
+                @csrf
+                <button type="submit" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-red-600 hover:bg-red-50 transition-all duration-200 group cursor-pointer text-left">
+                    <div class="size-9 rounded-xl bg-red-50 flex items-center justify-center group-hover:bg-red-100 transition-colors">
+                        <i data-lucide="log-out" class="size-[18px] text-red-500"></i>
+                    </div>
+                    <div class="flex-1">
+                        <p class="font-semibold">Keluar</p>
+                        <p class="text-xs text-red-400">Logout dari akun</p>
+                    </div>
+                </button>
+            </form>
         </div>
     </div>
 </div>

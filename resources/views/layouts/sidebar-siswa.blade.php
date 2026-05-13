@@ -239,30 +239,7 @@
             </div>
           </div>
 
-           <!-- Perpustakaan -->
-          <div class="group cursor-pointer">
-            <button onclick="togglePerpustakaan()" aria-expanded="false" aria-controls="menuPerpustakaan" class="flex items-center justify-between w-full rounded-xl p-4 gap-3 bg-white group-hover:bg-muted transition-all duration-300">
-              <div class="flex items-center gap-3">
-                <i data-lucide="library" class="size-6 text-secondary group-hover:text-foreground transition-all duration-300"></i>
-                <span class="font-medium text-secondary group-hover:text-foreground transition-all duration-300">Perpustakaan</span>
-              </div>
-              <i id="arrowPerpustakaan" data-lucide="chevron-down" class="w-4 h-4 text-secondary transition-transform duration-300 {{ request()->is('siswa/perpustakaan*') ? 'rotate-180' : '' }}"></i>
-            </button>
-            <div id="menuPerpustakaan" class="{{ request()->is('siswa/perpustakaan*') ? '' : 'hidden' }} ml-4 mt-2 space-y-2">
-                <a href="{{ route('siswa.perpustakaan.katalog') }}" class="submenu-item flex items-center gap-3 rounded-xl px-4 py-3 text-sm {{ request()->routeIs('siswa.perpustakaan.katalog') ? 'bg-muted text-foreground font-semibold' : 'text-secondary hover:bg-muted hover:text-foreground' }}">
-                     <span class="menu-bullet flex-shrink-0"><span class="menu-bullet-outer w-5 h-5 rounded-full border-2 {{ request()->routeIs('siswa.perpustakaan.katalog') ? 'border-primary' : 'border-gray-300' }} flex items-center justify-center"><span class="menu-bullet-inner w-2.5 h-2.5 rounded-full {{ request()->routeIs('siswa.perpustakaan.katalog') ? 'bg-primary' : 'bg-transparent' }}"></span></span></span>
-                    <span class="flex-1">Katalog Buku</span>
-                </a>
-                <a href="{{ route('siswa.perpustakaan.pinjam') }}" class="submenu-item flex items-center gap-3 rounded-xl px-4 py-3 text-sm {{ request()->routeIs('siswa.perpustakaan.pinjam') ? 'bg-muted text-foreground font-semibold' : 'text-secondary hover:bg-muted hover:text-foreground' }}">
-                     <span class="menu-bullet flex-shrink-0"><span class="menu-bullet-outer w-5 h-5 rounded-full border-2 {{ request()->routeIs('siswa.perpustakaan.pinjam') ? 'border-primary' : 'border-gray-300' }} flex items-center justify-center"><span class="menu-bullet-inner w-2.5 h-2.5 rounded-full {{ request()->routeIs('siswa.perpustakaan.pinjam') ? 'bg-primary' : 'bg-transparent' }}"></span></span></span>
-                    <span class="flex-1">Peminjaman</span>
-                </a>
-                 <a href="{{ route('siswa.perpustakaan.riwayat') }}" class="submenu-item flex items-center gap-3 rounded-xl px-4 py-3 text-sm {{ request()->routeIs('siswa.perpustakaan.riwayat') ? 'bg-muted text-foreground font-semibold' : 'text-secondary hover:bg-muted hover:text-foreground' }}">
-                     <span class="menu-bullet flex-shrink-0"><span class="menu-bullet-outer w-5 h-5 rounded-full border-2 {{ request()->routeIs('siswa.perpustakaan.riwayat') ? 'border-primary' : 'border-gray-300' }} flex items-center justify-center"><span class="menu-bullet-inner w-2.5 h-2.5 rounded-full {{ request()->routeIs('siswa.perpustakaan.riwayat') ? 'bg-primary' : 'bg-transparent' }}"></span></span></span>
-                    <span class="flex-1">Riwayat & Denda</span>
-                </a>
-            </div>
-          </div>
+
 
           <!-- Profil -->
           <div class="group cursor-pointer">
@@ -322,10 +299,10 @@
         @include('components.notification-dropdown')
         <div class="hidden md:flex items-center gap-3 pl-3 border-l border-border">
           @include('components.profile-dropdown', [
-              'userName' => 'Siswa',
-              'userRole' => 'Pelajar',
-              'userEmail' => 'siswa@gmail.com',
-              'userPhoto' => 'https://ui-avatars.com/api/?name=Siswa&background=165DFF&color=fff&size=100'
+              'userName' => Auth::user()->name,
+              'userRole' => ucfirst(Auth::user()->role),
+              'userEmail' => Auth::user()->email,
+              'userPhoto' => 'https://ui-avatars.com/api/?name=' . urlencode(Auth::user()->name) . '&background=random'
           ])
         </div>
       </div>
@@ -371,12 +348,7 @@ function togglePembelajaran() {
   arrow.classList.toggle('rotate-180');
 }
 
-function togglePerpustakaan() {
-  const menu = document.getElementById('menuPerpustakaan');
-  const arrow = document.getElementById('arrowPerpustakaan');
-  menu.classList.toggle('hidden');
-  arrow.classList.toggle('rotate-180');
-}
+
 
 function toggleProfil() {
   const menu = document.getElementById('menuProfil');

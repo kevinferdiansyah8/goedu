@@ -9,56 +9,17 @@ use App\Http\Controllers\DashboardController;
 | DEFAULT
 |--------------------------------------------------------------------------
 */
-Route::get('/', function () {
-    return redirect('/login');
-});
-
 /*
 |--------------------------------------------------------------------------
-| LOGIN
+| AUTHENTICATION
 |--------------------------------------------------------------------------
 */
+Route::get('/login', [\App\Http\Controllers\Auth\LoginController::class, 'showLoginForm'])->name('login');
+Route::post('/login', [\App\Http\Controllers\Auth\LoginController::class, 'login']);
+Route::post('/logout', [\App\Http\Controllers\Auth\LoginController::class, 'logout'])->name('logout');
 
-// halaman login satu pintu
-Route::get('/login', function () {
-    return view('auth.login');
-});
-
-// proses login satu pintu
-Route::post('/login', function (Request $request) {
-    $email = $request->input('email');
-    $password = $request->input('password');
-    $role = null;
-    $redirect = null;
-
-    if ($email === 'admin@gmail.com') {
-        $role = 'admin';
-        $redirect = '/admin/dashboard';
-    } elseif ($email === 'guru@gmail.com') {
-        $role = 'guru';
-        $redirect = '/guru/dashboard';
-    } elseif ($email === 'siswa@gmail.com') {
-        if ($password === 'siswa123') {
-            $role = 'siswa';
-            $redirect = '/siswa/dashboard';
-        }
-    } elseif ($email === 'ortu@gmail.com') {
-        $role = 'orangtua';
-        $redirect = '/orangtua/dashboard';
-    } elseif ($email === 'keuangan@gmail.com') {
-        $role = 'keuangan';
-        $redirect = '/keuangan/dashboard';
-    }
-
-    if ($role && $redirect) {
-        session([
-            'is_login' => true,
-            'role' => $role
-        ]);
-        return redirect($redirect);
-    } else {
-        return redirect('/login')->with('error', 'Email atau Password salah!');
-    }
+Route::get('/', function () {
+    return redirect('/login');
 });
 
 /*
@@ -126,7 +87,7 @@ Route::view('/ppdb/dashboard', 'ppdb.dashboard')->name('ppdb.dashboard');
 | ADMIN AREA
 |--------------------------------------------------------------------------
 */
-Route::prefix('admin')->group(function () {
+Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
                 
             // ========================
             // KEPEGAWAIAN
@@ -291,9 +252,7 @@ Route::delete('/users/{id}', [\App\Http\Controllers\Admin\StudentController::cla
         Route::get('/ppdb', function () {
             return view('admin.laporan.ppdb');
         })->name('admin.laporan.ppdb');
-        Route::get('/perpustakaan', function () {
-            return view('admin.laporan.perpustakaan');
-        })->name('admin.laporan.perpustakaan');
+
         Route::get('/kegiatan', function () {
             return view('admin.laporan.kegiatan');
         })->name('admin.laporan.kegiatan');
@@ -303,16 +262,16 @@ Route::delete('/users/{id}', [\App\Http\Controllers\Admin\StudentController::cla
 // ========================
 // GURU AREA
 // ========================
-Route::prefix('guru')->name('guru.')->group(function () {
+Route::middleware(['auth', 'role:guru'])->prefix('guru')->name('guru.')->group(function () {
     // Dashboard
     Route::get('/dashboard', [\App\Http\Controllers\GuruController::class, 'dashboard'])->name('dashboard');
 
     // Akademik
     Route::prefix('akademik')->name('akademik.')->group(function () {
         Route::get('/mata-pelajaran', [\App\Http\Controllers\GuruController::class, 'mataPelajaran'])->name('mata-pelajaran');
-        Route::post('/mata-pelajaran', [\App\Http\Controllers\GuruController::class, 'storeMataPelajaran'])->name('mata-pelajaran.store');
-        Route::put('/mata-pelajaran/{id}', [\App\Http\Controllers\GuruController::class, 'updateMataPelajaran'])->name('mata-pelajaran.update');
-        Route::delete('/mata-pelajaran/{id}', [\App\Http\Controllers\GuruController::class, 'destroyMataPelajaran'])->name('mata-pelajaran.destroy');
+        // Route::post('/mata-pelajaran', [\App\Http\Controllers\GuruController::class, 'storeMataPelajaran'])->name('mata-pelajaran.store');
+        // Route::put('/mata-pelajaran/{id}', [\App\Http\Controllers\GuruController::class, 'updateMataPelajaran'])->name('mata-pelajaran.update');
+        // Route::delete('/mata-pelajaran/{id}', [\App\Http\Controllers\GuruController::class, 'destroyMataPelajaran'])->name('mata-pelajaran.destroy');
 
         Route::get('/jadwal-mengajar', [\App\Http\Controllers\GuruController::class, 'jadwalMengajar'])->name('jadwal-mengajar');
         Route::post('/jadwal-mengajar', [\App\Http\Controllers\GuruController::class, 'storeSchedule'])->name('jadwal-mengajar.store');
@@ -389,7 +348,7 @@ Route::prefix('guru')->name('guru.')->group(function () {
     // ========================
     // ORANG TUA AREA
     // ========================
-    Route::prefix('orangtua')->group(function () {
+    Route::middleware(['auth', 'role:orangtua'])->prefix('orangtua')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'orangtua'])->name('orangtua.dashboard');
 
         // Monitoring Anak
@@ -438,7 +397,7 @@ Route::prefix('guru')->name('guru.')->group(function () {
     // ========================
     // SISWA AREA
     // ========================
-    Route::prefix('siswa')->group(function () {
+    Route::middleware(['auth', 'role:siswa'])->prefix('siswa')->group(function () {
         Route::get('/dashboard', [\App\Http\Controllers\SiswaController::class, 'index'])->name('siswa.dashboard');
         
         // Akademik
@@ -470,12 +429,7 @@ Route::prefix('guru')->name('guru.')->group(function () {
             Route::get('/nilai', [\App\Http\Controllers\SiswaController::class, 'pembelajaranNilai'])->name('siswa.pembelajaran.nilai');
         });
 
-        // Perpustakaan
-        Route::prefix('perpustakaan')->group(function () {
-            Route::get('/katalog', [\App\Http\Controllers\SiswaController::class, 'perpustakaanKatalog'])->name('siswa.perpustakaan.katalog');
-            Route::get('/pinjam', [\App\Http\Controllers\SiswaController::class, 'perpustakaanPinjam'])->name('siswa.perpustakaan.pinjam');
-            Route::get('/riwayat', [\App\Http\Controllers\SiswaController::class, 'perpustakaanRiwayat'])->name('siswa.perpustakaan.riwayat');
-        });
+
 
         // Profil
         Route::prefix('profil')->group(function () {
@@ -490,7 +444,7 @@ Route::prefix('guru')->name('guru.')->group(function () {
 // ========================
 // KEUANGAN AREA
 // ========================
-Route::prefix('keuangan')->group(function () {
+Route::middleware(['auth', 'role:keuangan,admin'])->prefix('keuangan')->group(function () {
     Route::get('/dashboard', [\App\Http\Controllers\KeuanganController::class, 'index'])->name('keuangan.dashboard');
 
     // Pembayaran Siswa
