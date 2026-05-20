@@ -130,9 +130,10 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     // AKADEMIK
     // ========================
     Route::prefix('akademik')->group(function () {
-        Route::get('/jadwal-pelajaran', function () {
-            return view('admin.akademik.jadwal-pelajaran');
-        })->name('admin.akademik.jadwal-pelajaran');
+        Route::get('/jadwal-pelajaran', [\App\Http\Controllers\Admin\ScheduleController::class, 'index'])->name('admin.akademik.jadwal-pelajaran');
+        Route::post('/jadwal-pelajaran', [\App\Http\Controllers\Admin\ScheduleController::class, 'store'])->name('admin.akademik.jadwal-pelajaran.store');
+        Route::put('/jadwal-pelajaran/{id}', [\App\Http\Controllers\Admin\ScheduleController::class, 'update'])->name('admin.akademik.jadwal-pelajaran.update');
+        Route::delete('/jadwal-pelajaran/{id}', [\App\Http\Controllers\Admin\ScheduleController::class, 'destroy'])->name('admin.akademik.jadwal-pelajaran.destroy');
 
         Route::get('/penilaian', function () {
             return view('admin.akademik.penilaian');
@@ -279,16 +280,8 @@ Route::middleware(['auth', 'role:guru'])->prefix('guru')->name('guru.')->group(f
         Route::delete('/jadwal-mengajar/{id}', [\App\Http\Controllers\GuruController::class, 'destroySchedule'])->name('jadwal-mengajar.destroy');
         Route::get('/kelas-siswa', [\App\Http\Controllers\GuruController::class, 'kelasSiswa'])->name('kelas');
         
-        // Student Management
-        Route::post('/siswa', [\App\Http\Controllers\GuruController::class, 'storeStudent'])->name('siswa.store');
-        Route::put('/siswa/{id}', [\App\Http\Controllers\GuruController::class, 'updateStudent'])->name('siswa.update');
-        Route::delete('/siswa/{id}', [\App\Http\Controllers\GuruController::class, 'destroyStudent'])->name('siswa.destroy');
+        // Student Management (Only Update Catatan remains)
         Route::post('/siswa/update-catatan/{id}', [\App\Http\Controllers\GuruController::class, 'updateStudentNote'])->name('siswa.update-catatan');
-        
-        // Class Management
-        Route::post('/kelas', [\App\Http\Controllers\GuruController::class, 'storeClass'])->name('kelas.store');
-        Route::put('/kelas/{id}', [\App\Http\Controllers\GuruController::class, 'updateClass'])->name('kelas.update');
-        Route::delete('/kelas/{id}', [\App\Http\Controllers\GuruController::class, 'destroyClass'])->name('kelas.destroy');
         
         Route::get('/rekap-nilai', [\App\Http\Controllers\GuruController::class, 'rekapNilai'])->name('rekap');
         Route::get('/nilai-tugas', [\App\Http\Controllers\GuruController::class, 'inputNilaiTugas'])->name('nilai.tugas');
@@ -301,6 +294,7 @@ Route::middleware(['auth', 'role:guru'])->prefix('guru')->name('guru.')->group(f
     Route::prefix('absensi')->name('absensi.')->group(function () {
         Route::get('/', function () { return view('guru.absensi.index'); })->name('index');
         Route::get('/absensi-pertemuan', [\App\Http\Controllers\GuruController::class, 'absensiPertemuan'])->name('pertemuan');
+        Route::post('/absensi-pertemuan', [\App\Http\Controllers\GuruController::class, 'storeAbsensi'])->name('pertemuan.store');
         Route::get('/izin-sakit-alpha', function () { return view('guru.absensi.izin-sakit-alpha'); })->name('izin');
         Route::get('/rekap-absensi', function () { return view('guru.absensi.rekap-absensi'); })->name('rekap');
         

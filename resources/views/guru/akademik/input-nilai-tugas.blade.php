@@ -146,8 +146,11 @@
                             <th class="px-6 py-4 text-left w-16 uppercase text-[10px] font-bold">No</th>
                             <th class="px-6 py-4 text-left uppercase text-[10px] font-bold">Nama Siswa</th>
                             <th class="px-6 py-4 text-left uppercase text-[10px] font-bold w-32">NIS</th>
+                            @if(strpos($selectedType, 'assignment_') === 0)
+                            <th class="px-6 py-4 text-center uppercase text-[10px] font-bold w-32">Jawaban Siswa</th>
+                            @endif
                             <th class="px-6 py-4 text-left uppercase text-[10px] font-bold w-48">Nilai</th>
-                            <th class="px-6 py-4 text-center uppercase text-[10px] font-bold w-40">Status</th>
+                            <th class="px-6 py-4 text-center uppercase text-[10px] font-bold w-40">Status Lulus</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100">
@@ -161,6 +164,17 @@
                                     </div>
                                 </td>
                                 <td class="px-6 py-4 text-gray-500 font-mono">{{ $student['nis'] }}</td>
+                                @if(strpos($selectedType, 'assignment_') === 0)
+                                <td class="px-6 py-4 text-center">
+                                    @if(isset($student['file']) && $student['file'])
+                                        <a href="{{ Storage::url($student['file']) }}" target="_blank" class="inline-flex items-center justify-center gap-1 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 hover:text-indigo-800 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors w-full">
+                                            <i data-lucide="download" class="w-3 h-3"></i> Unduh
+                                        </a>
+                                    @else
+                                        <span class="text-[10px] font-bold text-gray-400 bg-gray-50 px-3 py-1.5 rounded-lg w-full block">Belum Ada File</span>
+                                    @endif
+                                </td>
+                                @endif
                                 <td class="px-6 py-4">
                                     <input type="number" 
                                            name="grades[{{ $student['id'] }}]" 

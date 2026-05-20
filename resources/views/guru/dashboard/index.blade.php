@@ -36,8 +36,8 @@
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
                 </div>
             </div>
-            <p class="text-xs font-semibold text-gray-500 uppercase">Total Kelas</p>
-            <h3 class="text-2xl font-bold text-gray-900">5 <span class="text-sm font-normal text-gray-400">Mapel</span></h3>
+            <p class="text-xs font-semibold text-gray-500 uppercase">Total Kelas Diajar</p>
+            <h3 class="text-2xl font-bold text-gray-900">{{ $totalKelas }} <span class="text-sm font-normal text-gray-400">Kelas</span></h3>
         </div>
 
         {{-- Jadwal Hari Ini --}}
@@ -48,7 +48,7 @@
                 </div>
             </div>
             <p class="text-xs font-semibold text-gray-500 uppercase">Jadwal Hari Ini</p>
-            <h3 class="text-2xl font-bold text-gray-900">3 <span class="text-sm font-normal text-gray-400">Sesi</span></h3>
+            <h3 class="text-2xl font-bold text-gray-900">{{ $totalSesiHariIni }} <span class="text-sm font-normal text-gray-400">Sesi</span></h3>
         </div>
 
         {{-- Rata-rata Nilai --}}
@@ -79,16 +79,15 @@
             <h3 class="text-2xl font-bold text-gray-900">95.2%</h3>
         </div>
 
-        {{-- Tugas --}}
+        {{-- Total Siswa --}}
         <div class="bg-white p-4 rounded-xl shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] border border-gray-100 hover:border-red-500 hover:shadow-md transition-all group">
             <div class="flex justify-between items-start mb-2">
                 <div class="p-2 bg-red-50 text-red-600 rounded-lg group-hover:bg-red-500 group-hover:text-white transition-colors">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
                 </div>
-                <span class="text-xs font-bold text-white bg-red-500 px-2 py-0.5 rounded-full">Baru</span>
             </div>
-            <p class="text-xs font-semibold text-gray-500 uppercase">Belum Dinilai</p>
-            <h3 class="text-2xl font-bold text-gray-900">4 <span class="text-sm font-normal text-gray-400">Tugas</span></h3>
+            <p class="text-xs font-semibold text-gray-500 uppercase">Total Siswa Diajar</p>
+            <h3 class="text-2xl font-bold text-gray-900">{{ $totalSiswa }} <span class="text-sm font-normal text-gray-400">Siswa</span></h3>
         </div>
     </div>
 
@@ -109,84 +108,59 @@
                 </div>
 
                 <div class="space-y-4">
-                    {{-- Active Class --}}
-                    <div class="flex flex-col sm:flex-row gap-4 p-4 rounded-xl border border-blue-100 bg-blue-50/50 relative overflow-hidden group">
-                        <div class="absolute left-0 top-0 bottom-0 w-1 bg-blue-500"></div>
-                        <div class="flex-shrink-0 flex sm:flex-col items-center justify-center sm:justify-start gap-2 sm:gap-0 sm:w-20 text-center">
-                            <span class="text-xs font-bold text-blue-600 uppercase">JAM KE</span>
-                            <span class="text-xl font-bold text-gray-900">1-2</span>
-                        </div>
-                        <div class="flex-1">
-                            <div class="flex justify-between items-start">
-                                <div>
-                                    <h3 class="text-lg font-bold text-gray-900 mb-1">Matematika Wajib</h3>
-                                    <p class="text-gray-600 text-sm flex items-center gap-2">
-                                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-                                        Kelas X IPA 1
-                                    </p>
-                                    <p class="text-gray-600 text-sm flex items-center gap-2 mt-1">
-                                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/></svg>
-                                        Ruang 101
-                                    </p>
+                    @forelse($jadwalHariIni as $jadwal)
+                        @php
+                            $currentTime = now()->format('H:i:s');
+                            $isOngoing = ($currentTime >= $jadwal->jam_mulai && $currentTime <= $jadwal->jam_selesai);
+                            $isDone = ($currentTime > $jadwal->jam_selesai);
+                        @endphp
+                        
+                        <div class="flex flex-col sm:flex-row gap-4 p-4 rounded-xl border {{ $isOngoing ? 'border-blue-100 bg-blue-50/50' : 'border-gray-100 hover:border-gray-200' }} transition-colors relative overflow-hidden group">
+                            @if($isOngoing)
+                                <div class="absolute left-0 top-0 bottom-0 w-1 bg-blue-500"></div>
+                            @endif
+                            <div class="flex-shrink-0 flex sm:flex-col items-center justify-center sm:justify-start gap-2 sm:gap-0 sm:w-20 text-center">
+                                <span class="text-xs font-bold {{ $isOngoing ? 'text-blue-600' : 'text-gray-400' }} uppercase">JAM</span>
+                                <span class="text-sm font-bold {{ $isOngoing ? 'text-gray-900' : 'text-gray-700' }}">{{ \Carbon\Carbon::parse($jadwal->jam_mulai)->format('H:i') }}</span>
+                            </div>
+                            <div class="flex-1">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <h3 class="text-lg font-bold text-gray-900 mb-1">{{ $jadwal->subject->nama_pelajaran }}</h3>
+                                        <p class="text-gray-600 text-sm flex items-center gap-2">
+                                            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                                            Kelas {{ $jadwal->schoolClass->tingkat ?? '' }} {{ $jadwal->schoolClass->nama_kelas ?? '' }}
+                                        </p>
+                                        <p class="text-gray-600 text-sm flex items-center gap-2 mt-1">
+                                            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                            Selesai: {{ \Carbon\Carbon::parse($jadwal->jam_selesai)->format('H:i') }}
+                                        </p>
+                                    </div>
+                                    @if($isOngoing)
+                                        <span class="px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700 border border-green-200 animate-pulse">
+                                            Sedang Berlangsung
+                                        </span>
+                                    @elseif($isDone)
+                                        <span class="px-3 py-1 rounded-full text-xs font-bold bg-gray-100 text-gray-500 border border-gray-200">
+                                            Selesai
+                                        </span>
+                                    @else
+                                        <span class="px-3 py-1 rounded-full text-xs font-bold bg-orange-100 text-orange-600 border border-orange-200">
+                                            Akan Datang
+                                        </span>
+                                    @endif
                                 </div>
-                                <span class="px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700 border border-green-200 animate-pulse">
-                                    Sedang Berlangsung
-                                </span>
                             </div>
                         </div>
-                    </div>
-
-                    {{-- Next Class --}}
-                    <div class="flex flex-col sm:flex-row gap-4 p-4 rounded-xl border border-gray-100 hover:border-gray-200 transition-colors group">
-                        <div class="flex-shrink-0 flex sm:flex-col items-center justify-center sm:justify-start gap-2 sm:gap-0 sm:w-20 text-center">
-                            <span class="text-xs font-bold text-gray-400 uppercase">JAM KE</span>
-                            <span class="text-xl font-bold text-gray-700">3-4</span>
-                        </div>
-                        <div class="flex-1">
-                            <div class="flex justify-between items-start">
-                                <div>
-                                    <h3 class="text-lg font-bold text-gray-900 mb-1">Matematika Peminatan</h3>
-                                    <p class="text-gray-600 text-sm flex items-center gap-2">
-                                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-                                        Kelas XI IPA 2
-                                    </p>
-                                    <p class="text-gray-600 text-sm flex items-center gap-2 mt-1">
-                                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/></svg>
-                                        Ruang 102
-                                    </p>
-                                </div>
-                                <span class="px-3 py-1 rounded-full text-xs font-bold bg-gray-100 text-gray-600 border border-gray-200">
-                                    Akan Datang
-                                </span>
+                    @empty
+                        <div class="text-center py-10 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                            <div class="w-16 h-16 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center mx-auto mb-3">
+                                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>
                             </div>
+                            <h3 class="text-lg font-bold text-gray-900 mb-1">Hari Ini Kosong!</h3>
+                            <p class="text-gray-500 text-sm">Tidak ada jadwal mengajar untuk Anda pada hari {{ $hariIni }}.</p>
                         </div>
-                    </div>
-
-                    {{-- Next Class --}}
-                    <div class="flex flex-col sm:flex-row gap-4 p-4 rounded-xl border border-gray-100 hover:border-gray-200 transition-colors group">
-                        <div class="flex-shrink-0 flex sm:flex-col items-center justify-center sm:justify-start gap-2 sm:gap-0 sm:w-20 text-center">
-                            <span class="text-xs font-bold text-gray-400 uppercase">JAM KE</span>
-                            <span class="text-xl font-bold text-gray-700">7-8</span>
-                        </div>
-                        <div class="flex-1">
-                            <div class="flex justify-between items-start">
-                                <div>
-                                    <h3 class="text-lg font-bold text-gray-900 mb-1">Fisika Dasar</h3>
-                                    <p class="text-gray-600 text-sm flex items-center gap-2">
-                                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-                                        Kelas X IPS 1
-                                    </p>
-                                    <p class="text-gray-600 text-sm flex items-center gap-2 mt-1">
-                                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/></svg>
-                                        Lab Fisika
-                                    </p>
-                                </div>
-                                <span class="px-3 py-1 rounded-full text-xs font-bold bg-gray-100 text-gray-600 border border-gray-200">
-                                    Akan Datang
-                                </span>
-                            </div>
-                        </div>
-                    </div>
+                    @endforelse
                 </div>
             </div>
 

@@ -13,7 +13,7 @@
 		nis: '',
 		nisn: '',
 		nama: '',
-		kelas: '',
+		school_class_id: '',
 		jenis_kelamin: '',
 		telepon: ''
 	},
@@ -26,7 +26,7 @@
 			nis: s.nis,
 			nisn: s.nisn,
 			nama: s.nama,
-			kelas: s.kelas,
+			school_class_id: s.school_class_id,
 			jenis_kelamin: s.jenis_kelamin,
 			telepon: s.telepon
 		};
@@ -36,7 +36,7 @@
 		this.showForm = false;
 		this.formAction = '{{ route('admin.users.store') }}';
 		this.formMethod = 'POST';
-		this.siswa = {nis: '', nisn: '', nama: '', kelas: '', jenis_kelamin: '', telepon: ''};
+		this.siswa = {nis: '', nisn: '', nama: '', school_class_id: '', jenis_kelamin: '', telepon: ''};
 	}
 }">
 
@@ -92,7 +92,7 @@
 			<select name="kelas" class="px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-100 focus:border-indigo-400 transition-all min-w-[140px]">
 				<option value="">Semua Kelas</option>
 				@foreach($daftarKelas as $k)
-					<option value="{{ $k }}" {{ request('kelas') == $k ? 'selected' : '' }}>{{ $k }}</option>
+					<option value="{{ $k->tingkat . ' ' . $k->nama_kelas }}" {{ request('kelas') == ($k->tingkat . ' ' . $k->nama_kelas) ? 'selected' : '' }}>{{ $k->tingkat }} - {{ $k->nama_kelas }}</option>
 				@endforeach
 			</select>
 
@@ -193,13 +193,12 @@
 					</div>
 					<div>
 						<label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Kelas <span class="text-red-400">*</span></label>
-						<!-- Fallback to input for flexibility -->
-						<input name="kelas" x-model="siswa.kelas" required list="daftar-kelas-list" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-100 focus:border-indigo-400 transition-all" placeholder="Ketik kelas (Misal: X IPA 1)">
-						<datalist id="daftar-kelas-list">
+						<select name="school_class_id" x-model="siswa.school_class_id" required class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-100 focus:border-indigo-400 transition-all">
+							<option value="">-- Pilih Kelas --</option>
 							@foreach($daftarKelas as $k)
-								<option value="{{ $k }}">
+								<option value="{{ $k->id }}">{{ $k->tingkat }} - {{ $k->nama_kelas }}</option>
 							@endforeach
-						</datalist>
+						</select>
 					</div>
 					<div>
 						<label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Jenis Kelamin</label>

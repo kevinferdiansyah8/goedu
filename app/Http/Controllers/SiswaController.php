@@ -25,26 +25,36 @@ class SiswaController extends Controller
     {
         $student = $this->getStudent();
         
+        $hariIni = now()->locale('id')->isoFormat('dddd');
+        
         $jadwal_hari_ini = Schedule::where('school_class_id', $student->school_class_id)
-            ->where('hari', 'Senin') // mock for today
+            ->where('hari', $hariIni)
             ->with('subject.teacher')
             ->get()->map(function($j) {
-                return ['jam' => $j->jam_mulai . ' - ' . $j->jam_selesai, 'mapel' => $j->subject->nama, 'guru' => $j->subject->teacher->nama ?? '-'];
+                return ['jam' => $j->jam_mulai . ' - ' . $j->jam_selesai, 'mapel' => $j->subject->nama_pelajaran ?? $j->subject->nama ?? 'Unknown', 'guru' => $j->subject->teacher->nama ?? '-'];
             });
 
+        $hadirCount = Attendance::where('student_id', $student->id)->where('status', 'Hadir')->count();
+        $sakitCount = Attendance::where('student_id', $student->id)->where('status', 'Sakit')->count();
+        $izinCount  = Attendance::where('student_id', $student->id)->where('status', 'Izin')->count();
+        $alphaCount = Attendance::where('student_id', $student->id)->where('status', 'Alpha')->count();
+        
+        $totalAbsen = $hadirCount + $sakitCount + $izinCount + $alphaCount;
+        $persenHadir = $totalAbsen > 0 ? round(($hadirCount / $totalAbsen) * 100) : 0;
+
         $kehadiran = [
-            'hadir' => Attendance::where('student_id', $student->id)->where('status', 'Hadir')->count() * 10, // mock percentage 
-            'sakit' => Attendance::where('student_id', $student->id)->where('status', 'Sakit')->count(),
-            'izin'  => Attendance::where('student_id', $student->id)->where('status', 'Izin')->count(),
-            'alpha' => Attendance::where('student_id', $student->id)->where('status', 'Alpha')->count(),
+            'hadir' => $persenHadir,
+            'sakit' => $sakitCount,
+            'izin'  => $izinCount,
+            'alpha' => $alphaCount,
         ];
 
-        $tugas_aktif = Assignment::whereHas('subject', function($q) use($student) {
-                $q->whereHas('schedules', fn($sq) => $sq->where('kelas', $student->kelas));
-            })->get()->map(function($t) use($student) {
+        $tugas_aktif = Assignment::where('school_class_id', $student->school_class_id)
+            ->with('subject')
+            ->get()->map(function($t) use($student) {
                 $sa = StudentAssignment::where('student_id', $student->id)->where('assignment_id', $t->id)->first();
                 return [
-                    'mapel' => $t->subject->nama,
+                    'mapel' => $t->subject->nama_pelajaran ?? $t->subject->nama ?? 'Unknown',
                     'judul' => $t->judul,
                     'deadline' => $t->deadline,
                     'status' => $sa ? $sa->status : 'Belum'
@@ -61,11 +71,11 @@ class SiswaController extends Controller
     public function akademikJadwal()
     {
         $student = $this->getStudent();
-        $schedules = Schedule::where('kelas', $student->kelas)->with('subject.teacher')->get();
+        $schedules = Schedule::where('school_class_id', $student->school_class_id)->with('subject.teacher')->get();
         $jadwal = [];
         foreach (['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'] as $hari) {
             $jadwal[$hari] = $schedules->where('hari', $hari)->map(function($j){
-                return ['jam' => $j->jam_mulai . ' - ' . $j->jam_selesai, 'mapel' => $j->subject->nama, 'guru' => $j->subject->teacher->nama ?? '-'];
+                return ['jam' => $j->jam_mulai . ' - ' . $j->jam_selesai, 'mapel' => $j->subject->nama_pelajaran ?? $j->subject->nama ?? 'Unknown', 'guru' => $j->subject->teacher->nama ?? '-'];
             })->values()->toArray();
         }
         return view('siswa.akademik.jadwal', compact('jadwal'));
@@ -74,13 +84,11 @@ class SiswaController extends Controller
     public function akademikTugas()
     {
         $student = $this->getStudent();
-        $class = \App\Models\SchoolClass::where('nama_kelas', $student->kelas)->first();
-        $classId = $class ? $class->id : 0;
-
-        $tugas = Assignment::where('school_class_id', $classId)->get()->map(function($t) use($student) {
+        
+        $tugas = Assignment::where('school_class_id', $student->school_class_id)->with('subject')->get()->map(function($t) use($student) {
                 $sa = StudentAssignment::where('student_id', $student->id)->where('assignment_id', $t->id)->first();
                 return [
-                    'mapel' => $t->subject->nama,
+                    'mapel' => $t->subject->nama_pelajaran ?? $t->subject->nama ?? 'Unknown',
                     'judul' => $t->judul,
                     'deadline' => $t->deadline,
                     'status' => $sa ? $sa->status : 'Belum',
@@ -243,19 +251,22 @@ class SiswaController extends Controller
     public function profilBiodata()
     {
         $student = $this->getStudent();
+        $class = \App\Models\SchoolClass::find($student->school_class_id);
+        $namaKelas = $class ? $class->tingkat . ' ' . $class->nama_kelas : $student->kelas;
+        
         $siswa = [
             'nama' => $student->nama,
             'nis' => $student->nis,
-            'nisn' => '0012345678',
-            'tempat_lahir' => 'Jakarta',
-            'tanggal_lahir' => '2006-05-15',
-            'jenis_kelamin' => 'Laki-laki',
-            'agama' => 'Islam',
-            'alamat' => 'Jl. Merdeka No. 10',
-            'telepon' => '081234567890',
-            'email' => 'siswa@goedu.com',
-            'kelas' => $student->kelas,
-            'foto' => 'https://ui-avatars.com/api/?name='.urlencode($student->nama).'&background=0D8ABC&color=fff',
+            'nisn' => $student->nisn ?? '-',
+            'tempat_lahir' => $student->tempat_lahir ?? '-',
+            'tanggal_lahir' => $student->tanggal_lahir ?? '-',
+            'jenis_kelamin' => $student->jenis_kelamin ?? '-',
+            'agama' => $student->agama ?? '-',
+            'alamat' => $student->alamat ?? '-',
+            'telepon' => $student->telepon ?? '-',
+            'email' => $student->email ?? '-',
+            'kelas' => $namaKelas,
+            'foto' => $student->foto ? asset('storage/'.$student->foto) : 'https://ui-avatars.com/api/?name='.urlencode($student->nama).'&background=0D8ABC&color=fff',
         ];
         return view('siswa.profil.biodata', compact('siswa'));
     }

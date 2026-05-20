@@ -25,7 +25,7 @@ class StudentController extends Controller
 
         $siswa = $query->latest()->paginate(10);
         $totalSiswa = Student::count();
-        $daftarKelas = SchoolClass::pluck('nama_kelas')->toArray(); // Can use SchoolClass or unique values from students table
+        $daftarKelas = SchoolClass::orderBy('tingkat')->orderBy('nama_kelas')->get();
 
         return view('admin.users', compact('siswa', 'totalSiswa', 'daftarKelas'));
     }
@@ -36,10 +36,13 @@ class StudentController extends Controller
             'nis' => 'required|unique:students,nis',
             'nisn' => 'nullable|unique:students,nisn',
             'nama' => 'required',
-            'kelas' => 'required',
+            'school_class_id' => 'required|exists:school_classes,id',
             'jenis_kelamin' => 'nullable',
             'telepon' => 'nullable',
         ]);
+
+        $kelas = SchoolClass::find($request->school_class_id);
+        $validated['kelas'] = $kelas->tingkat . ' ' . $kelas->nama_kelas;
 
         Student::create($validated);
         return redirect()->back()->with('success', 'Data Siswa (User) berhasil ditambahkan');
@@ -53,10 +56,13 @@ class StudentController extends Controller
             'nis' => 'required|unique:students,nis,' . $id,
             'nisn' => 'nullable|unique:students,nisn,' . $id,
             'nama' => 'required',
-            'kelas' => 'required',
+            'school_class_id' => 'required|exists:school_classes,id',
             'jenis_kelamin' => 'nullable',
             'telepon' => 'nullable',
         ]);
+
+        $kelas = SchoolClass::find($request->school_class_id);
+        $validated['kelas'] = $kelas->tingkat . ' ' . $kelas->nama_kelas;
 
         $student->update($validated);
         return redirect()->back()->with('success', 'Data Siswa berhasil diperbarui');

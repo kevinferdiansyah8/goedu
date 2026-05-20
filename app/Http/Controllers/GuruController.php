@@ -26,34 +26,60 @@ class GuruController extends Controller
     public function dashboard()
     {
         $teacher = $this->getTeacher();
-        $subjects = Subject::where('teacher_id', $teacher->id)->get();
-        // Fetch schedules for the teacher's subjects
-        $jadwal_mengajar = Schedule::whereIn('subject_id', $subjects->pluck('id'))
-            ->with('subject')
-            ->orderBy('hari')
-            ->orderBy('jam_mulai')
-            ->get();
+        
+        // 1. Total Mata Pelajaran yang diampu
+        $totalMapel = Subject::where('teacher_id', $teacher->id)->count();
 
-        return view('guru.dashboard.index', compact('jadwal_mengajar'));
+        // 2. Total Kelas & Total Siswa
+        $classIds = Schedule::whereHas('subject', function($q) use ($teacher) {
+            $q->where('teacher_id', $teacher->id);
+        })->pluck('school_class_id')->unique()->filter();
+        
+        $totalKelas = $classIds->count();
+        $totalSiswa = Student::whereIn('school_class_id', $classIds)->count();
+
+        // 3. Jadwal Hari Ini
+        $hariIni = now()->locale('id')->isoFormat('dddd');
+        
+        $jadwalHariIni = Schedule::whereHas('subject', function($q) use ($teacher) {
+            $q->where('teacher_id', $teacher->id);
+        })
+        ->where('hari', $hariIni)
+        ->with(['subject', 'schoolClass'])
+        ->orderBy('jam_mulai')
+        ->get();
+
+        $totalSesiHariIni = $jadwalHariIni->count();
+
+        return view('guru.dashboard.index', compact('totalMapel', 'totalKelas', 'totalSiswa', 'jadwalHariIni', 'totalSesiHariIni', 'hariIni'));
     }
 
     public function kelasSiswa(Request $request)
     {
         $teacher = $this->getTeacher();
-        $classes = SchoolClass::orderBy('tingkat')->orderBy('nama_kelas')->get();
+        
+        // Dapatkan ID kelas dari jadwal mengajar guru ini
+        $classIds = Schedule::whereHas('subject', function($q) use ($teacher) {
+            $q->where('teacher_id', $teacher->id);
+        })->pluck('school_class_id')->unique()->filter();
+
+        // Hanya tampilkan kelas-kelas yang diajar oleh guru ini
+        $classes = SchoolClass::whereIn('id', $classIds)->orderBy('tingkat')->orderBy('nama_kelas')->get();
         
         $selectedClassId = $request->input('class_id', $classes->first()->id ?? null);
         
-        $students = \App\Models\Student::query()
-            ->when($selectedClassId, function($q) use($selectedClassId) {
-                return $q->where('school_class_id', $selectedClassId);
-            })
-            ->when($request->search, function($q) use($request) {
-                return $q->where('nama', 'like', '%'.$request->search.'%');
-            })
-            ->get();
-
-        $selectedClass = SchoolClass::find($selectedClassId);
+        $students = collect();
+        $selectedClass = null;
+        
+        if ($selectedClassId) {
+            $students = \App\Models\Student::query()
+                ->where('school_class_id', $selectedClassId)
+                ->when($request->search, function($q) use($request) {
+                    return $q->where('nama', 'like', '%'.$request->search.'%');
+                })
+                ->get();
+            $selectedClass = SchoolClass::find($selectedClassId);
+        }
 
         return view('guru.akademik.kelas-siswa', compact('students', 'classes', 'selectedClassId', 'selectedClass'));
     }
@@ -63,90 +89,6 @@ class GuruController extends Controller
         $student = \App\Models\Student::findOrFail($id);
         $student->update(['catatan_guru' => $request->catatan_guru]);
         return redirect()->back()->with('success', 'Catatan guru berhasil diperbarui');
-    }
-
-    // --- Student CRUD ---
-    public function storeStudent(Request $request)
-    {
-        $request->validate([
-            'nama' => 'required|string',
-            'nis' => 'required|string|unique:students,nis',
-            'school_class_id' => 'required',
-            'jenis_kelamin' => 'required|in:L,P',
-        ]);
-
-        $data = $request->all();
-        $class = SchoolClass::find($request->school_class_id);
-        $data['kelas'] = $class ? ($class->tingkat . ' ' . $class->nama_kelas) : '';
-
-        Student::create($data);
-
-        return redirect()->back()->with('success', 'Siswa baru berhasil ditambahkan!');
-    }
-
-    public function updateStudent(Request $request, $id)
-    {
-        $student = Student::findOrFail($id);
-        
-        $request->validate([
-            'nama' => 'required|string',
-            'nis' => 'required|string|unique:students,nis,' . $id,
-            'school_class_id' => 'required',
-            'jenis_kelamin' => 'required|in:L,P',
-        ]);
-
-        $data = $request->all();
-        $class = SchoolClass::find($request->school_class_id);
-        $data['kelas'] = $class ? ($class->tingkat . ' ' . $class->nama_kelas) : '';
-
-        $student->update($data);
-
-        return redirect()->back()->with('success', 'Data siswa berhasil diperbarui!');
-    }
-
-    public function destroyStudent($id)
-    {
-        Student::findOrFail($id)->delete();
-        return redirect()->back()->with('success', 'Siswa berhasil dihapus dari database!');
-    }
-
-    // --- Class CRUD ---
-    public function storeClass(Request $request)
-    {
-        $request->validate([
-            'nama_kelas' => 'required|string',
-            'tingkat' => 'required',
-        ]);
-
-        $teacher = $this->getTeacher();
-
-        SchoolClass::create([
-            'nama_kelas' => $request->nama_kelas,
-            'tingkat' => $request->tingkat,
-            'teacher_id' => $teacher->id // Default to current teacher as Wali Kelas
-        ]);
-
-        return redirect()->back()->with('success', 'Kelas baru berhasil dibuat!');
-    }
-
-    public function updateClass(Request $request, $id)
-    {
-        $class = SchoolClass::findOrFail($id);
-
-        $request->validate([
-            'nama_kelas' => 'required|string',
-            'tingkat' => 'required',
-        ]);
-
-        $class->update($request->all());
-
-        return redirect()->back()->with('success', 'Informasi kelas berhasil diperbarui!');
-    }
-
-    public function destroyClass($id)
-    {
-        SchoolClass::findOrFail($id)->delete();
-        return redirect()->back()->with('success', 'Kelas berhasil dihapus!');
     }
 
     // --- Mata Pelajaran ---
@@ -601,23 +543,7 @@ class GuruController extends Controller
     // ==========================================
     // ABSENSI & REPORTS
     // ==========================================
-    public function absensiPertemuan()
-    {
-        $teacher = $this->getTeacher();
-        $subjects = Subject::where('teacher_id', $teacher->id)->get();
-        // For attendance, we need class data. 
-        // We'll use the dynamic list I implemented earlier.
-        $classes = SchoolClass::orderBy('tingkat')->orderBy('nama_kelas')->get();
-        
-        // Fetch recent reports for this teacher
-        $reports = TeachingReport::where('teacher_id', $teacher->id)
-            ->with(['schoolClass', 'subject'])
-            ->latest()
-            ->take(5)
-            ->get();
 
-        return view('guru.absensi.absensi-pertemuan', compact('subjects', 'classes', 'reports'));
-    }
 
     public function reportsIndex()
     {
@@ -708,6 +634,8 @@ class GuruController extends Controller
             
             foreach ($studentsData as $student) {
                 $score = null;
+                $status = 'Belum';
+                $file = null;
 
                 if (strpos($selectedType, 'assignment_') === 0) {
                     // Logic for specific assignment
@@ -716,6 +644,8 @@ class GuruController extends Controller
                         ->where('assignment_id', $assignmentId)
                         ->first();
                     $score = $sa ? $sa->nilai : null;
+                    $status = $sa ? $sa->status : 'Belum';
+                    $file = $sa ? $sa->file_jawaban : null;
                 } else {
                     // Logic for periodic grade (UH/UTS/UAS)
                     $grade = Grade::where('student_id', $student->id)
@@ -728,7 +658,9 @@ class GuruController extends Controller
                     'id' => $student->id,
                     'name' => $student->nama,
                     'nis' => $student->nis,
-                    'score' => $score
+                    'score' => $score,
+                    'status' => $status,
+                    'file' => $file
                 ];
             }
         }
@@ -758,14 +690,26 @@ class GuruController extends Controller
             if (strpos($type, 'assignment_') === 0) {
                 // Save to StudentAssignment (Specific Tasks)
                 $assignmentId = str_replace('assignment_', '', $type);
-                StudentAssignment::updateOrCreate(
-                    ['student_id' => $studentId, 'assignment_id' => $assignmentId],
-                    [
-                        'nilai' => $finalScore, 
-                        'status' => ($finalScore !== null ? 'Dinilai' : 'Belum'),
-                        'tanggal_kumpul' => $finalScore !== null ? now()->toDateString() : null
-                    ]
-                );
+                $sa = StudentAssignment::where('student_id', $studentId)->where('assignment_id', $assignmentId)->first();
+                
+                if ($sa) {
+                    // Update existing submission
+                    $sa->nilai = $finalScore;
+                    if ($finalScore !== null) {
+                        $sa->status = 'Dinilai';
+                    }
+                    $sa->save();
+                } else {
+                    // Create if grading a student who hasn't submitted anything yet
+                    if ($finalScore !== null) {
+                        StudentAssignment::create([
+                            'student_id' => $studentId,
+                            'assignment_id' => $assignmentId,
+                            'nilai' => $finalScore,
+                            'status' => 'Dinilai',
+                        ]);
+                    }
+                }
             } else {
                 // Save to Grade Table (Periodic: UH/UTS/UAS)
                 Grade::updateOrCreate(
@@ -776,5 +720,66 @@ class GuruController extends Controller
         }
 
         return redirect()->back()->with('success', 'Berhasil! Data nilai telah disimpan ke database.');
+    }
+    public function absensiPertemuan(Request $request)
+    {
+        $teacher = $this->getTeacher();
+        
+        // Get all schedules for this teacher
+        $jadwalMengajar = Schedule::whereHas('subject', function($q) use ($teacher) {
+            $q->where('teacher_id', $teacher->id);
+        })->with(['subject', 'schoolClass'])->get();
+
+        $selectedScheduleId = $request->schedule_id;
+        $selectedDate = $request->tanggal ?? now()->toDateString();
+        $students = collect();
+        $attendances = collect();
+
+        if ($selectedScheduleId) {
+            $schedule = Schedule::with('schoolClass')->findOrFail($selectedScheduleId);
+            $students = Student::where('school_class_id', $schedule->school_class_id)->orderBy('nama')->get();
+            
+            // Get existing attendance for this schedule & date
+            $attendances = \App\Models\Attendance::where('schedule_id', $selectedScheduleId)
+                ->where('tanggal', $selectedDate)
+                ->get()
+                ->keyBy('student_id');
+        }
+
+        return view('guru.absensi.index', compact('jadwalMengajar', 'selectedScheduleId', 'selectedDate', 'students', 'attendances'));
+    }
+
+    public function storeAbsensi(Request $request)
+    {
+        $teacher = $this->getTeacher();
+        $request->validate([
+            'schedule_id' => 'required|exists:schedules,id',
+            'tanggal' => 'required|date',
+            'status' => 'required|array',
+        ]);
+
+        $scheduleId = $request->schedule_id;
+        $tanggal = $request->tanggal;
+        $statuses = $request->status;
+
+        // Verify ownership (optional but good for security)
+        $schedule = Schedule::whereHas('subject', function($q) use ($teacher) {
+            $q->where('teacher_id', $teacher->id);
+        })->findOrFail($scheduleId);
+
+        foreach ($statuses as $studentId => $status) {
+            \App\Models\Attendance::updateOrCreate(
+                [
+                    'schedule_id' => $scheduleId,
+                    'student_id' => $studentId,
+                    'tanggal' => $tanggal,
+                ],
+                [
+                    'status' => $status,
+                ]
+            );
+        }
+
+        return redirect()->back()->with('success', 'Data absensi kelas berhasil disimpan!');
     }
 }
