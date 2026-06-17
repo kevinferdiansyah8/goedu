@@ -3,79 +3,73 @@
 @section('title', 'Pengumuman')
 
 @section('content')
-<div class="container mx-auto px-4 py-6">
+<div class="container mx-auto px-4 py-6" x-data="{ selectedAnn: null, showModal: false }">
     <div class="mb-6">
         <h1 class="text-2xl font-bold text-gray-800">Pengumuman Sekolah</h1>
         <p class="text-gray-600">Informasi penting dari pihak sekolah.</p>
     </div>
 
     <div class="space-y-4">
+        @forelse($pengumuman as $p)
         <!-- Announcement Item -->
         <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
             <div class="flex flex-col md:flex-row gap-4 justify-between">
-                <div>
+                <div class="flex-1">
                     <div class="flex items-center gap-2 mb-2">
-                        <span class="px-2 py-1 bg-red-100 text-red-600 rounded text-xs font-bold uppercase tracking-wider">Penting</span>
-                        <span class="text-xs text-gray-500">10 Februari 2024</span>
+                        <span class="px-2 py-1 bg-blue-100 text-blue-600 rounded text-xs font-bold uppercase tracking-wider">
+                            {{ $p->status === 'Aktif' ? 'Penting' : 'Info' }}
+                        </span>
+                        <span class="text-xs text-gray-500">{{ \Carbon\Carbon::parse($p->tanggal_pelaksanaan)->translatedFormat('d F Y') }}</span>
                     </div>
-                    <a href="#" class="block text-xl font-bold text-gray-800 hover:text-blue-600 transition-colors mb-2">
-                        Pemberitahuan Libur Pemilu 2024
-                    </a>
+                    <button @click="selectedAnn = @json($p); showModal = true" class="block text-xl font-bold text-gray-800 hover:text-blue-600 text-left transition-colors mb-2">
+                        {{ $p->judul }}
+                    </button>
                     <p class="text-gray-600 text-sm line-clamp-2">
-                        Diberitahukan kepada seluruh siswa dan orang tua murid bahwa kegiatan belajar mengajar diliburkan pada tanggal 14 Februari 2024 dikarenakan adanya Pemilihan Umum. KBM akan normal kembali pada tanggal 15 Februari 2024.
+                        {{ $p->deskripsi }}
                     </p>
                 </div>
                 <div class="flex items-center">
-                    <a href="#" class="bg-gray-50 hover:bg-gray-100 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors border border-gray-200">
+                    <button @click="selectedAnn = @json($p); showModal = true" class="bg-gray-50 hover:bg-gray-100 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors border border-gray-200 whitespace-nowrap">
                         Baca Selengkapnya
-                    </a>
+                    </button>
                 </div>
             </div>
         </div>
+        @empty
+        <div class="py-12 flex flex-col items-center justify-center text-gray-400 bg-white rounded-xl border border-gray-100">
+            <i data-lucide="megaphone" class="w-12 h-12 mb-4 text-gray-300"></i>
+            <span class="text-lg font-medium">Belum ada pengumuman sekolah</span>
+        </div>
+        @endforelse
+    </div>
 
-        <!-- Announcement Item -->
-        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-            <div class="flex flex-col md:flex-row gap-4 justify-between">
-                <div>
-                     <div class="flex items-center gap-2 mb-2">
-                        <span class="px-2 py-1 bg-blue-100 text-blue-600 rounded text-xs font-bold uppercase tracking-wider">Info Akademik</span>
-                        <span class="text-xs text-gray-500">01 Februari 2024</span>
-                    </div>
-                    <a href="#" class="block text-xl font-bold text-gray-800 hover:text-blue-600 transition-colors mb-2">
-                        Jadwal Ujian Tengah Semester (UTS) Genap
-                    </a>
-                    <p class="text-gray-600 text-sm line-clamp-2">
-                        Berikut kami lampirkan jadwal lengkap Ujian Tengah Semester (UTS) Genap Tahun Ajaran 2023/2024. Mohon dipersiapkan dengan baik.
-                    </p>
+    {{-- DETAIL MODAL --}}
+    <div x-show="showModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 p-4 transition-opacity" style="display: none;">
+        <div class="bg-white rounded-3xl shadow-2xl p-8 w-full max-w-lg overflow-y-auto max-h-[90vh]" @click.away="showModal = false">
+            <div class="flex items-center gap-3 mb-6">
+                <span class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-blue-500 text-white font-bold">
+                    <i data-lucide="megaphone"></i>
+                </span>
+                <h3 class="text-2xl font-bold text-gray-950" x-text="selectedAnn ? selectedAnn.judul : ''"></h3>
+            </div>
+
+            <div class="mb-6 text-gray-700 text-base leading-relaxed whitespace-pre-wrap" x-text="selectedAnn ? selectedAnn.deskripsi : ''"></div>
+
+            <div class="space-y-3 border-t border-gray-100 pt-4 text-sm text-gray-600">
+                <div class="flex items-center gap-2">
+                    <i data-lucide="calendar" class="w-4 h-4 text-gray-400"></i>
+                    <span>Tanggal Terbit: <strong x-text="selectedAnn ? selectedAnn.tanggal_pelaksanaan : ''"></strong></span>
                 </div>
-                <div class="flex items-center">
-                    <a href="#" class="bg-gray-50 hover:bg-gray-100 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors border border-gray-200">
-                        Download Jadwal
-                    </a>
+                <div class="flex items-center gap-2">
+                    <i data-lucide="users" class="w-4 h-4 text-gray-400"></i>
+                    <span>Target Audiens: <strong x-text="selectedAnn ? (selectedAnn.jenis || 'Semua') : ''"></strong></span>
                 </div>
             </div>
-        </div>
 
-         <!-- Announcement Item -->
-        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-            <div class="flex flex-col md:flex-row gap-4 justify-between">
-                <div>
-                     <div class="flex items-center gap-2 mb-2">
-                        <span class="px-2 py-1 bg-green-100 text-green-600 rounded text-xs font-bold uppercase tracking-wider">Kegiatan</span>
-                        <span class="text-xs text-gray-500">25 Januari 2024</span>
-                    </div>
-                    <a href="#" class="block text-xl font-bold text-gray-800 hover:text-blue-600 transition-colors mb-2">
-                        Open Recruitment Ekstrakurikuler Paskibra
-                    </a>
-                    <p class="text-gray-600 text-sm line-clamp-2">
-                        Bagi siswa-siswi yang berminat untuk bergabung dengan Paskibra sekolah, pendaftaran telah dibuka mulai hari ini.
-                    </p>
-                </div>
-                <div class="flex items-center">
-                    <a href="#" class="bg-gray-50 hover:bg-gray-100 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors border border-gray-200">
-                        Baca Selengkapnya
-                    </a>
-                </div>
+            <div class="flex justify-end pt-6 mt-6 border-t border-gray-150">
+                <button type="button" @click="showModal = false" class="px-7 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-xl font-bold transition">
+                    Tutup
+                </button>
             </div>
         </div>
     </div>

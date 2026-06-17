@@ -1,78 +1,34 @@
-@extends('layouts.admin')
+@extends('layouts.sidebar-guru')
 
 @section('title', 'Event Sekolah')
 
 @php
-// Mock Data for Events
-$mockEvents = [
-    [
-        'id' => 1,
-        'title' => 'Upacara Peringatan Hari Guru',
-        'category' => 'Upacara',
-        'date' => date('Y-m-d', strtotime('+3 days')),
-        'time' => '07:00 - 09:00',
-        'location' => 'Lapangan Utama',
-        'description' => 'Seluruh guru wajib hadir mengenakan seragam PGRI lengkap. Diharapkan hadir 15 menit sebelum acara dimulai.',
-        'status' => 'upcoming',
-        'color' => 'blue'
-    ],
-    [
-        'id' => 2,
-        'title' => 'Workshop Kurikulum Merdeka',
-        'category' => 'Workshop',
-        'date' => date('Y-m-d', strtotime('+10 days')),
-        'time' => '08:00 - 15:00',
-        'location' => 'Aula Serbaguna',
-        'description' => 'Pelatihan lanjutan implementasi Kurikulum Merdeka untuk guru mata pelajaran eksakta.',
-        'status' => 'upcoming',
-        'color' => 'purple'
-    ],
-    [
-        'id' => 3,
-        'title' => 'Rapat Evaluasi Bulanan',
-        'category' => 'Rapat',
-        'date' => date('Y-m-d'),
-        'time' => '13:00 - 15:00',
-        'location' => 'Ruang Guru',
-        'description' => 'Evaluasi kinerja bulan Januari dan persiapan Ujian Tengah Semester.',
-        'status' => 'today',
-        'color' => 'orange'
-    ],
-    [
-        'id' => 4,
-        'title' => 'Porseni Sekolah',
-        'category' => 'Akademik',
-        'date' => date('Y-m-d', strtotime('-5 days')),
-        'time' => '08:00 - 16:00',
-        'location' => 'Area Sekolah',
-        'description' => 'Pekan Olahraga dan Seni antar kelas.',
-        'status' => 'done',
-        'color' => 'green'
-    ],
-    [
-        'id' => 5,
-        'title' => 'Webinar Pendidikan Karakter',
-        'category' => 'Workshop',
-        'date' => date('Y-m-d', strtotime('+15 days')),
-        'time' => '09:00 - 12:00',
-        'location' => 'Online (Zoom)',
-        'description' => 'Pentingnya pendidikan karakter di era digital.',
-        'status' => 'upcoming',
-        'color' => 'purple'
-    ],
-    [
-        'id' => 6,
-        'title' => 'Pembagian Raport Siswa',
-        'category' => 'Akademik',
-        'date' => date('Y-m-d', strtotime('+30 days')),
-        'time' => '08:00 - 12:00',
-        'location' => 'Kelas Masing-masing',
-        'status' => 'upcoming',
-        'color' => 'red'
-    ],
-];
+// Map Database Events to Alpine structure
+$eventsData = [];
+if (isset($events)) {
+    foreach ($events as $e) {
+        $status = 'upcoming';
+        $todayStr = date('Y-m-d');
+        if ($e->tanggal_pelaksanaan === $todayStr) {
+            $status = 'today';
+        } elseif ($e->tanggal_pelaksanaan < $todayStr) {
+            $status = 'done';
+        }
 
-$eventsData = $events ?? $mockEvents;
+        $eventsData[] = [
+            'id' => $e->id,
+            'title' => $e->judul,
+            'category' => $e->jenis ?? 'Umum',
+            'date' => $e->tanggal_pelaksanaan,
+            'time' => '08:00 - Selesai',
+            'location' => $e->lokasi,
+            'description' => $e->deskripsi,
+            'status' => $status,
+            'color' => $status === 'today' ? 'orange' : ($status === 'done' ? 'green' : 'blue'),
+            'image' => $e->gambar_attachment ? asset('storage/' . $e->gambar_attachment) : null
+        ];
+    }
+}
 @endphp
 
 @section('content')
@@ -94,14 +50,11 @@ $eventsData = $events ?? $mockEvents;
                 <button @click="viewMode = 'list'" :class="{ 'bg-blue-50 text-blue-600 shadow-sm': viewMode === 'list', 'text-gray-500 hover:bg-gray-50': viewMode !== 'list' }" class="p-2 rounded-lg transition-all" title="List View">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
                 </button>
-                <button @click="viewMode = 'calendar'" :class="{ 'bg-blue-50 text-blue-600 shadow-sm': viewMode === 'calendar', 'text-gray-500 hover:bg-gray-50': viewMode !== 'calendar' }" class="p-2 rounded-lg transition-all" title="Calendar View">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                </button>
             </div>
 
             <div class="w-px h-8 bg-gray-300 mx-1 hidden sm:block"></div>
 
-            {{-- Filter --}}
+            {{-- Filter Kategori --}}
             <div class="relative">
                 <select x-model="filterCategory" class="appearance-none bg-white border border-gray-200 text-gray-700 py-2.5 pl-4 pr-10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-medium shadow-sm transition-all cursor-pointer hover:bg-gray-50">
                     <option value="all">Semua Kategori</option>
@@ -109,17 +62,12 @@ $eventsData = $events ?? $mockEvents;
                     <option value="Akademik">Akademik</option>
                     <option value="Rapat">Rapat</option>
                     <option value="Upacara">Upacara</option>
+                    <option value="Umum">Umum</option>
                 </select>
                 <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                 </div>
             </div>
-
-            {{-- Add Button --}}
-            <button class="flex items-center gap-2 bg-blue-600 text-white px-5 py-2.5 rounded-xl font-semibold shadow hover:bg-blue-700 transition-all active:scale-95">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                Tambah Event
-            </button>
         </div>
     </div>
 
@@ -193,6 +141,12 @@ $eventsData = $events ?? $mockEvents;
         <template x-for="event in filteredEvents" :key="event.id">
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg transition-all group flex flex-col h-full">
                 
+                <template x-if="event.image">
+                    <div class="w-full h-48 overflow-hidden bg-gray-100">
+                        <img :src="event.image" :alt="event.title" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
+                    </div>
+                </template>
+
                 <div class="p-5 flex-1">
                     <div class="flex justify-between items-start mb-4">
                         {{-- Date Badge --}}
@@ -224,6 +178,7 @@ $eventsData = $events ?? $mockEvents;
                                 'bg-blue-50 text-blue-700 border-blue-100': event.category === 'Upacara',
                                 'bg-orange-50 text-orange-700 border-orange-100': event.category === 'Rapat',
                                 'bg-green-50 text-green-700 border-green-100': event.category === 'Akademik',
+                                'bg-gray-50 text-gray-700 border-gray-100': event.category === 'Umum',
                             }"
                             x-text="event.category">
                         </span>
@@ -244,15 +199,7 @@ $eventsData = $events ?? $mockEvents;
                 </div>
 
                 <div class="p-4 border-t border-gray-100 bg-gray-50/50 flex justify-between items-center mt-auto">
-                    <button class="text-sm font-semibold text-blue-600 hover:text-blue-800 transition-colors">Lihat Detail</button>
-                    <div class="flex gap-1">
-                        <button class="p-2 text-gray-400 hover:text-blue-600 hover:bg-white rounded-lg transition-all" title="Edit">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
-                        </button>
-                         <button class="p-2 text-gray-400 hover:text-red-600 hover:bg-white rounded-lg transition-all" title="Hapus">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                        </button>
-                    </div>
+                    <button @click="openDetail(event)" class="text-sm font-semibold text-blue-600 hover:text-blue-800 transition-colors">Lihat Detail</button>
                 </div>
 
             </div>
@@ -271,13 +218,14 @@ $eventsData = $events ?? $mockEvents;
 
                 <div class="flex-1">
                     <div class="flex flex-col md:flex-row md:items-center gap-2 mb-1">
-                         <h3 class="text-lg font-bold text-gray-900 group-hover:text-blue-600 transition-colors" x-text="event.title"></h3>
+                         <h3 class="text-lg font-bold text-gray-900 group-hover:text-blue-600 transition-colors cursor-pointer" @click="openDetail(event)" x-text="event.title"></h3>
                          <span class="px-2 py-0.5 rounded text-xs font-medium border w-fit"
                             :class="{
                                 'bg-purple-50 text-purple-700 border-purple-100': event.category === 'Workshop',
                                 'bg-blue-50 text-blue-700 border-blue-100': event.category === 'Upacara',
                                 'bg-orange-50 text-orange-700 border-orange-100': event.category === 'Rapat',
                                 'bg-green-50 text-green-700 border-green-100': event.category === 'Akademik',
+                                'bg-gray-50 text-gray-700 border-gray-100': event.category === 'Umum',
                             }"
                             x-text="event.category">
                         </span>
@@ -295,53 +243,16 @@ $eventsData = $events ?? $mockEvents;
                      <template x-if="event.status === 'today'">
                         <span class="px-3 py-1 rounded-full text-xs font-bold bg-orange-100 text-orange-700">Hari Ini</span>
                     </template>
-                        <template x-if="event.status === 'upcoming'">
+                    <template x-if="event.status === 'upcoming'">
                         <span class="px-3 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-600">Akan Datang</span>
                     </template>
-                        <template x-if="event.status === 'done'">
+                    <template x-if="event.status === 'done'">
                         <span class="px-3 py-1 rounded-full text-xs font-bold bg-gray-100 text-gray-500">Selesai</span>
                     </template>
-                    
-                    <button class="p-2 text-gray-400 hover:text-blue-600 rounded-lg" title="Edit"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg></button>
+                    <button @click="openDetail(event)" class="text-sm font-semibold text-blue-600 hover:text-blue-800 ml-2">Detail</button>
                 </div>
             </div>
         </template>
-    </div>
-
-    {{-- CALENDAR VIEW --}}
-    <div x-show="viewMode === 'calendar'" class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6" style="display: none;">
-         <div class="flex items-center justify-between mb-6">
-            <h2 class="text-lg font-bold text-gray-900">Maret 2026</h2>
-            <div class="flex gap-2">
-                <button class="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg></button>
-                <button class="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></button>
-            </div>
-        </div>
-
-        <div class="grid grid-cols-7 gap-px bg-gray-200 rounded-xl overflow-hidden border border-gray-200">
-            {{-- Headers --}}
-            <template x-for="day in ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min']">
-                <div class="bg-gray-50 p-4 text-center text-sm font-semibold text-gray-600" x-text="day"></div>
-            </template>
-
-            {{-- Mock Days --}}
-             <template x-for="i in 35">
-                <div class="bg-white min-h-[120px] p-2 hover:bg-gray-50 transition-colors group relative border-t border-l border-transparent">
-                     <span class="text-sm font-medium text-gray-700" :class="{'text-gray-300': i > 31}" x-text="i > 31 ? i - 31 : i"></span>
-                     
-                     <template x-if="i === 5">
-                        <div class="mt-2 p-1.5 rounded bg-blue-100 text-blue-700 text-xs font-semibold cursor-pointer hover:bg-blue-200 truncate">
-                            Upacara Hari Guru
-                        </div>
-                     </template>
-                      <template x-if="i === 12">
-                        <div class="mt-2 p-1.5 rounded bg-purple-100 text-purple-700 text-xs font-semibold cursor-pointer hover:bg-purple-200 truncate">
-                            Workshop Kurikulum
-                        </div>
-                     </template>
-                </div>
-             </template>
-        </div>
     </div>
 
     {{-- Empty State --}}
@@ -351,6 +262,51 @@ $eventsData = $events ?? $mockEvents;
         </div>
         <h3 class="text-lg font-bold text-gray-900">Belum ada event</h3>
         <p class="text-gray-500">Tidak ada event yang sesuai dengan filter Anda.</p>
+    </div>
+
+    {{-- ALPINE DETAIL MODAL --}}
+    <div x-show="showDetailModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 p-4 transition-opacity" style="display: none;">
+        <div class="bg-white rounded-3xl shadow-2xl p-8 w-full max-w-lg overflow-y-auto max-h-[90vh]" @click.away="closeDetail()">
+            <template x-if="selectedEvent && selectedEvent.image">
+                <div class="w-full h-48 rounded-2xl overflow-hidden mb-6 bg-gray-100">
+                    <img :src="selectedEvent.image" :alt="selectedEvent.title" class="w-full h-full object-cover">
+                </div>
+            </template>
+            
+            <div class="flex items-center gap-3 mb-6">
+                <span class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-blue-500 text-white">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                </span>
+                <h3 class="text-2xl font-bold text-gray-950" x-text="selectedEvent ? selectedEvent.title : ''"></h3>
+            </div>
+
+            <div class="mb-6 text-gray-700 text-base leading-relaxed whitespace-pre-wrap" x-text="selectedEvent ? selectedEvent.description : ''"></div>
+
+            <div class="space-y-3 border-t border-gray-100 pt-4 text-sm text-gray-600">
+                <div class="flex items-center gap-2">
+                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/></svg>
+                    <span>Lokasi: <strong x-text="selectedEvent ? selectedEvent.location : ''"></strong></span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                    <span>Tanggal: <strong x-text="selectedEvent ? selectedEvent.date : ''"></strong></span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <span>Waktu: <strong x-text="selectedEvent ? selectedEvent.time : ''"></strong></span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h10"/></svg>
+                    <span>Kategori: <strong x-text="selectedEvent ? selectedEvent.category : ''"></strong></span>
+                </div>
+            </div>
+
+            <div class="flex justify-end pt-6 mt-6 border-t border-gray-150">
+                <button type="button" @click="closeDetail()" class="px-7 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-xl font-bold transition">
+                    Tutup
+                </button>
+            </div>
+        </div>
     </div>
 
 </div>
@@ -363,8 +319,19 @@ $eventsData = $events ?? $mockEvents;
             viewMode: 'grid',
             searchQuery: '',
             filterCategory: 'all',
+            showDetailModal: false,
+            selectedEvent: null,
             
             events: @json($eventsData),
+
+            openDetail(event) {
+                this.selectedEvent = event;
+                this.showDetailModal = true;
+            },
+            closeDetail() {
+                this.showDetailModal = false;
+                this.selectedEvent = null;
+            },
 
             get filteredEvents() {
                 let filtered = this.events;

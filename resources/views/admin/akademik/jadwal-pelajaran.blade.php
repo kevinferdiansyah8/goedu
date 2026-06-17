@@ -68,11 +68,11 @@
         $jamList = ['07.00','08.00','09.00','10.00','11.00','12.00','13.00','14.00','15.00'];
         $hariList = ['Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
         
-        // Buat matriks kosong
+        // Buat matriks kosong (array untuk menampung > 1 jadwal)
         $jadwalMatrix = [];
         foreach($jamList as $jam) {
             foreach($hariList as $hari) {
-                $jadwalMatrix[$jam][$hari] = null;
+                $jadwalMatrix[$jam][$hari] = [];
             }
         }
         
@@ -88,8 +88,8 @@
                     break;
                 }
             }
-            if ($closestJam && isset($jadwalMatrix[$closestJam][$s->hari])) {
-                $jadwalMatrix[$closestJam][$s->hari] = $s;
+            if ($closestJam && array_key_exists($s->hari, $jadwalMatrix[$closestJam])) {
+                $jadwalMatrix[$closestJam][$s->hari][] = $s;
             }
         }
     @endphp
@@ -119,36 +119,62 @@
 
                             @if($jam == '10.00')
                                 @foreach($hariList as $hari)
-                                    <td class="p-2 text-center bg-warning-light border-b border-border text-warning-dark font-bold">
-                                        Istirahat
+                                    <td class="p-2 text-center bg-warning-light border-b border-border relative align-top">
+                                        <div class="text-warning-dark font-bold mb-2">Istirahat</div>
+                                        @if(isset($jadwalMatrix[$jam][$hari]) && count($jadwalMatrix[$jam][$hari]) > 0)
+                                            @foreach($jadwalMatrix[$jam][$hari] as $sc)
+                                                <div class="rounded-xl bg-white border border-warning/20 p-2 shadow-sm relative group mb-2 text-left">
+                                                    <div class="font-bold text-accent-blue">{{ $sc->subject->nama }}</div>
+                                                    <div class="text-xs font-semibold">{{ $sc->kelas }}</div>
+                                                    <div class="text-xs text-secondary mt-1 flex items-center gap-1">
+                                                        <i data-lucide="clock" class="w-3 h-3"></i>
+                                                        {{ \Carbon\Carbon::parse($sc->jam_mulai)->format('H:i') }} - {{ \Carbon\Carbon::parse($sc->jam_selesai)->format('H:i') }}
+                                                    </div>
+                                                    
+                                                    <!-- Action overlay -->
+                                                    <div class="absolute inset-0 bg-black/5 rounded-xl opacity-0 group-hover:opacity-100 flex items-center justify-center gap-2 transition-opacity">
+                                                        <button onclick='openEditModal(@json($sc))' class="w-8 h-8 rounded-full bg-white text-info flex items-center justify-center shadow hover:bg-info hover:text-white transition-colors">
+                                                            <i data-lucide="edit" class="w-4 h-4"></i>
+                                                        </button>
+                                                        <form action="{{ route('admin.akademik.jadwal-pelajaran.destroy', $sc->id) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus jadwal ini?');">
+                                                            @csrf @method('DELETE')
+                                                            <button type="submit" class="w-8 h-8 rounded-full bg-white text-danger flex items-center justify-center shadow hover:bg-danger hover:text-white transition-colors">
+                                                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                                            </button>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            @endforeach
+                                        @endif
                                     </td>
                                 @endforeach
                             @else
                                 @foreach($hariList as $hari)
                                     <td class="p-2 border-b border-border relative align-top">
-                                        @if(isset($jadwalMatrix[$jam][$hari]) && $jadwalMatrix[$jam][$hari])
-                                            @php $sc = $jadwalMatrix[$jam][$hari]; @endphp
-                                            <div class="rounded-xl bg-accent-blue/10 border border-accent-blue/20 p-2 shadow-sm relative group">
-                                                <div class="font-bold text-accent-blue">{{ $sc->subject->nama }}</div>
-                                                <div class="text-xs font-semibold">{{ $sc->kelas }}</div>
-                                                <div class="text-xs text-secondary mt-1 flex items-center gap-1">
-                                                    <i data-lucide="clock" class="w-3 h-3"></i>
-                                                    {{ \Carbon\Carbon::parse($sc->jam_mulai)->format('H:i') }} - {{ \Carbon\Carbon::parse($sc->jam_selesai)->format('H:i') }}
-                                                </div>
-                                                
-                                                <!-- Action overlay -->
-                                                <div class="absolute inset-0 bg-black/5 rounded-xl opacity-0 group-hover:opacity-100 flex items-center justify-center gap-2 transition-opacity">
-                                                    <button onclick='openEditModal(@json($sc))' class="w-8 h-8 rounded-full bg-white text-info flex items-center justify-center shadow hover:bg-info hover:text-white transition-colors">
-                                                        <i data-lucide="edit" class="w-4 h-4"></i>
-                                                    </button>
-                                                    <form action="{{ route('admin.akademik.jadwal-pelajaran.destroy', $sc->id) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus jadwal ini?');">
-                                                        @csrf @method('DELETE')
-                                                        <button type="submit" class="w-8 h-8 rounded-full bg-white text-danger flex items-center justify-center shadow hover:bg-danger hover:text-white transition-colors">
-                                                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                        @if(isset($jadwalMatrix[$jam][$hari]) && count($jadwalMatrix[$jam][$hari]) > 0)
+                                            @foreach($jadwalMatrix[$jam][$hari] as $sc)
+                                                <div class="rounded-xl bg-accent-blue/10 border border-accent-blue/20 p-2 shadow-sm relative group mb-2">
+                                                    <div class="font-bold text-accent-blue">{{ $sc->subject->nama }}</div>
+                                                    <div class="text-xs font-semibold">{{ $sc->kelas }}</div>
+                                                    <div class="text-xs text-secondary mt-1 flex items-center gap-1">
+                                                        <i data-lucide="clock" class="w-3 h-3"></i>
+                                                        {{ \Carbon\Carbon::parse($sc->jam_mulai)->format('H:i') }} - {{ \Carbon\Carbon::parse($sc->jam_selesai)->format('H:i') }}
+                                                    </div>
+                                                    
+                                                    <!-- Action overlay -->
+                                                    <div class="absolute inset-0 bg-black/5 rounded-xl opacity-0 group-hover:opacity-100 flex items-center justify-center gap-2 transition-opacity">
+                                                        <button onclick='openEditModal(@json($sc))' class="w-8 h-8 rounded-full bg-white text-info flex items-center justify-center shadow hover:bg-info hover:text-white transition-colors">
+                                                            <i data-lucide="edit" class="w-4 h-4"></i>
                                                         </button>
-                                                    </form>
+                                                        <form action="{{ route('admin.akademik.jadwal-pelajaran.destroy', $sc->id) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus jadwal ini?');">
+                                                            @csrf @method('DELETE')
+                                                            <button type="submit" class="w-8 h-8 rounded-full bg-white text-danger flex items-center justify-center shadow hover:bg-danger hover:text-white transition-colors">
+                                                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                                            </button>
+                                                        </form>
+                                                    </div>
                                                 </div>
-                                            </div>
+                                            @endforeach
                                         @else
                                             <div class="h-16 border-2 border-dashed border-gray-100 rounded-xl flex items-center justify-center text-gray-300 text-xs">
                                                 Kosong

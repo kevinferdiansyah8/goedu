@@ -4,27 +4,8 @@
 
 @section('content')
 @php
-$jadwal = [
-  [
-    'guru' => 'Budi Santoso',
-    'mapel' => 'Pemrograman Dasar',
-    'kelas' => 'X RPL 1',
-    'hari' => 'Senin',
-    'jam' => '07:00 - 09:00',
-    'ruangan' => 'Lab Komputer 1'
-  ],
-  [
-    'guru' => 'Siti Aminah',
-    'mapel' => 'Basis Data',
-    'kelas' => 'XI RPL 2',
-    'hari' => 'Selasa',
-    'jam' => '09:00 - 11:00',
-    'ruangan' => 'Lab Komputer 2'
-  ],
-];
-
-$daftarGuru = collect($jadwal)->pluck('guru')->unique();
-$daftarHari = collect($jadwal)->pluck('hari')->unique();
+$daftarGuru = collect($schedules)->map(fn($s) => $s->subject->teacher->nama ?? null)->filter()->unique();
+$daftarHari = collect($schedules)->pluck('hari')->filter()->unique();
 @endphp
 
 <div class="max-w-7xl mx-auto px-4 py-8">
@@ -35,11 +16,10 @@ $daftarHari = collect($jadwal)->pluck('hari')->unique();
       <h1 class="text-4xl font-extrabold text-gray-900 mb-1">Jadwal Mengajar</h1>
       <p class="text-lg text-gray-400">Atur jadwal mengajar guru dan kelas</p>
     </div>
-    <button onclick="toggleForm()"
+    <a href="{{ route('admin.akademik.jadwal-pelajaran') }}"
       class="flex items-center gap-2 px-6 py-2.5 bg-blue-600 text-white rounded-xl font-semibold shadow-lg hover:bg-blue-700 hover:scale-105 transition-all duration-200">
-      <i class="fa fa-plus"></i>
-      Tambah Jadwal
-    </button>
+      Kelola di Akademik
+    </a>
   </div>
 
   <!-- FILTER -->
@@ -73,19 +53,23 @@ $daftarHari = collect($jadwal)->pluck('hari')->unique();
         </tr>
       </thead>
       <tbody id="jadwalTable">
-        @foreach($jadwal as $j)
-        <tr data-guru="{{ $j['guru'] }}" data-hari="{{ $j['hari'] }}" class="group bg-white even:bg-blue-50/40 hover:shadow-lg hover:scale-[1.01] transition rounded-xl">
+        @foreach($schedules as $j)
+        @php
+            $guruNama = $j->subject->teacher->nama ?? '-';
+            $initials = collect(explode(' ', $guruNama))->map(fn($n)=>substr($n, 0, 1))->join('');
+        @endphp
+        <tr data-guru="{{ $guruNama }}" data-hari="{{ $j->hari }}" class="group bg-white even:bg-blue-50/40 hover:shadow-lg hover:scale-[1.01] transition rounded-xl">
           <td class="px-5 py-3 flex items-center gap-3">
-            <span class='w-10 h-10 rounded-full bg-gradient-to-br from-blue-200 to-blue-400 text-blue-800 font-bold flex items-center justify-center shadow'>{{ collect(explode(' ', $j['guru']))->map(fn($n)=>$n[0])->join('') }}</span>
-            <span class="font-medium text-gray-800">{{ $j['guru'] }}</span>
+            <span class='w-10 h-10 rounded-full bg-gradient-to-br from-blue-200 to-blue-400 text-blue-800 font-bold flex items-center justify-center shadow'>{{ $initials ?: '-' }}</span>
+            <span class="font-medium text-gray-800">{{ $guruNama }}</span>
           </td>
-          <td class="px-5 py-3">{{ $j['mapel'] }}</td>
-          <td class="px-5 py-3">{{ $j['kelas'] }}</td>
-          <td class="px-5 py-3">{{ $j['hari'] }}</td>
-          <td class="px-5 py-3">{{ $j['jam'] }}</td>
-          <td class="px-5 py-3">{{ $j['ruangan'] }}</td>
+          <td class="px-5 py-3">{{ $j->subject->nama ?? '-' }}</td>
+          <td class="px-5 py-3">{{ $j->kelas ?? '-' }}</td>
+          <td class="px-5 py-3">{{ $j->hari }}</td>
+          <td class="px-5 py-3">{{ $j->jam_mulai }} - {{ $j->jam_selesai }}</td>
+          <td class="px-5 py-3">-</td>
           <td class="px-5 py-3 text-center">
-            <button class="btn-edit flex items-center gap-1"><i class="fa fa-edit"></i> Edit</button>
+            <a href="{{ route('admin.akademik.jadwal-pelajaran') }}" class="btn-edit flex items-center gap-1 justify-center"><i class="fa fa-edit"></i> Edit</a>
           </td>
         </tr>
         @endforeach
@@ -93,29 +77,7 @@ $daftarHari = collect($jadwal)->pluck('hari')->unique();
     </table>
   </div>
 
-  <!-- FORM -->
-  <div id="formJadwal" class="hidden max-w-2xl mx-auto mt-10">
-    <div class="bg-white/95 rounded-2xl shadow-2xl p-8">
-      <h2 class="text-2xl font-bold mb-4 text-blue-700 flex items-center gap-2"><i class="fa fa-calendar-plus"></i> Tambah Jadwal Mengajar</h2>
-      <form>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <input class="input border rounded-xl px-4 py-2 focus:ring-2 focus:ring-blue-400" placeholder="Nama Guru">
-          <input class="input border rounded-xl px-4 py-2 focus:ring-2 focus:ring-blue-400" placeholder="Mata Pelajaran">
-          <input class="input border rounded-xl px-4 py-2 focus:ring-2 focus:ring-blue-400" placeholder="Kelas">
-          <select class="input border rounded-xl px-4 py-2 focus:ring-2 focus:ring-blue-400">
-            <option>Senin</option><option>Selasa</option><option>Rabu</option>
-            <option>Kamis</option><option>Jumat</option>
-          </select>
-          <input class="input border rounded-xl px-4 py-2 focus:ring-2 focus:ring-blue-400" placeholder="Jam (07:00 - 09:00)">
-          <input class="input border rounded-xl px-4 py-2 focus:ring-2 focus:ring-blue-400" placeholder="Ruangan">
-        </div>
-        <div class="flex justify-end gap-2 mt-6">
-          <button type="button" onclick="toggleForm()" class="px-5 py-2 border rounded-xl">Batal</button>
-          <button class="px-5 py-2 bg-blue-600 text-white rounded-xl shadow hover:bg-blue-700 hover:scale-105 transition-all">Simpan</button>
-        </div>
-      </form>
-    </div>
-  </div>
+  <!-- FORM (Dihilangkan, diarahkan ke Akademik) -->
 
 </div>
 @endsection

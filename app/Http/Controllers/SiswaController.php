@@ -122,15 +122,113 @@ class SiswaController extends Controller
 
     public function kehadiranIzin()
     {
-        $riwayat_izin = []; // Can be derived or separate table, mock for now
+        $student = $this->getStudent();
+        
+        $riwayat_izin = Attendance::where('student_id', $student->id)
+            ->whereIn('status', ['Izin', 'Sakit'])
+            ->orderBy('tanggal', 'desc')
+            ->get()
+            ->map(function($a) {
+                return [
+                    'tanggal_pengajuan' => date('d M Y', strtotime($a->created_at ?? $a->tanggal)),
+                    'kategori' => $a->status,
+                    'mulai_tanggal' => date('d M Y', strtotime($a->tanggal)),
+                    'sampai_tanggal' => date('d M Y', strtotime($a->tanggal)),
+                    'keterangan' => $a->keterangan ?? '-',
+                    'bukti' => '-',
+                    'status' => 'Disetujui',
+                ];
+            });
+            
         return view('siswa.kehadiran.izin', compact('riwayat_izin'));
+    }
+
+    public function storeIzin(Request $request)
+    {
+        $request->validate([
+            'jenis' => 'required|in:Izin,Sakit',
+            'tanggal_mulai' => 'required|date',
+            'tanggal_selesai' => 'required|date|after_or_equal:tanggal_mulai',
+            'keterangan' => 'nullable|string'
+        ]);
+
+        $student = $this->getStudent();
+
+        $mulai = \Carbon\Carbon::parse($request->tanggal_mulai);
+        $selesai = \Carbon\Carbon::parse($request->tanggal_selesai);
+        $diffDays = $mulai->diffInDays($selesai);
+        
+        for ($i = 0; $i <= $diffDays; $i++) {
+            $tgl = $mulai->copy()->addDays($i)->format('Y-m-d');
+            \App\Models\Attendance::updateOrCreate(
+                [
+                    'student_id' => $student->id,
+                    'tanggal' => $tgl,
+                ],
+                [
+                    'status' => $request->jenis,
+                    'keterangan' => $request->keterangan,
+                ]
+            );
+        }
+
+        return redirect()->back()->with('success', 'Pengajuan izin/sakit berhasil dikirim.');
     }
 
     public function kehadiranRekap()
     {
-        $rekap = [
-            ['bulan' => 'Oktober', 'hadir' => 20, 'sakit' => 0, 'izin' => 1, 'alpha' => 0, 'terlambat' => 0],
+        $student = $this->getStudent();
+        
+        $attendances = Attendance::where('student_id', $student->id)
+            ->orderBy('tanggal', 'desc')
+            ->get();
+            
+        $months = [
+            '01' => 'Januari', '02' => 'Februari', '03' => 'Maret', '04' => 'April',
+            '05' => 'Mei', '06' => 'Juni', '07' => 'Juli', '08' => 'Agustus',
+            '09' => 'September', '10' => 'Oktober', '11' => 'November', '12' => 'Desember'
         ];
+        
+        $grouped = $attendances->groupBy(function($item) {
+            return substr($item->tanggal, 0, 7); // Format: YYYY-MM
+        });
+        
+        $rekap = [];
+        foreach ($grouped as $key => $items) {
+            $parts = explode('-', $key);
+            if (count($parts) < 2) continue;
+            
+            $year = $parts[0];
+            $monthNum = $parts[1];
+            $monthName = ($months[$monthNum] ?? 'Bulan') . ' ' . $year;
+            
+            $hadir = $items->where('status', 'Hadir')->count();
+            $sakit = $items->where('status', 'Sakit')->count();
+            $izin = $items->where('status', 'Izin')->count();
+            $alpha = $items->whereIn('status', ['Alpha', 'Tanpa Keterangan'])->count();
+            $terlambat = $items->where('status', 'Terlambat')->count();
+            
+            $rekap[] = [
+                'bulan' => $monthName,
+                'hadir' => $hadir,
+                'sakit' => $sakit,
+                'izin' => $izin,
+                'alpha' => $alpha,
+                'terlambat' => $terlambat
+            ];
+        }
+        
+        if (empty($rekap)) {
+            $rekap[] = [
+                'bulan' => 'Oktober ' . date('Y'),
+                'hadir' => 0,
+                'sakit' => 0,
+                'izin' => 0,
+                'alpha' => 0,
+                'terlambat' => 0
+            ];
+        }
+        
         return view('siswa.kehadiran.rekap', compact('rekap'));
     }
 

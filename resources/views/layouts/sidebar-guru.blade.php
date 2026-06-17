@@ -9,6 +9,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 <style type="text/tailwindcss">
   @theme inline {
     --color-primary: var(--primary);
@@ -97,20 +98,6 @@
   .scrollbar-hide::-webkit-scrollbar { display: none; }
   .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 </style>
-</head>
-<script>
-function toggleAkademik() {
-  var menu = document.getElementById('menuAkademik');
-  var arrow = document.getElementById('arrowAkademik');
-  if (menu.classList.contains('hidden')) {
-    menu.classList.remove('hidden');
-    arrow.classList.add('rotate-180');
-  } else {
-    menu.classList.add('hidden');
-    arrow.classList.remove('rotate-180');
-  }
-}
-</script>
 </head>
 <body class="font-sans bg-white min-h-screen overflow-x-hidden">
 
@@ -614,7 +601,15 @@ function toggleAkademik() {
         </div>
       </div>
     </div>
-    <script>
+
+    <!-- MAIN CONTENT YIELD -->
+    <div class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50/50 p-5 md:p-8">
+        @yield('content')
+    </div>
+  </main>
+</div>
+
+<script>
 document.addEventListener('DOMContentLoaded', function() {
   lucide.createIcons();
 });
@@ -630,15 +625,11 @@ function toggleSidebar() {
 function toggleSekolah() {
   const menu = document.getElementById('menuSekolah');
   const arrow = document.getElementById('arrowSekolah');
-
   if (!menu || !arrow) return;
-
   menu.classList.toggle('hidden');
   arrow.classList.toggle('rotate-180');
 }
-</script>
 
-<script>
 function toggleAkademik() {
   var menu = document.getElementById('menuAkademik');
   var arrow = document.getElementById('arrowAkademik');
@@ -650,18 +641,14 @@ function toggleAkademik() {
     arrow.classList.remove('rotate-180');
   }
 }
-</script>
 
-<script>
 function toggleMateri() {
   const menu = document.getElementById('menuMateri');
   const arrow = document.getElementById('arrowMateri');
   menu.classList.toggle('hidden');
   arrow.classList.toggle('rotate-180');
 }
-</script>
 
-<script>
 function toggleProfil() {
   const menu = document.getElementById('menuProfil');
   const arrow = document.getElementById('arrowProfil');
@@ -670,5 +657,7 @@ function toggleProfil() {
 }
 </script>
 
+@stack('scripts')
 </body>
 </html>
+

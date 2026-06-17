@@ -15,7 +15,51 @@
     </div>
 
     {{-- Search Card --}}
-    <div class="bg-white rounded-3xl shadow-xl shadow-gray-100/80 border border-gray-100 overflow-hidden">
+    <div class="bg-white rounded-3xl shadow-xl shadow-gray-100/80 border border-gray-100 overflow-hidden" 
+         x-data="{ searched: false, query: '', method: 'nisn', applicant: null, formatted_date: '', errorMsg: '', pollingInterval: null,
+            doSearch() {
+                if(this.query.length === 0) return;
+                fetch('{{ route('ppdb.cek-status.search') }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify({ query_input: this.query })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        this.searched = true;
+                        this.applicant = data.applicant;
+                        this.formatted_date = data.formatted_date;
+                        this.errorMsg = '';
+                        this.startPolling(data.applicant.id);
+                    } else {
+                        this.searched = false;
+                        this.applicant = null;
+                        this.errorMsg = data.message;
+                    }
+                })
+                .catch(err => {
+                    this.errorMsg = 'Terjadi kesalahan sistem.';
+                });
+            },
+            startPolling(id) {
+                if(this.pollingInterval) clearInterval(this.pollingInterval);
+                this.pollingInterval = setInterval(() => {
+                    fetch('{{ url('/ppdb/api/status') }}?id=' + id)
+                    .then(res => res.json())
+                    .then(data => {
+                        if(this.applicant) {
+                            this.applicant.status = data.status;
+                            this.applicant.berkas_status = data.berkas_status;
+                            this.applicant.status_pembayaran = data.status_pembayaran;
+                        }
+                    });
+                }, 5000);
+            }
+         }">
       <div class="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4">
         <div class="flex items-center gap-2">
           <i data-lucide="scan-search" class="w-5 h-5 text-blue-200"></i>
@@ -23,7 +67,7 @@
         </div>
       </div>
 
-      <div class="px-6 py-6" x-data="{ searched: false, query: '', method: 'nisn' }">
+      <div class="px-6 py-6">
         {{-- Method Toggle --}}
         <div class="flex bg-gray-100 rounded-xl p-1 mb-5">
           <button type="button" @click="method = 'nisn'" :class="method === 'nisn' ? 'bg-white shadow text-blue-600 font-bold' : 'text-gray-500 hover:text-gray-700'" class="flex-1 text-xs py-2 rounded-lg transition-all duration-200 text-center">
@@ -40,13 +84,19 @@
             <i data-lucide="search" class="w-4 h-4 text-gray-400"></i>
           </div>
           <input type="text" x-model="query"
-            :placeholder="method === 'nisn' ? 'Masukkan 10 digit NISN' : 'Masukkan Nomor Peserta (cth: PPDB-2025-00123)'"
+            :placeholder="method === 'nisn' ? 'Masukkan 10 digit NISN' : 'Masukkan Nomor Peserta (cth: PPDB0001)'"
             :maxlength="method === 'nisn' ? 10 : 20"
+            @keyup.enter="doSearch()"
             class="w-full pl-11 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 focus:bg-white transition-all">
         </div>
 
+        {{-- Error message --}}
+        <template x-if="errorMsg">
+          <div class="mb-4 text-xs font-bold text-red-600 bg-red-50 p-3 border border-red-100 rounded-xl" x-text="errorMsg"></div>
+        </template>
+
         {{-- Search Button --}}
-        <button type="button" @click="searched = query.length > 0"
+        <button type="button" @click="doSearch()"
           :disabled="query.length === 0"
           class="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold py-3.5 rounded-xl shadow-lg shadow-blue-200 transition-all text-sm active:scale-[0.98]">
           <i data-lucide="search" class="w-4 h-4"></i>
@@ -56,32 +106,31 @@
         {{-- Result Area --}}
         <div x-show="searched" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-2" x-transition:enter-end="opacity-100 translate-y-0" class="mt-6 space-y-4">
 
-          {{-- Status: Dalam Proses (default mock) --}}
-          <div class="bg-amber-50 border border-amber-200 rounded-2xl overflow-hidden">
-            <div class="bg-amber-500 px-4 py-2.5 flex items-center gap-2">
+          <div class="bg-amber-50 border border-amber-200 rounded-2xl overflow-hidden" :class="applicant && applicant.status === 'Lulus' ? 'bg-green-50 border-green-200' : (applicant && applicant.status === 'Tidak Lulus' ? 'bg-red-50 border-red-200' : '')">
+            <div class="bg-amber-500 px-4 py-2.5 flex items-center gap-2" :class="applicant && applicant.status === 'Lulus' ? 'bg-green-600' : (applicant && applicant.status === 'Tidak Lulus' ? 'bg-red-600' : '')">
               <i data-lucide="clock" class="w-4 h-4 text-white"></i>
-              <span class="text-white text-xs font-bold uppercase tracking-wider">Status: Dalam Proses Verifikasi</span>
+              <span class="text-white text-xs font-bold uppercase tracking-wider" x-text="'Status Pendaftaran: ' + (applicant ? applicant.status : '-')"></span>
             </div>
             <div class="px-5 py-4 space-y-3">
               <div class="flex items-center justify-between">
                 <span class="text-xs text-gray-500 font-medium">No. Peserta</span>
-                <span class="text-xs font-bold text-gray-800">PPDB-2025-00123</span>
+                <span class="text-xs font-bold text-gray-800" x-text="applicant ? applicant.no_daftar : ''"></span>
               </div>
               <div class="flex items-center justify-between">
                 <span class="text-xs text-gray-500 font-medium">Nama</span>
-                <span class="text-xs font-bold text-gray-800">Ahmad Rizky Pratama</span>
+                <span class="text-xs font-bold text-gray-800" x-text="applicant ? applicant.nama : ''"></span>
               </div>
               <div class="flex items-center justify-between">
-                <span class="text-xs text-gray-500 font-medium">Jenjang / Jalur</span>
-                <span class="text-xs font-bold text-gray-800">SMP — Zonasi</span>
+                <span class="text-xs text-gray-500 font-medium">Jurusan / Jalur</span>
+                <span class="text-xs font-bold text-gray-800" x-text="applicant ? applicant.jurusan + ' — ' + applicant.jalur : ''"></span>
               </div>
               <div class="flex items-center justify-between">
                 <span class="text-xs text-gray-500 font-medium">Tanggal Daftar</span>
-                <span class="text-xs font-bold text-gray-800">15 Juni 2025</span>
+                <span class="text-xs font-bold text-gray-800" x-text="formatted_date"></span>
               </div>
 
               {{-- Progress Steps --}}
-              <div class="border-t border-dashed border-amber-200 pt-3">
+              <div class="border-t border-dashed border-gray-200 pt-3">
                 <p class="text-xs font-semibold text-gray-600 mb-3">Progres Pendaftaran:</p>
                 <div class="space-y-2.5">
                   <div class="flex items-start gap-3">
@@ -90,34 +139,36 @@
                     </div>
                     <div>
                       <p class="text-xs font-semibold text-gray-800">Formulir Diterima</p>
-                      <p class="text-[10px] text-gray-400">15 Juni 2025, 10:30 WIB</p>
                     </div>
                   </div>
+                  
                   <div class="flex items-start gap-3">
-                    <div class="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center shrink-0 mt-0.5">
+                    <div class="w-6 h-6 rounded-full flex items-center justify-center shrink-0 mt-0.5" 
+                         :class="applicant && (applicant.berkas_status === 'Sudah Upload' || applicant.berkas_status === 'Terverifikasi') ? 'bg-green-500' : 'bg-gray-200'">
                       <i data-lucide="check" class="w-3.5 h-3.5 text-white"></i>
                     </div>
                     <div>
-                      <p class="text-xs font-semibold text-gray-800">Dokumen Lengkap</p>
-                      <p class="text-[10px] text-gray-400">15 Juni 2025, 10:32 WIB</p>
+                      <p class="text-xs font-semibold text-gray-800">Berkas Di-upload</p>
                     </div>
                   </div>
+
                   <div class="flex items-start gap-3">
-                    <div class="w-6 h-6 rounded-full bg-amber-400 flex items-center justify-center shrink-0 mt-0.5 animate-pulse">
-                      <i data-lucide="loader-2" class="w-3.5 h-3.5 text-white"></i>
+                    <div class="w-6 h-6 rounded-full flex items-center justify-center shrink-0 mt-0.5" 
+                         :class="applicant && applicant.berkas_status === 'Terverifikasi' ? 'bg-green-500' : (applicant && applicant.berkas_status === 'Sudah Upload' ? 'bg-amber-400 animate-pulse' : 'bg-gray-200')">
+                      <i data-lucide="circle" class="w-3.5 h-3.5 text-white"></i>
                     </div>
                     <div>
-                      <p class="text-xs font-semibold text-amber-700">Verifikasi Data — Dalam Proses</p>
-                      <p class="text-[10px] text-gray-400">Estimasi: 3 hari kerja</p>
+                      <p class="text-xs font-semibold text-gray-800" x-text="'Verifikasi Berkas: ' + (applicant ? applicant.berkas_status : '-')"></p>
                     </div>
                   </div>
+
                   <div class="flex items-start gap-3">
-                    <div class="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center shrink-0 mt-0.5">
-                      <i data-lucide="circle" class="w-3.5 h-3.5 text-gray-400"></i>
+                    <div class="w-6 h-6 rounded-full flex items-center justify-center shrink-0 mt-0.5" 
+                         :class="applicant && applicant.status === 'Lulus' ? 'bg-green-500' : (applicant && applicant.status === 'Tidak Lulus' ? 'bg-red-500' : 'bg-gray-200')">
+                      <i data-lucide="circle" class="w-3.5 h-3.5 text-white"></i>
                     </div>
                     <div>
-                      <p class="text-xs font-medium text-gray-400">Pengumuman Hasil</p>
-                      <p class="text-[10px] text-gray-400">Menunggu verifikasi selesai</p>
+                      <p class="text-xs font-medium text-gray-800" x-text="'Pengumuman Kelulusan: ' + (applicant ? applicant.status : '-')"></p>
                     </div>
                   </div>
                 </div>

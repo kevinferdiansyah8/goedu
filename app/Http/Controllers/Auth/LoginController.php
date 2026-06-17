@@ -56,6 +56,8 @@ class LoginController extends Controller
                 return redirect()->route('siswa.dashboard');
             case 'orangtua':
                 return redirect()->route('orangtua.dashboard');
+            case 'keuangan':
+                return redirect()->route('keuangan.dashboard');
             default:
                 return redirect('/');
         }

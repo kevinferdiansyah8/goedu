@@ -16,32 +16,39 @@
                 <h3 class="font-bold text-lg text-gray-800 mb-4 flex items-center gap-2">
                     <i data-lucide="file-plus" class="w-5 h-5 text-blue-600"></i> Buat Pengajuan Baru
                 </h3>
-                <form action="#" method="POST" class="space-y-4">
+                <form action="{{ route('siswa.kehadiran.izin.store') }}" method="POST" class="space-y-4">
                     @csrf
+                    
+                    @if(session('success'))
+                        <div class="p-3 bg-green-100 text-green-700 rounded-lg text-sm mb-4">
+                            {{ session('success') }}
+                        </div>
+                    @endif
+
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Jenis Ketidakhadiran</label>
-                        <select class="w-full border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
-                            <option>Izin</option>
-                            <option>Sakit</option>
+                        <select name="jenis" class="w-full border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
+                            <option value="Izin">Izin</option>
+                            <option value="Sakit">Sakit</option>
                         </select>
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Tanggal Mulai</label>
-                        <input type="date" class="w-full border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
+                        <input type="date" name="tanggal_mulai" required class="w-full border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Tanggal Selesai</label>
-                        <input type="date" class="w-full border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
+                        <input type="date" name="tanggal_selesai" required class="w-full border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
                     </div>
                      <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Keterangan</label>
-                        <textarea rows="3" class="w-full border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm" placeholder="Alasan ketidakhadiran..."></textarea>
+                        <textarea name="keterangan" rows="3" class="w-full border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm" placeholder="Alasan ketidakhadiran..."></textarea>
                     </div>
                      <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Upload Bukti (Surat Dokter/Ortu)</label>
-                        <input type="file" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                        <input type="file" name="bukti" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
                     </div>
-                    <button type="button" class="w-full bg-blue-600 text-white font-medium py-2.5 rounded-lg hover:bg-blue-700 transition shadow-lg shadow-blue-600/30">Kirim Pengajuan</button>
+                    <button type="submit" class="w-full bg-blue-600 text-white font-medium py-2.5 rounded-lg hover:bg-blue-700 transition shadow-lg shadow-blue-600/30">Kirim Pengajuan</button>
                 </form>
             </div>
         </div>
@@ -66,11 +73,11 @@
                             @foreach($riwayat_izin as $izin)
                             <tr class="hover:bg-gray-50 transition-colors text-sm text-gray-700">
                                 <td class="px-4 py-3">
-                                    {{ \Carbon\Carbon::parse($izin['tanggal_mulai'])->format('d M') }} - {{ \Carbon\Carbon::parse($izin['tanggal_selesai'])->format('d M Y') }}
+                                    {{ $izin['mulai_tanggal'] }} - {{ $izin['sampai_tanggal'] }}
                                 </td>
                                 <td class="px-4 py-3">
-                                    <span class="px-2 py-1 rounded-md text-xs font-semibold {{ $izin['jenis'] == 'Sakit' ? 'bg-yellow-50 text-yellow-700' : 'bg-blue-50 text-blue-700' }}">
-                                        {{ $izin['jenis'] }}
+                                    <span class="px-2 py-1 rounded-md text-xs font-semibold {{ $izin['kategori'] == 'Sakit' ? 'bg-yellow-50 text-yellow-700' : 'bg-blue-50 text-blue-700' }}">
+                                        {{ $izin['kategori'] }}
                                     </span>
                                 </td>
                                 <td class="px-4 py-3">{{ $izin['keterangan'] }}</td>

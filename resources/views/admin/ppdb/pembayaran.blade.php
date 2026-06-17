@@ -3,179 +3,232 @@
 @section('title', 'PPDB - Pembayaran')
 
 @section('content')
-@php
-$statusPembayaran = 'menunggu_verifikasi'; 
-// belum_bayar | menunggu_verifikasi | lunas | ditolak
-
-$pendaftar = [
-    'no' => 'PPDB-2024-0021',
-    'nama' => 'Siti Aminah',
-    'jurusan' => 'Teknik Komputer & Jaringan',
-    'jalur' => 'Prestasi'
-];
-
-$pembayaran = [
-    'biaya' => 250000,
-    'metode' => 'Transfer Bank',
-    'tanggal' => '2024-07-10',
-    'bukti' => 'bukti-transfer.jpg',
-    'catatan' => 'Transfer via BRI'
-];
-@endphp
-
 <div class="max-w-7xl mx-auto px-6 py-8 space-y-10">
 
+    @if(session('success'))
+    <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-xl relative" role="alert">
+        <span class="block sm:inline font-semibold">{{ session('success') }}</span>
+    </div>
+    @endif
+
     <!-- HEADER -->
-    <div>
-        <h1 class="text-3xl font-bold text-gray-900">Pembayaran PPDB</h1>
-        <p class="text-gray-500 mt-1">Verifikasi pembayaran pendaftar</p>
-    </div>
-
-    <!-- INFO PENDAFTAR MODERN -->
-    <div class="flex flex-col md:flex-row gap-6 mb-8">
-        <div class="flex-1 flex items-center bg-gradient-to-br from-blue-50 to-blue-100 border-2 border-blue-200 rounded-2xl shadow-xl p-6 hover:shadow-2xl transition relative">
-            <div class="w-16 h-16 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 text-white font-extrabold flex items-center justify-center text-3xl shadow-lg border-4 border-white mr-6">
-                {{ collect(explode(' ', $pendaftar['nama']))->map(fn($n)=>$n[0])->join('') }}
-            </div>
-            <div class="flex-1 grid grid-cols-2 md:grid-cols-4 gap-6">
-                <div class="flex flex-col justify-center">
-                    <span class="text-xs text-gray-500 mb-1">No Pendaftaran</span>
-                    <span class="text-xl font-extrabold text-gray-900">{{ $pendaftar['no'] }}</span>
-                </div>
-                <div class="flex flex-col justify-center">
-                    <span class="text-xs text-gray-500 mb-1">Nama</span>
-                    <span class="text-xl font-extrabold text-gray-900">{{ $pendaftar['nama'] }}</span>
-                </div>
-                <div class="flex flex-col justify-center">
-                    <span class="text-xs text-gray-500 mb-1">Jurusan</span>
-                    <span class="text-xl font-extrabold text-gray-900">{{ $pendaftar['jurusan'] }}</span>
-                </div>
-                <div class="flex flex-col justify-center">
-                    <span class="text-xs text-gray-500 mb-1">Jalur</span>
-                    <span class="text-xl font-extrabold text-gray-900">{{ $pendaftar['jalur'] }}</span>
-                </div>
-            </div>
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+            <h1 class="text-3xl font-extrabold text-gray-900">Pembayaran PPDB</h1>
+            <p class="text-gray-500 mt-1">Verifikasi pembayaran biaya pendaftaran calon siswa</p>
         </div>
-    </div>
-
-    <!-- INFO TAGIHAN MODERN -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div class="bg-white border-2 border-blue-200 rounded-2xl shadow-xl p-6 flex flex-col items-start">
-            <span class="text-sm text-gray-500">Total Biaya</span>
-            <span class="text-2xl font-bold text-blue-600 mt-1">Rp {{ number_format($pembayaran['biaya'], 0, ',', '.') }}</span>
-        </div>
-        <div class="bg-white border-2 border-blue-200 rounded-2xl shadow-xl p-6 flex flex-col items-start">
-            <span class="text-sm text-gray-500">Status Pembayaran</span>
-            @if($statusPembayaran === 'lunas')
-                <span class="mt-2 px-4 py-1 rounded-full bg-green-100 text-green-700 font-semibold text-sm shadow">LUNAS</span>
-            @elseif($statusPembayaran === 'menunggu_verifikasi')
-                <span class="mt-2 px-4 py-1 rounded-full bg-yellow-100 text-yellow-700 font-semibold text-sm shadow">MENUNGGU VERIFIKASI</span>
-            @elseif($statusPembayaran === 'ditolak')
-                <span class="mt-2 px-4 py-1 rounded-full bg-red-100 text-red-700 font-semibold text-sm shadow">DITOLAK</span>
-            @else
-                <span class="mt-2 px-4 py-1 rounded-full bg-gray-100 text-gray-600 font-semibold text-sm shadow">BELUM BAYAR</span>
-            @endif
-        </div>
-        <div class="bg-white border-2 border-blue-200 rounded-2xl shadow-xl p-6 flex flex-col items-start">
-            <span class="text-sm text-gray-500">Metode</span>
-            <span class="font-semibold mt-1">{{ $pembayaran['metode'] }}</span>
-            <span class="text-xs text-gray-400">{{ $pembayaran['tanggal'] }}</span>
-        </div>
-    </div>
-
-    <!-- BUKTI PEMBAYARAN MODERN -->
-    <div class="bg-white border-2 border-blue-200 rounded-2xl shadow-xl p-6 space-y-4 mb-8">
-        <h2 class="text-lg font-bold text-blue-700">Bukti Pembayaran</h2>
-        @if($statusPembayaran === 'belum_bayar')
-            <p class="text-gray-500 italic">Pendaftar belum mengunggah bukti pembayaran.</p>
-            <form class="mt-4 flex flex-col gap-4" enctype="multipart/form-data">
-                <label class="block">
-                    <span class="text-sm text-gray-700">Upload Bukti Pembayaran</span>
-                    <input type="file" name="bukti" accept="image/*,application/pdf" class="mt-2 block w-full border-2 border-blue-200 rounded-lg px-3 py-2 focus:border-blue-500 transition" />
-                </label>
-                <button type="submit" class="self-start px-5 py-2 rounded-lg bg-blue-600 text-white font-semibold shadow hover:bg-blue-700 transition">Upload</button>
-            </form>
-        @else
-            <div class="flex items-center gap-6">
-                <div class="w-32 h-32 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden relative">
-                    <img src="/storage/bukti/{{ $pembayaran['bukti'] }}" alt="Bukti Pembayaran" class="object-contain w-full h-full" onerror="this.style.display='none'">
-                    <i data-lucide="image" class="w-10 h-10 text-gray-400 absolute"></i>
-                </div>
-                <div>
-                    <p class="font-medium">{{ $pembayaran['bukti'] }}</p>
-                    <p class="text-sm text-gray-500">{{ $pembayaran['catatan'] }}</p>
-                    <button class="mt-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm shadow hover:bg-blue-700 transition" onclick="alert('Preview bukti pembayaran')">Lihat Bukti</button>
-                    <form class="mt-4 flex flex-col gap-4" enctype="multipart/form-data">
-                        <label class="block">
-                            <span class="text-sm text-gray-700">Ganti Bukti Pembayaran</span>
-                            <input type="file" name="bukti" accept="image/*,application/pdf" class="mt-2 block w-full border-2 border-blue-200 rounded-lg px-3 py-2 focus:border-blue-500 transition" />
-                        </label>
-                        <button type="submit" class="self-start px-5 py-2 rounded-lg bg-blue-600 text-white font-semibold shadow hover:bg-blue-700 transition">Upload Ulang</button>
-                    </form>
-                </div>
-            </div>
+        @if($selectedApplicant)
+        <a href="{{ route('admin.ppdb.pembayaran') }}" class="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl text-sm transition">
+            <i data-lucide="arrow-left" class="w-4 h-4"></i> Kembali ke Daftar
+        </a>
         @endif
     </div>
 
-    <!-- BUKTI PEMBAYARAN UNTUK PEGANGAN SISWA (PRINTABLE) -->
-    <div class="bg-white border-2 border-green-200 rounded-2xl shadow-xl p-6 space-y-4 mb-8">
-        <h2 class="text-lg font-bold text-green-700 flex items-center gap-2"><svg xmlns='http://www.w3.org/2000/svg' class='inline w-6 h-6 text-green-500' fill='none' viewBox='0 0 24 24' stroke='currentColor'><path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M9 12l2 2l4-4m5 2a9 9 0 11-18 0a9 9 0 0118 0z' /></svg> Bukti Pembayaran Siswa</h2>
-        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6 border-t pt-4">
-            <div class="flex-1 space-y-2">
-                <div><span class="text-gray-500 text-sm">No Pendaftaran:</span> <span class="font-bold text-gray-900">{{ $pendaftar['no'] }}</span></div>
-                <div><span class="text-gray-500 text-sm">Nama:</span> <span class="font-bold text-gray-900">{{ $pendaftar['nama'] }}</span></div>
-                <div><span class="text-gray-500 text-sm">Jurusan:</span> <span class="font-bold text-gray-900">{{ $pendaftar['jurusan'] }}</span></div>
-                <div><span class="text-gray-500 text-sm">Jalur:</span> <span class="font-bold text-gray-900">{{ $pendaftar['jalur'] }}</span></div>
-                <div><span class="text-gray-500 text-sm">Tanggal Bayar:</span> <span class="font-bold text-gray-900">{{ $pembayaran['tanggal'] }}</span></div>
-                <div><span class="text-gray-500 text-sm">Metode:</span> <span class="font-bold text-gray-900">{{ $pembayaran['metode'] }}</span></div>
-                <div><span class="text-gray-500 text-sm">Total:</span> <span class="font-bold text-blue-700">Rp {{ number_format($pembayaran['biaya'], 0, ',', '.') }}</span></div>
-                <div><span class="text-gray-500 text-sm">Status:</span> 
-                    @if($statusPembayaran === 'lunas')
-                        <span class="inline-block px-3 py-1 rounded-full bg-green-100 text-green-700 font-semibold text-xs">LUNAS</span>
-                    @elseif($statusPembayaran === 'menunggu_verifikasi')
-                        <span class="inline-block px-3 py-1 rounded-full bg-yellow-100 text-yellow-700 font-semibold text-xs">MENUNGGU VERIFIKASI</span>
-                    @elseif($statusPembayaran === 'ditolak')
-                        <span class="inline-block px-3 py-1 rounded-full bg-red-100 text-red-700 font-semibold text-xs">DITOLAK</span>
-                    @else
-                        <span class="inline-block px-3 py-1 rounded-full bg-gray-100 text-gray-600 font-semibold text-xs">BELUM BAYAR</span>
-                    @endif
-                </div>
-            </div>
-            <div class="flex flex-col items-center gap-2">
-                <div class="w-32 h-32 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden relative">
-                    <img src="/storage/bukti/{{ $pembayaran['bukti'] }}" alt="Bukti Pembayaran" class="object-contain w-full h-full" onerror="this.style.display='none'">
-                    <i data-lucide="image" class="w-10 h-10 text-gray-400 absolute"></i>
-                </div>
-                <span class="text-xs text-gray-500">Bukti Transfer</span>
-            </div>
-        </div>
-        <div class="flex justify-end mt-4">
-            <button onclick="window.print()" class="px-5 py-2 rounded-lg bg-green-600 text-white font-semibold shadow hover:bg-green-700 transition"><svg xmlns='http://www.w3.org/2000/svg' class='inline w-5 h-5 mr-1' fill='none' viewBox='0 0 24 24' stroke='currentColor'><path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2m-6 0v4m0 0h4m-4 0H8' /></svg> Cetak Bukti</button>
-        </div>
-    </div>
+    @if(!$selectedApplicant)
+        {{-- ================= LIST VIEW ================= --}}
 
-    <!-- VERIFIKASI ADMIN MODERN -->
-    <div class="bg-white border-2 border-blue-200 rounded-2xl shadow-xl p-7 mb-8">
-        <h2 class="text-lg font-bold mb-4 text-blue-700">Verifikasi Admin</h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <div>
-                <label class="text-sm font-medium text-gray-700">Keputusan</label>
-                <select class="mt-1 w-full border-2 border-blue-200 rounded-lg px-4 py-2 focus:border-blue-500 transition">
-                    <option value="menunggu_verifikasi">Menunggu</option>
-                    <option value="lunas">Terima (Lunas)</option>
-                    <option value="ditolak">Tolak Pembayaran</option>
-                </select>
+        {{-- SUMMARY CARD --}}
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+            <div class="flex items-center gap-4 bg-white border border-gray-100 rounded-2xl p-5 shadow-sm hover:shadow-md transition">
+                <div class="w-14 h-14 flex items-center justify-center rounded-xl bg-amber-50"><i data-lucide="clock" class="w-7 h-7 text-amber-500"></i></div>
+                <div>
+                    <div class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Belum Bayar</div>
+                    <div class="text-3xl font-extrabold text-gray-900">{{ $summary['belum'] }}</div>
+                </div>
             </div>
-            <div>
-                <label class="text-sm font-medium text-gray-700">Catatan Admin</label>
-                <textarea rows="3" class="mt-1 w-full border-2 border-blue-200 rounded-lg px-4 py-2 focus:border-blue-500 transition" placeholder="Contoh: Nominal tidak sesuai, mohon upload ulang bukti pembayaran"></textarea>
+            <div class="flex items-center gap-4 bg-white border border-gray-100 rounded-2xl p-5 shadow-sm hover:shadow-md transition">
+                <div class="w-14 h-14 flex items-center justify-center rounded-xl bg-blue-50"><i data-lucide="wallet" class="w-7 h-7 text-blue-600"></i></div>
+                <div>
+                    <div class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Sudah Bayar</div>
+                    <div class="text-3xl font-extrabold text-gray-900">{{ $summary['sudah'] }}</div>
+                </div>
+            </div>
+            <div class="flex items-center gap-4 bg-white border border-gray-100 rounded-2xl p-5 shadow-sm hover:shadow-md transition">
+                <div class="w-14 h-14 flex items-center justify-center rounded-xl bg-green-50"><i data-lucide="check-circle" class="w-7 h-7 text-green-600"></i></div>
+                <div>
+                    <div class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Lunas</div>
+                    <div class="text-3xl font-extrabold text-gray-900">{{ $summary['lunas'] }}</div>
+                </div>
             </div>
         </div>
-        <div class="flex flex-wrap gap-4 mt-2 justify-end">
-            <button class="px-6 py-2 border-2 border-blue-200 rounded-lg font-semibold bg-white hover:bg-blue-50 transition">Batal</button>
-            <button class="px-6 py-2 bg-blue-600 text-white rounded-lg font-semibold shadow hover:bg-blue-700 transition">Simpan Verifikasi</button>
+
+        {{-- FILTER FORM --}}
+        <form class="bg-white border border-gray-100 rounded-2xl shadow-sm px-6 py-4 flex flex-wrap gap-4 items-center" method="GET">
+            <select name="status_bayar" class="px-5 py-2.5 rounded-full bg-gray-50 border border-gray-200 text-sm font-semibold" onchange="this.form.submit()">
+                <option value="">Semua Status Pembayaran</option>
+                @foreach(['Belum Bayar', 'Sudah Bayar', 'Lunas', 'Ditolak'] as $sb)
+                    <option value="{{ $sb }}" {{ request('status_bayar') == $sb ? 'selected' : '' }}>{{ $sb }}</option>
+                @endforeach
+            </select>
+            <button type="submit" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-full font-bold text-sm transition">Filter</button>
+        </form>
+
+        {{-- TABLE LIST --}}
+        <div class="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
+            <table class="w-full text-base">
+                <thead class="bg-slate-50 text-gray-600 border-b border-gray-100">
+                    <tr>
+                        <th class="px-6 py-4 text-left font-semibold">No Daftar</th>
+                        <th class="px-6 py-4 text-left font-semibold">Nama Pendaftar</th>
+                        <th class="px-6 py-4 text-left font-semibold">Jurusan</th>
+                        <th class="px-6 py-4 text-center font-semibold">Nominal</th>
+                        <th class="px-6 py-4 text-center font-semibold">Status Pembayaran</th>
+                        <th class="px-6 py-4 text-center font-semibold">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    @forelse($pendaftar as $p)
+                    <tr class="hover:bg-gray-50/50 transition">
+                        <td class="px-6 py-4 font-bold text-blue-600">{{ $p->no_daftar }}</td>
+                        <td class="px-6 py-4 font-semibold text-gray-800">{{ $p->nama }}</td>
+                        <td class="px-6 py-4 text-gray-600">{{ $p->jurusan }}</td>
+                        <td class="px-6 py-4 text-center font-bold text-gray-900">
+                            Rp {{ number_format($p->nominal, 0, ',', '.') }}
+                        </td>
+                        <td class="px-6 py-4 text-center">
+                            @php
+                                $badge = match($p->status_pembayaran) {
+                                    'Lunas' => 'bg-green-50 text-green-700 border-green-200',
+                                    'Sudah Bayar' => 'bg-blue-50 text-blue-600 border-blue-200',
+                                    'Ditolak' => 'bg-red-50 text-red-600 border-red-200',
+                                    default => 'bg-gray-100 text-gray-600 border-gray-200'
+                                };
+                            @endphp
+                            <span class="inline-flex px-3 py-1 rounded-full text-xs font-bold border {{ $badge }}">
+                                {{ $p->status_pembayaran }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-center">
+                            <a href="{{ route('admin.ppdb.pembayaran', ['id' => $p->id]) }}" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 text-sm font-bold transition shadow-sm">
+                                <i data-lucide="eye" class="w-4 h-4"></i> Periksa Pembayaran
+                            </a>
+                        </td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="6" class="px-6 py-12 text-center text-gray-400 italic">Tidak ada data pendaftar lulus seleksi.</td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
-    </div>
+        <div class="mt-4">{{ $pendaftar->links() }}</div>
+
+    @else
+        {{-- ================= DETAIL VERIFICATION VIEW ================= --}}
+
+        <!-- INFO PENDAFTAR -->
+        <div class="flex-1 flex items-center bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 rounded-3xl p-6 shadow-sm relative">
+            <div class="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 text-white font-extrabold flex items-center justify-center text-2xl shadow-md border-4 border-white mr-6">
+                {{ collect(explode(' ', $selectedApplicant->nama))->map(fn($n)=>$n[0] ?? '')->take(2)->join('') }}
+            </div>
+            <div class="flex-1 grid grid-cols-2 md:grid-cols-4 gap-6">
+                <div>
+                    <span class="text-[10px] text-gray-400 font-bold uppercase tracking-wider block">No Pendaftaran</span>
+                    <span class="text-lg font-black text-gray-900">{{ $selectedApplicant->no_daftar }}</span>
+                </div>
+                <div>
+                    <span class="text-[10px] text-gray-400 font-bold uppercase tracking-wider block">Nama Lengkap</span>
+                    <span class="text-lg font-black text-gray-900">{{ $selectedApplicant->nama }}</span>
+                </div>
+                <div>
+                    <span class="text-[10px] text-gray-400 font-bold uppercase tracking-wider block">Jurusan</span>
+                    <span class="text-lg font-black text-gray-900">{{ $selectedApplicant->jurusan }}</span>
+                </div>
+                <div>
+                    <span class="text-[10px] text-gray-400 font-bold uppercase tracking-wider block">Jalur</span>
+                    <span class="text-lg font-black text-gray-900">{{ $selectedApplicant->jalur }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- INFO TAGIHAN & TRANSAKSI -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-white border border-gray-100 rounded-2xl shadow-sm p-6 flex flex-col justify-center">
+                <span class="text-xs text-gray-400 uppercase tracking-wider font-bold">Biaya Formulir</span>
+                <span class="text-2xl font-black text-blue-600 mt-1">Rp 250.000</span>
+            </div>
+            <div class="bg-white border border-gray-100 rounded-2xl shadow-sm p-6 flex flex-col justify-center">
+                <span class="text-xs text-gray-400 uppercase tracking-wider font-bold">Status Pembayaran</span>
+                @php
+                    $bStyle = match($selectedApplicant->status_pembayaran) {
+                        'Lunas' => 'bg-green-50 text-green-700 border-green-200',
+                        'Sudah Bayar' => 'bg-blue-50 text-blue-600 border-blue-200',
+                        'Ditolak' => 'bg-red-50 text-red-600 border-red-200',
+                        default => 'bg-gray-50 text-gray-500'
+                    };
+                @endphp
+                <span class="inline-flex self-start mt-2 px-3 py-1 rounded-full text-xs font-bold border {{ $bStyle }}">
+                    {{ $selectedApplicant->status_pembayaran }}
+                </span>
+            </div>
+            <div class="bg-white border border-gray-100 rounded-2xl shadow-sm p-6 flex flex-col justify-center">
+                <span class="text-xs text-gray-400 uppercase tracking-wider font-bold">Metode & Tanggal</span>
+                <span class="font-bold text-gray-900 mt-1">{{ $payment->metode ?? 'Transfer Bank' }}</span>
+                <span class="text-xs text-gray-400 mt-0.5">{{ $payment->tanggal ?? '-' }}</span>
+            </div>
+        </div>
+
+        <!-- BUKTI PEMBAYARAN -->
+        <div class="bg-white border border-gray-100 rounded-3xl shadow-sm p-6 space-y-4">
+            <h2 class="text-lg font-bold text-gray-900">Bukti Pembayaran Pendaftar</h2>
+            @if(!$payment || !$payment->bukti)
+                <p class="text-gray-400 italic text-sm">Calon siswa belum mengunggah bukti transfer pembayaran.</p>
+            @else
+                <div class="flex flex-col md:flex-row items-start gap-6">
+                    <div class="w-full md:w-64 h-64 bg-gray-50 border border-gray-100 rounded-2xl flex items-center justify-center overflow-hidden relative shadow-sm">
+                        <img src="{{ asset('storage/' . $payment->bukti) }}" alt="Bukti Pembayaran" class="object-contain w-full h-full">
+                    </div>
+                    <div class="space-y-3 flex-1">
+                        <div>
+                            <span class="text-xs text-gray-400 font-bold block uppercase tracking-wider">Nama File Bukti</span>
+                            <span class="text-sm font-semibold text-gray-800">{{ basename($payment->bukti) }}</span>
+                        </div>
+                        <div>
+                            <span class="text-xs text-gray-400 font-bold block uppercase tracking-wider">Keterangan Transfer</span>
+                            <span class="text-sm text-gray-600">{{ $payment->keterangan ?? 'Tidak ada keterangan tambahan' }}</span>
+                        </div>
+                        <a href="{{ asset('storage/' . $payment->bukti) }}" target="_blank" class="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold shadow-md transition">
+                            <i data-lucide="external-link" class="w-4 h-4"></i> Buka File Asli
+                        </a>
+                    </div>
+                </div>
+            @endif
+        </div>
+
+        <!-- VERIFIKASI ADMIN -->
+        <div class="bg-white border border-gray-100 rounded-3xl shadow-sm p-6">
+            <h2 class="text-lg font-bold text-gray-900 mb-4">Proses Keputusan Pembayaran</h2>
+            <form action="{{ route('admin.ppdb.update-pembayaran', $selectedApplicant->id) }}" method="POST" class="space-y-6">
+                @csrf
+                @method('PUT')
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">Keputusan Verifikasi</label>
+                        <select name="status_pembayaran" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500">
+                            <option value="Belum Bayar" {{ $selectedApplicant->status_pembayaran === 'Belum Bayar' ? 'selected' : '' }}>Menunggu Pembayaran</option>
+                            <option value="Sudah Bayar" {{ $selectedApplicant->status_pembayaran === 'Sudah Bayar' ? 'selected' : '' }}>Sudah Bayar (Menunggu Verifikasi)</option>
+                            <option value="Lunas" {{ $selectedApplicant->status_pembayaran === 'Lunas' ? 'selected' : '' }}>Terima (Lunas)</option>
+                            <option value="Ditolak" {{ $selectedApplicant->status_pembayaran === 'Ditolak' ? 'selected' : '' }}>Tolak Pembayaran (Bukti Tidak Valid)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">Catatan Admin</label>
+                        <textarea name="catatan" rows="2" placeholder="Contoh: Nominal transfer kurang, atau gambar bukti buram..." class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500">{{ $payment->keterangan ?? '' }}</textarea>
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-4 border-t pt-6">
+                    <a href="{{ route('admin.ppdb.pembayaran') }}" class="px-6 py-3 border border-gray-200 rounded-xl font-bold text-sm hover:bg-gray-50 transition">
+                        Batal
+                    </a>
+                    <button type="submit" class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-sm shadow-md transition">
+                        Simpan Verifikasi Pembayaran
+                    </button>
+                </div>
+            </form>
+        </div>
+    @endif
 
 </div>
 @endsection

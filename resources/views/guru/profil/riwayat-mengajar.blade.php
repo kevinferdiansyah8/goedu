@@ -1,57 +1,9 @@
-@extends('layouts.admin')
+@extends('layouts.sidebar-guru')
 
 @section('title', 'Riwayat Mengajar')
 
 @section('content')
 @php
-$riwayat = [
-	[
-		'tahun' => '2025/2026',
-		'semester' => 'Ganjil',
-		'status' => 'Berjalan',
-		'kelas' => [
-			['nama' => 'X RPL 1', 'mapel' => 'Matematika', 'jam' => 4, 'siswa' => 32, 'wali' => true],
-			['nama' => 'X RPL 2', 'mapel' => 'Matematika', 'jam' => 4, 'siswa' => 30, 'wali' => false],
-			['nama' => 'XI TKJ 1', 'mapel' => 'Matematika', 'jam' => 3, 'siswa' => 30, 'wali' => false],
-		]
-	],
-	[
-		'tahun' => '2024/2025',
-		'semester' => 'Genap',
-		'status' => 'Selesai',
-		'kelas' => [
-			['nama' => 'X IPA 1', 'mapel' => 'Matematika', 'jam' => 4, 'siswa' => 34, 'wali' => true],
-			['nama' => 'X IPA 2', 'mapel' => 'Matematika', 'jam' => 4, 'siswa' => 32, 'wali' => false],
-		]
-	],
-	[
-		'tahun' => '2024/2025',
-		'semester' => 'Ganjil',
-		'status' => 'Selesai',
-		'kelas' => [
-			['nama' => 'X IPA 1', 'mapel' => 'Matematika', 'jam' => 4, 'siswa' => 34, 'wali' => true],
-			['nama' => 'X IPA 2', 'mapel' => 'Matematika', 'jam' => 4, 'siswa' => 32, 'wali' => false],
-		]
-	],
-	[
-		'tahun' => '2023/2024',
-		'semester' => 'Genap',
-		'status' => 'Selesai',
-		'kelas' => [
-			['nama' => 'XI IPA 2', 'mapel' => 'Matematika', 'jam' => 3, 'siswa' => 30, 'wali' => false],
-			['nama' => 'XII IPA 1', 'mapel' => 'Matematika', 'jam' => 3, 'siswa' => 28, 'wali' => true],
-		]
-	],
-	[
-		'tahun' => '2023/2024',
-		'semester' => 'Ganjil',
-		'status' => 'Selesai',
-		'kelas' => [
-			['nama' => 'XI IPA 2', 'mapel' => 'Matematika', 'jam' => 3, 'siswa' => 30, 'wali' => false],
-			['nama' => 'XII IPA 1', 'mapel' => 'Matematika', 'jam' => 3, 'siswa' => 28, 'wali' => true],
-		]
-	],
-];
 $totalKelas = collect($riwayat)->sum(fn($r) => count($r['kelas']));
 $totalTahun = collect($riwayat)->pluck('tahun')->unique()->count();
 @endphp

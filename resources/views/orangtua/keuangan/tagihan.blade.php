@@ -4,19 +4,9 @@
 
 @section('content')
 @php
-$tagihan_aktif = [
-    ['bulan' => 'April 2026', 'jatuh_tempo' => '10 April 2026', 'nominal' => 375000, 'status' => 'Belum Bayar', 'denda' => 0],
-    ['bulan' => 'Maret 2026', 'jatuh_tempo' => '10 Maret 2026', 'nominal' => 375000, 'status' => 'Terlambat', 'denda' => 25000],
-];
-
-$riwayat_bayar = [
-    ['bulan' => 'Februari 2026', 'tanggal_bayar' => '08 Feb 2026', 'nominal' => 375000, 'metode' => 'Transfer Bank', 'status' => 'Lunas'],
-    ['bulan' => 'Januari 2026', 'tanggal_bayar' => '05 Jan 2026', 'nominal' => 375000, 'metode' => 'QRIS', 'status' => 'Lunas'],
-    ['bulan' => 'Desember 2025', 'tanggal_bayar' => '09 Des 2025', 'nominal' => 375000, 'metode' => 'Tunai', 'status' => 'Lunas'],
-    ['bulan' => 'November 2025', 'tanggal_bayar' => '07 Nov 2025', 'nominal' => 375000, 'metode' => 'Transfer Bank', 'status' => 'Lunas'],
-];
-
-$anak = ['nama' => 'Dewi Lestari', 'nis' => '2024004', 'kelas' => 'XI-A', 'semester' => 'Genap 2025/2026'];
+    $totalTunggakan = collect($tagihan_aktif)->sum(fn($t) => $t['nominal'] + $t['denda']);
+    $totalTagihanAktif = count($tagihan_aktif);
+    $totalSudahBayar = count($riwayat_bayar);
 @endphp
 
 <div class="max-w-7xl mx-auto px-4 md:px-6 py-8 space-y-8">
@@ -32,7 +22,13 @@ $anak = ['nama' => 'Dewi Lestari', 'nis' => '2024004', 'kelas' => 'XI-A', 'semes
     <!-- Info Anak -->
     <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-2xl p-5">
         <div class="w-14 h-14 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 text-white font-bold flex items-center justify-center text-xl shadow-lg border-4 border-white">
-            {{ collect(explode(' ', $anak['nama']))->map(fn($n) => $n[0])->join('') }}
+            @php
+                $initials = '';
+                foreach(explode(' ', $anak['nama']) as $n) {
+                    $initials .= strtoupper(substr($n, 0, 1));
+                }
+                echo substr($initials, 0, 2);
+            @endphp
         </div>
         <div class="flex-1 grid grid-cols-2 sm:grid-cols-4 gap-4">
             <div><span class="text-xs text-gray-500">Nama Siswa</span><p class="font-semibold text-gray-900">{{ $anak['nama'] }}</p></div>
@@ -48,21 +44,21 @@ $anak = ['nama' => 'Dewi Lestari', 'nis' => '2024004', 'kelas' => 'XI-A', 'semes
             <div class="size-12 bg-red-100 rounded-xl flex items-center justify-center"><i data-lucide="alert-circle" class="size-6 text-red-500"></i></div>
             <div>
                 <p class="text-xs text-gray-500">Total Tunggakan</p>
-                <p class="font-bold text-xl text-red-600">Rp {{ number_format(375000 + 375000 + 25000, 0, ',', '.') }}</p>
+                <p class="font-bold text-xl text-red-600">Rp {{ number_format($totalTunggakan, 0, ',', '.') }}</p>
             </div>
         </div>
         <div class="flex items-center gap-4 rounded-2xl border-2 border-yellow-200 bg-gradient-to-br from-yellow-50 to-white p-5">
             <div class="size-12 bg-yellow-100 rounded-xl flex items-center justify-center"><i data-lucide="clock" class="size-6 text-yellow-600"></i></div>
             <div>
                 <p class="text-xs text-gray-500">Tagihan Aktif</p>
-                <p class="font-bold text-xl text-yellow-700">2 bulan</p>
+                <p class="font-bold text-xl text-yellow-700">{{ $totalTagihanAktif }} bulan</p>
             </div>
         </div>
         <div class="flex items-center gap-4 rounded-2xl border-2 border-green-200 bg-gradient-to-br from-green-50 to-white p-5">
             <div class="size-12 bg-green-100 rounded-xl flex items-center justify-center"><i data-lucide="check-circle" class="size-6 text-green-500"></i></div>
             <div>
                 <p class="text-xs text-gray-500">Sudah Dibayar</p>
-                <p class="font-bold text-xl text-green-600">4 bulan</p>
+                <p class="font-bold text-xl text-green-600">{{ $totalSudahBayar }} bulan</p>
             </div>
         </div>
     </div>

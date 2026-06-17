@@ -1,50 +1,9 @@
-@extends('layouts.admin')
+@extends('layouts.sidebar-guru')
 
 @section('title', 'Arsip Dokumen')
 
 @section('content')
 @php
-$dokumen = [
-	[
-		'kategori' => 'Surat Keputusan',
-		'icon' => 'file-badge',
-		'color' => 'blue',
-		'items' => [
-			['nama' => 'SK Mengajar TA 2025/2026', 'file' => 'SK_Mengajar_2025.pdf', 'ukuran' => '245 KB', 'tanggal' => '10 Jun 2025', 'status' => 'Aktif'],
-			['nama' => 'SK Wali Kelas X RPL 1', 'file' => 'SK_WaliKelas_XRPL1.pdf', 'ukuran' => '180 KB', 'tanggal' => '12 Jun 2025', 'status' => 'Aktif'],
-			['nama' => 'SK Mengajar TA 2024/2025', 'file' => 'SK_Mengajar_2024.pdf', 'ukuran' => '230 KB', 'tanggal' => '8 Jun 2024', 'status' => 'Arsip'],
-		]
-	],
-	[
-		'kategori' => 'Sertifikat & Pelatihan',
-		'icon' => 'award',
-		'color' => 'emerald',
-		'items' => [
-			['nama' => 'Sertifikat Pelatihan Kurikulum Merdeka', 'file' => 'Sertif_KurMer_2025.pdf', 'ukuran' => '520 KB', 'tanggal' => '15 Mar 2025', 'status' => 'Aktif'],
-			['nama' => 'Sertifikat Workshop Asesmen Digital', 'file' => 'Sertif_AsesDig_2024.pdf', 'ukuran' => '410 KB', 'tanggal' => '22 Nov 2024', 'status' => 'Arsip'],
-			['nama' => 'Sertifikat Pendidik (Serdik)', 'file' => 'Serdik_Bambang.pdf', 'ukuran' => '1.2 MB', 'tanggal' => '5 Aug 2018', 'status' => 'Aktif'],
-		]
-	],
-	[
-		'kategori' => 'Ijazah & Transkrip',
-		'icon' => 'graduation-cap',
-		'color' => 'violet',
-		'items' => [
-			['nama' => 'Ijazah S2 — Pend. Matematika UPI', 'file' => 'Ijazah_S2_UPI.pdf', 'ukuran' => '2.1 MB', 'tanggal' => '20 Sep 2015', 'status' => 'Aktif'],
-			['nama' => 'Transkrip Nilai S2', 'file' => 'Transkrip_S2.pdf', 'ukuran' => '850 KB', 'tanggal' => '20 Sep 2015', 'status' => 'Aktif'],
-			['nama' => 'Ijazah S1 — Pend. Matematika UNPAD', 'file' => 'Ijazah_S1_UNPAD.pdf', 'ukuran' => '1.8 MB', 'tanggal' => '15 Jul 2009', 'status' => 'Aktif'],
-		]
-	],
-	[
-		'kategori' => 'Dokumen Lainnya',
-		'icon' => 'folder',
-		'color' => 'amber',
-		'items' => [
-			['nama' => 'KTP', 'file' => 'KTP_Bambang.pdf', 'ukuran' => '320 KB', 'tanggal' => '1 Jan 2022', 'status' => 'Aktif'],
-			['nama' => 'NPWP', 'file' => 'NPWP_Bambang.pdf', 'ukuran' => '180 KB', 'tanggal' => '15 Feb 2020', 'status' => 'Aktif'],
-		]
-	],
-];
 $totalDokumen = collect($dokumen)->sum(fn($d) => count($d['items']));
 $totalAktif = collect($dokumen)->sum(fn($d) => collect($d['items'])->where('status', 'Aktif')->count());
 @endphp
@@ -103,7 +62,8 @@ $totalAktif = collect($dokumen)->sum(fn($d) => collect($d['items'])->where('stat
 
 	<!-- Upload Form -->
 	<div x-show="showUpload" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 -translate-y-4" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0 -translate-y-4" class="mb-6">
-		<div class="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
+		<form action="{{ route('guru.profil.arsip.store') }}" method="POST" enctype="multipart/form-data" class="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
+			@csrf
 			<div class="bg-gradient-to-r from-indigo-600 to-purple-600 px-5 py-3">
 				<span class="text-white text-sm font-bold uppercase tracking-wider">Upload Dokumen Baru</span>
 			</div>
@@ -111,31 +71,32 @@ $totalAktif = collect($dokumen)->sum(fn($d) => collect($d['items'])->where('stat
 				<div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
 					<div>
 						<label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Nama Dokumen</label>
-						<input class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-100 focus:border-indigo-400 focus:bg-white transition-all" placeholder="cth: SK Mengajar 2025">
+						<input name="nama_dokumen" required class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-100 focus:border-indigo-400 focus:bg-white transition-all" placeholder="cth: SK Mengajar 2025">
 					</div>
 					<div>
 						<label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Kategori</label>
-						<select class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-100 focus:border-indigo-400 transition-all">
-							<option>Surat Keputusan</option>
-							<option>Sertifikat & Pelatihan</option>
-							<option>Ijazah & Transkrip</option>
-							<option>Dokumen Lainnya</option>
+						<select name="kategori" required class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-100 focus:border-indigo-400 transition-all">
+							<option value="Surat Keputusan">Surat Keputusan</option>
+							<option value="Sertifikat & Pelatihan">Sertifikat & Pelatihan</option>
+							<option value="Ijazah & Transkrip">Ijazah & Transkrip</option>
+							<option value="Dokumen Lainnya">Dokumen Lainnya</option>
 						</select>
 					</div>
 				</div>
-				<div class="border-2 border-dashed border-gray-200 rounded-xl p-6 text-center hover:border-indigo-300 transition-colors cursor-pointer">
+				<div class="relative border-2 border-dashed border-gray-200 rounded-xl p-6 text-center hover:border-indigo-300 transition-colors cursor-pointer" onclick="document.getElementById('fileInput').click()">
+					<input type="file" id="fileInput" name="file" required class="hidden" onchange="document.getElementById('fileNameSpan').innerText = this.files[0] ? this.files[0].name : 'Klik untuk memilih file'">
 					<i data-lucide="cloud-upload" class="w-8 h-8 text-gray-300 mx-auto mb-2"></i>
-					<p class="text-sm text-gray-500 font-medium">Klik atau seret file ke sini</p>
+					<p id="fileNameSpan" class="text-sm text-gray-500 font-medium">Klik untuk memilih file</p>
 					<p class="text-[10px] text-gray-400 mt-1">PDF, JPG, PNG (maks 5 MB)</p>
 				</div>
 				<div class="flex justify-end gap-2.5 mt-4">
 					<button type="button" @click="showUpload = false" class="px-5 py-2.5 border border-gray-200 rounded-xl bg-white hover:bg-gray-50 text-gray-600 font-semibold text-sm transition-all">Batal</button>
-					<button class="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-xl font-bold text-sm shadow-lg shadow-indigo-200 transition-all active:scale-95">
+					<button type="submit" class="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-xl font-bold text-sm shadow-lg shadow-indigo-200 transition-all active:scale-95">
 						<i data-lucide="upload" class="w-4 h-4"></i> Upload
 					</button>
 				</div>
 			</div>
-		</div>
+		</form>
 	</div>
 
 	<!-- Document Categories -->
@@ -179,12 +140,16 @@ $totalAktif = collect($dokumen)->sum(fn($d) => collect($d['items'])->where('stat
 								Arsip
 							</span>
 						@endif
-						<button class="w-8 h-8 rounded-lg bg-blue-50 hover:bg-blue-100 flex items-center justify-center transition-colors group" title="Download">
+						<a href="{{ $doc['file_path'] }}" download class="w-8 h-8 rounded-lg bg-blue-50 hover:bg-blue-100 flex items-center justify-center transition-colors group" title="Download">
 							<i data-lucide="download" class="w-3.5 h-3.5 text-blue-500 group-hover:text-blue-700"></i>
-						</button>
-						<button class="w-8 h-8 rounded-lg bg-red-50 hover:bg-red-100 flex items-center justify-center transition-colors group" title="Hapus">
-							<i data-lucide="trash-2" class="w-3.5 h-3.5 text-red-400 group-hover:text-red-600"></i>
-						</button>
+						</a>
+						<form action="{{ route('guru.profil.arsip.destroy', $doc['id']) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus dokumen ini?')">
+							@csrf
+							@method('DELETE')
+							<button type="submit" class="w-8 h-8 rounded-lg bg-red-50 hover:bg-red-100 flex items-center justify-center transition-colors group" title="Hapus">
+								<i data-lucide="trash-2" class="w-3.5 h-3.5 text-red-400 group-hover:text-red-600"></i>
+							</button>
+						</form>
 					</div>
 				</div>
 				@endforeach

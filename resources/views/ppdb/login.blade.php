@@ -27,7 +27,18 @@
       </div>
 
       {{-- Form --}}
-      <form action="{{ url('/ppdb/dashboard') }}" method="get" class="px-6 py-6 space-y-5">
+      <form action="{{ url('/ppdb/login') }}" method="POST" class="px-6 py-6 space-y-5">
+        @csrf
+
+        @if($errors->any())
+        <div class="bg-red-50 border border-red-200 text-red-600 text-xs px-4 py-3 rounded-xl mb-4">
+            <ul class="list-disc list-inside">
+                @foreach($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+        @endif
 
         {{-- NISN --}}
         <div class="group">
@@ -38,7 +49,7 @@
             <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
               <i data-lucide="hash" class="w-4 h-4 text-gray-400"></i>
             </div>
-            <input type="text" name="nisn" placeholder="Masukkan 10 digit NISN" inputmode="numeric" maxlength="10" required
+            <input type="text" name="nisn" value="{{ old('nisn') }}" placeholder="Masukkan 10 digit NISN" inputmode="numeric" maxlength="10" required
               class="w-full pl-11 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 focus:bg-white transition-all">
           </div>
           <p class="text-xs text-gray-400 mt-1.5 ml-1">NISN tertera pada ijazah atau rapor terakhir.</p>
@@ -53,7 +64,7 @@
             <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
               <i data-lucide="calendar" class="w-4 h-4 text-gray-400"></i>
             </div>
-            <input type="date" name="tanggal_lahir" required
+            <input type="date" name="tanggal_lahir" value="{{ old('tanggal_lahir') }}" required
               class="w-full pl-11 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 focus:bg-white transition-all">
           </div>
           <p class="text-xs text-gray-400 mt-1.5 ml-1">Sesuai data pada formulir pendaftaran.</p>

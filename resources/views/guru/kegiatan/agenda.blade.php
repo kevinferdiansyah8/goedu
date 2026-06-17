@@ -1,69 +1,37 @@
-@extends('layouts.admin')
+@extends('layouts.sidebar-guru')
 
 @section('title', 'Agenda Guru')
 
 @php
-// Mock Data for Agenda
-$mockAgendas = [
-    [
-        'id' => 1,
-        'title' => 'Rapat Guru Semester Genap',
-        'type' => 'Sekolah',
-        'date' => date('Y-m-d', strtotime('+2 days')),
-        'start_time' => '08:00',
-        'end_time' => '10:00',
-        'location' => 'Ruang Meeting Lt. 2',
-        'status' => 'upcoming',
-        'description' => 'Pembahasan kurikulum baru dan evaluasi semester ganjil.'
-    ],
-    [
-        'id' => 2,
-        'title' => 'Ulangan Harian Bab 3',
-        'type' => 'Mengajar',
-        'date' => date('Y-m-d'),
-        'start_time' => '10:30',
-        'end_time' => '12:00',
-        'location' => 'Kelas X IPA 1',
-        'status' => 'today',
-        'description' => 'Materi Biologi: Sistem Pencernaan Manusia.'
-    ],
-    [
-        'id' => 3,
-        'title' => 'Input Nilai Tugas',
-        'type' => 'Administrasi',
-        'date' => date('Y-m-d', strtotime('-1 day')),
-        'start_time' => '13:00',
-        'end_time' => '15:00',
-        'location' => 'Ruang Guru',
-        'status' => 'done',
-        'description' => 'Deadline pengisian nilai tugas harian ke-2.'
-    ],
-    [
-        'id' => 4,
-        'title' => 'Pelatihan Canva untuk Pembelajaran',
-        'type' => 'Pelatihan',
-        'date' => date('Y-m-d', strtotime('+5 days')),
-        'start_time' => '09:00',
-        'end_time' => '14:00',
-        'location' => 'Lab Komputer 1',
-        'status' => 'upcoming',
-        'description' => 'Wajib bagi guru yang belum mengikuti pelatihan tahap 1.'
-    ],
-    [
-        'id' => 5,
-        'title' => 'Penerimaan Raport Tengah Semester',
-        'type' => 'Sekolah',
-        'date' => date('Y-m-d', strtotime('+10 days')),
-        'start_time' => '08:00',
-        'end_time' => '12:00',
-        'location' => 'Kelas Masing-masing',
-        'status' => 'upcoming',
-        'description' => 'Wali kelas harap mempersiapkan berkas administrasi.'
-    ],
-];
+// Map Database Agendas to Alpine structure
+$agendaData = [];
+if (isset($agenda)) {
+    foreach ($agenda as $a) {
+        $status = 'upcoming';
+        $todayStr = date('Y-m-d');
+        if ($a->tanggal_pelaksanaan === $todayStr) {
+            $status = 'today';
+        } elseif ($a->tanggal_pelaksanaan < $todayStr) {
+            $status = 'done';
+        }
 
-// PHP Fallback logic
-$agendaData = $agendas ?? $mockAgendas;
+        $parts = explode('-', $a->waktu_pelaksanaan);
+        $startTime = isset($parts[0]) ? trim($parts[0]) : '08:00';
+        $endTime = isset($parts[1]) ? trim($parts[1]) : 'Selesai';
+
+        $agendaData[] = [
+            'id' => $a->id,
+            'title' => $a->judul,
+            'type' => $a->jenis ?? 'Akademik',
+            'date' => $a->tanggal_pelaksanaan,
+            'start_time' => $startTime,
+            'end_time' => $endTime,
+            'location' => $a->lokasi,
+            'status' => $a->status === 'Selesai' ? 'done' : ($status === 'today' ? 'today' : 'upcoming'),
+            'description' => $a->deskripsi ?? 'Tidak ada deskripsi.'
+        ];
+    }
+}
 @endphp
 
 @section('content')
@@ -73,7 +41,7 @@ $agendaData = $agendas ?? $mockAgendas;
     <div class="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
             <h1 class="text-2xl font-bold text-gray-900 tracking-tight">Agenda Guru</h1>
-            <p class="text-sm text-gray-500 mt-1">Kelola jadwal kegiatan mengajar dan aktivitas sekolah Anda.</p>
+            <p class="text-sm text-gray-500 mt-1">Jadwal kegiatan mengajar dan aktivitas sekolah Anda.</p>
         </div>
         
         <div class="flex flex-wrap gap-3 items-center">
@@ -82,31 +50,23 @@ $agendaData = $agendas ?? $mockAgendas;
                 <button @click="viewMode = 'list'" :class="{ 'bg-blue-50 text-blue-600 shadow-sm': viewMode === 'list', 'text-gray-500 hover:bg-gray-50': viewMode !== 'list' }" class="p-2 rounded-lg transition-all" title="List View">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
                 </button>
-                <button @click="viewMode = 'calendar'" :class="{ 'bg-blue-50 text-blue-600 shadow-sm': viewMode === 'calendar', 'text-gray-500 hover:bg-gray-50': viewMode !== 'calendar' }" class="p-2 rounded-lg transition-all" title="Calendar View">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                </button>
             </div>
 
             <div class="w-px h-8 bg-gray-300 mx-1 hidden sm:block"></div>
 
-            {{-- Filter --}}
+            {{-- Filter Kategori --}}
             <div class="relative">
                 <select x-model="filterType" class="appearance-none bg-white border border-gray-200 text-gray-700 py-2.5 pl-4 pr-10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-medium shadow-sm transition-all cursor-pointer hover:bg-gray-50">
                     <option value="all">Semua Kategori</option>
-                    <option value="Mengajar">Mengajar</option>
-                    <option value="Sekolah">Sekolah</option>
+                    <option value="Akademik">Akademik</option>
+                    <option value="Non-Akademik">Non-Akademik</option>
                     <option value="Rapat">Rapat</option>
+                    <option value="Ujian">Ujian</option>
                 </select>
                 <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                 </div>
             </div>
-
-            {{-- Add Button --}}
-            <button class="flex items-center gap-2 bg-blue-600 text-white px-5 py-2.5 rounded-xl font-semibold shadow hover:bg-blue-700 transition-all active:scale-95">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                Tambah Agenda
-            </button>
         </div>
     </div>
 
@@ -197,12 +157,13 @@ $agendaData = $agendas ?? $mockAgendas;
                     {{-- Agenda Details --}}
                     <div class="flex-1">
                         <div class="flex flex-col md:flex-row md:items-center gap-2 mb-1">
-                            <h3 class="text-lg font-bold text-gray-900 group-hover:text-blue-600 transition-colors" x-text="agenda.title"></h3>
+                            <h3 class="text-lg font-bold text-gray-900 group-hover:text-blue-600 transition-colors cursor-pointer" @click="openDetail(agenda)" x-text="agenda.title"></h3>
                             <span class="px-2.5 py-0.5 rounded-full text-xs font-medium border"
                                 :class="{
-                                    'bg-blue-50 text-blue-700 border-blue-100': agenda.type === 'Mengajar',
-                                    'bg-purple-50 text-purple-700 border-purple-100': agenda.type === 'Sekolah',
-                                    'bg-orange-50 text-orange-700 border-orange-100': agenda.type !== 'Mengajar' && agenda.type !== 'Sekolah'
+                                    'bg-blue-50 text-blue-700 border-blue-100': agenda.type === 'Akademik',
+                                    'bg-purple-50 text-purple-700 border-purple-100': agenda.type === 'Non-Akademik',
+                                    'bg-orange-50 text-orange-700 border-orange-100': agenda.type === 'Rapat',
+                                    'bg-green-50 text-green-700 border-green-100': agenda.type === 'Ujian',
                                 }"
                                 x-text="agenda.type">
                             </span>
@@ -234,12 +195,9 @@ $agendaData = $agendas ?? $mockAgendas;
                             </template>
                         </div>
                         
-                        <div class="flex items-center gap-1 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-all">
-                            <button class="p-2 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors" title="Edit">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
-                            </button>
-                            <button class="p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors" title="Hapus">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                        <div class="flex items-center gap-1">
+                            <button @click="openDetail(agenda)" class="text-sm font-semibold text-blue-600 hover:text-blue-800">
+                                Detail
                             </button>
                         </div>
                     </div>
@@ -260,62 +218,44 @@ $agendaData = $agendas ?? $mockAgendas;
         {{-- Pagination --}}
         <div class="mt-6 flex justify-between items-center text-sm text-gray-500">
             <span>Menampilkan <strong x-text="filteredAgendas.length"></strong> dari <strong x-text="agendas.length"></strong> agenda</span>
-            <div class="flex gap-2">
-                <button class="px-4 py-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 shadow-sm" disabled>Previous</button>
-                <button class="px-4 py-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 shadow-sm">Next</button>
-            </div>
         </div>
     </div>
 
-    {{-- CALENDAR VIEW (Mock) --}}
-    <div x-show="viewMode === 'calendar'" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0" style="display: none;">
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
-            <div class="flex items-center justify-between mb-6">
-                <h2 class="text-lg font-bold text-gray-900">Februari 2026</h2>
-                <div class="flex gap-2">
-                    <button class="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg></button>
-                    <button class="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></button>
+    {{-- ALPINE DETAIL MODAL --}}
+    <div x-show="showDetailModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 p-4 transition-opacity" style="display: none;">
+        <div class="bg-white rounded-3xl shadow-2xl p-8 w-full max-w-lg overflow-y-auto max-h-[90vh]" @click.away="closeDetail()">
+            <div class="flex items-center gap-3 mb-6">
+                <span class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-blue-500 text-white">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+                </span>
+                <h3 class="text-2xl font-bold text-gray-950" x-text="selectedAgenda ? selectedAgenda.title : ''"></h3>
+            </div>
+
+            <div class="mb-6 text-gray-700 text-base leading-relaxed whitespace-pre-wrap" x-text="selectedAgenda ? selectedAgenda.description : ''"></div>
+
+            <div class="space-y-3 border-t border-gray-100 pt-4 text-sm text-gray-600">
+                <div class="flex items-center gap-2">
+                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/></svg>
+                    <span>Lokasi: <strong x-text="selectedAgenda ? selectedAgenda.location : ''"></strong></span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                    <span>Tanggal: <strong x-text="selectedAgenda ? selectedAgenda.date : ''"></strong></span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <span>Waktu: <strong><span x-text="selectedAgenda ? selectedAgenda.start_time : ''"></span> - <span x-text="selectedAgenda ? selectedAgenda.end_time : ''"></span> WIB</strong></span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h10"/></svg>
+                    <span>Jenis Kategori: <strong x-text="selectedAgenda ? selectedAgenda.type : ''"></strong></span>
                 </div>
             </div>
 
-            <div class="grid grid-cols-7 gap-px bg-gray-200 rounded-xl overflow-hidden border border-gray-200">
-                {{-- Headers --}}
-                <template x-for="day in ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min']">
-                    <div class="bg-gray-50 p-4 text-center text-sm font-semibold text-gray-600" x-text="day"></div>
-                </template>
-
-                {{-- Mock Calendar Days (28 days + padding) --}}
-                {{-- Padding --}}
-                <div class="bg-white min-h-[120px] p-2 text-gray-300">26</div>
-                <div class="bg-white min-h-[120px] p-2 text-gray-300">27</div>
-                <div class="bg-white min-h-[120px] p-2 text-gray-300">28</div>
-                <div class="bg-white min-h-[120px] p-2 text-gray-300">29</div>
-                <div class="bg-white min-h-[120px] p-2 text-gray-300">30</div>
-                <div class="bg-white min-h-[120px] p-2 text-gray-300">31</div>
-                
-                {{-- Days 1-28 --}}
-                <template x-for="i in 28">
-                    <div class="bg-white min-h-[120px] p-2 hover:bg-gray-50 transition-colors group relative border-t border-l border-transparent">
-                        <span class="text-sm font-medium text-gray-700" :class="{'bg-blue-600 text-white w-7 h-7 flex items-center justify-center rounded-full': i === 12}" x-text="i"></span>
-                        
-                        {{-- Mock Events --}}
-                        <template x-if="i === 12">
-                            <div class="mt-2 text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded font-medium truncate cursor-pointer hover:bg-blue-200">
-                                Rapat Guru
-                            </div>
-                        </template>
-                        <template x-if="i === 15">
-                            <div class="mt-2 text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded font-medium truncate cursor-pointer hover:bg-orange-200">
-                                Ulangan Harian
-                            </div>
-                        </template>
-                         <template x-if="i === 22">
-                            <div class="mt-2 text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded font-medium truncate cursor-pointer hover:bg-purple-200">
-                                Pelatihan
-                            </div>
-                        </template>
-                    </div>
-                </template>
+            <div class="flex justify-end pt-6 mt-6 border-t border-gray-150">
+                <button type="button" @click="closeDetail()" class="px-7 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-xl font-bold transition">
+                    Tutup
+                </button>
             </div>
         </div>
     </div>
@@ -331,8 +271,19 @@ $agendaData = $agendas ?? $mockAgendas;
             searchQuery: '',
             filterType: 'all',
             sortOrder: 'asc',
+            showDetailModal: false,
+            selectedAgenda: null,
             
             agendas: @json($agendaData),
+
+            openDetail(agenda) {
+                this.selectedAgenda = agenda;
+                this.showDetailModal = true;
+            },
+            closeDetail() {
+                this.showDetailModal = false;
+                this.selectedAgenda = null;
+            },
 
             get filteredAgendas() {
                 let filtered = this.agendas;

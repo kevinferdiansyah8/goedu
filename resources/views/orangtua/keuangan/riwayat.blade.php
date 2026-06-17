@@ -37,32 +37,37 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100 text-sm">
+                    @forelse($riwayat as $r)
                     <tr class="hover:bg-gray-50 transition-colors">
-                        <td class="p-4 font-mono text-xs text-gray-500">#INV-20240105-001</td>
-                        <td class="p-4 text-gray-700">05 Jan 2024</td>
-                        <td class="p-4 font-medium text-gray-800">SPP Januari 2024</td>
-                        <td class="p-4 text-gray-600">Transfer BCA</td>
-                        <td class="p-4 font-bold text-gray-800">Rp 500.000</td>
-                        <td class="p-4"><span class="px-2 py-1 bg-green-100 text-green-700 rounded-md text-xs font-medium">Lunas</span></td>
+                        <td class="p-4 font-mono text-xs text-gray-500">#TX-{{ str_pad($r->id, 6, '0', STR_PAD_LEFT) }}</td>
+                        <td class="p-4 text-gray-700">{{ \Carbon\Carbon::parse($r->tanggal)->translatedFormat('d M Y') }}</td>
+                        <td class="p-4 font-medium text-gray-800">{{ $r->keterangan }}</td>
+                        <td class="p-4 text-gray-600">{{ $r->metode }}</td>
+                        <td class="p-4 font-bold text-gray-800">Rp {{ number_format($r->nominal, 0, ',', '.') }}</td>
                         <td class="p-4">
-                            <button class="text-blue-600 hover:text-blue-700 font-medium text-xs flex items-center gap-1">
-                                <i data-lucide="printer" class="w-3 h-3"></i> Cetak Invoice
-                            </button>
+                            @if($r->status === 'Terverifikasi')
+                                <span class="px-2 py-1 bg-green-100 text-green-700 rounded-md text-xs font-medium">Lunas</span>
+                            @elseif($r->status === 'Pending')
+                                <span class="px-2 py-1 bg-yellow-100 text-yellow-700 rounded-md text-xs font-medium">Menunggu Verifikasi</span>
+                            @else
+                                <span class="px-2 py-1 bg-red-100 text-red-700 rounded-md text-xs font-medium">Ditolak</span>
+                            @endif
+                        </td>
+                        <td class="p-4">
+                            @if($r->bukti)
+                                <a href="{{ asset('storage/' . $r->bukti) }}" target="_blank" class="text-blue-600 hover:text-blue-750 font-medium text-xs flex items-center gap-1">
+                                    <i data-lucide="eye" class="w-3.5 h-3.5"></i> Lihat Bukti
+                                </a>
+                            @else
+                                <span class="text-gray-400">-</span>
+                            @endif
                         </td>
                     </tr>
-                    <tr class="hover:bg-gray-50 transition-colors">
-                         <td class="p-4 font-mono text-xs text-gray-500">#INV-20231210-005</td>
-                        <td class="p-4 text-gray-700">10 Des 2023</td>
-                        <td class="p-4 font-medium text-gray-800">SPP Desember 2023</td>
-                        <td class="p-4 text-gray-600">QRIS</td>
-                        <td class="p-4 font-bold text-gray-800">Rp 500.000</td>
-                        <td class="p-4"><span class="px-2 py-1 bg-green-100 text-green-700 rounded-md text-xs font-medium">Lunas</span></td>
-                        <td class="p-4">
-                           <button class="text-blue-600 hover:text-blue-700 font-medium text-xs flex items-center gap-1">
-                                <i data-lucide="printer" class="w-3 h-3"></i> Cetak Invoice
-                            </button>
-                        </td>
+                    @empty
+                    <tr>
+                        <td colspan="7" class="p-4 text-center text-gray-400">Belum ada riwayat transaksi.</td>
                     </tr>
+                    @endforelse
                 </tbody>
             </table>
         </div>

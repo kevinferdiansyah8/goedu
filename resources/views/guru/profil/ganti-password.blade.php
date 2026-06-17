@@ -1,4 +1,4 @@
-@extends('layouts.admin')
+@extends('layouts.sidebar-guru')
 
 @section('title', 'Ganti Password')
 
@@ -38,6 +38,30 @@
 		</div>
 	</div>
 
+	{{-- Success Message --}}
+	@if(session('success'))
+	<div class="bg-green-50 border border-green-200 rounded-2xl p-4 mb-6 flex items-center gap-3">
+		<div class="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center shrink-0">
+			<i data-lucide="check-circle" class="w-4 h-4 text-green-600"></i>
+		</div>
+		<p class="text-sm font-medium text-green-800">{{ session('success') }}</p>
+	</div>
+	@endif
+
+	{{-- Error Messages --}}
+	@if($errors->any())
+	<div class="bg-red-50 border border-red-200 rounded-2xl p-4 mb-6 flex items-start gap-3">
+		<div class="w-8 h-8 rounded-lg bg-red-100 flex items-center justify-center shrink-0 mt-0.5">
+			<i data-lucide="alert-circle" class="w-4 h-4 text-red-600"></i>
+		</div>
+		<div>
+			@foreach($errors->all() as $error)
+			<p class="text-sm font-medium text-red-800">{{ $error }}</p>
+			@endforeach
+		</div>
+	</div>
+	@endif
+
 	<!-- Info Banner -->
 	<div class="bg-amber-50 border border-amber-100 rounded-2xl p-4 mb-6 flex items-start gap-3">
 		<div class="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center shrink-0 mt-0.5">
@@ -62,7 +86,8 @@
 			</div>
 		</div>
 
-		<form class="p-6 space-y-5">
+		<form method="POST" action="{{ route('guru.profil.password.update') }}" class="p-6 space-y-5">
+			@csrf
 			<!-- Old Password -->
 			<div>
 				<label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Password Lama <span class="text-red-400">*</span></label>
@@ -70,7 +95,7 @@
 					<div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
 						<i data-lucide="lock" class="w-4 h-4 text-gray-400"></i>
 					</div>
-					<input :type="showOld ? 'text' : 'password'" x-model="oldPass" placeholder="Masukkan password lama" class="w-full pl-10 pr-12 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-rose-100 focus:border-rose-400 focus:bg-white transition-all">
+					<input :type="showOld ? 'text' : 'password'" name="old_password" x-model="oldPass" placeholder="Masukkan password lama" class="w-full pl-10 pr-12 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-rose-100 focus:border-rose-400 focus:bg-white transition-all">
 					<button type="button" @click="showOld = !showOld" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-gray-400 hover:text-gray-600">
 						<i :data-lucide="showOld ? 'eye-off' : 'eye'" class="w-4 h-4"></i>
 					</button>
@@ -84,7 +109,7 @@
 					<div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
 						<i data-lucide="key" class="w-4 h-4 text-gray-400"></i>
 					</div>
-					<input :type="showNew ? 'text' : 'password'" x-model="newPass" placeholder="Masukkan password baru" class="w-full pl-10 pr-12 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-rose-100 focus:border-rose-400 focus:bg-white transition-all">
+					<input :type="showNew ? 'text' : 'password'" name="new_password" x-model="newPass" placeholder="Masukkan password baru" class="w-full pl-10 pr-12 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-rose-100 focus:border-rose-400 focus:bg-white transition-all">
 					<button type="button" @click="showNew = !showNew" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-gray-400 hover:text-gray-600">
 						<i :data-lucide="showNew ? 'eye-off' : 'eye'" class="w-4 h-4"></i>
 					</button>
@@ -113,7 +138,7 @@
 					<div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
 						<i data-lucide="shield-check" class="w-4 h-4 text-gray-400"></i>
 					</div>
-					<input :type="showConfirm ? 'text' : 'password'" x-model="confirmPass" placeholder="Ulangi password baru" class="w-full pl-10 pr-12 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-rose-100 focus:border-rose-400 focus:bg-white transition-all" :class="confirmPass && !match ? 'border-red-300 focus:border-red-400 focus:ring-red-100' : ''">
+					<input :type="showConfirm ? 'text' : 'password'" name="new_password_confirmation" x-model="confirmPass" placeholder="Ulangi password baru" class="w-full pl-10 pr-12 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-rose-100 focus:border-rose-400 focus:bg-white transition-all" :class="confirmPass && !match ? 'border-red-300 focus:border-red-400 focus:ring-red-100' : ''">
 					<button type="button" @click="showConfirm = !showConfirm" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-gray-400 hover:text-gray-600">
 						<i :data-lucide="showConfirm ? 'eye-off' : 'eye'" class="w-4 h-4"></i>
 					</button>
@@ -137,9 +162,9 @@
 		</form>
 	</div>
 
-	<!-- Last Changed Info -->
+	<!-- Last Changed Info (Realtime) -->
 	<div class="mt-4 text-center">
-		<p class="text-[10px] text-gray-400">Password terakhir diubah: <strong class="text-gray-500">15 Januari 2025</strong></p>
+		<p class="text-[10px] text-gray-400">Password terakhir diubah: <strong class="text-gray-500">{{ $lastChanged ? \Carbon\Carbon::parse($lastChanged)->translatedFormat('d F Y, H:i') : 'Belum pernah diubah' }}</strong></p>
 	</div>
 
 </div>

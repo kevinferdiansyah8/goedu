@@ -1,73 +1,47 @@
-@extends('layouts.admin')
+@extends('layouts.sidebar-guru')
 
 @section('title', 'Pengumuman')
 
 @php
-// Mock Data for Announcements
-$mockAnnouncements = [
-    [
-        'id' => 1,
-        'title' => 'Perubahan Jadwal Libur Awal Puasa',
-        'category' => 'Libur',
-        'date' => date('Y-m-d', strtotime('-1 day')),
-        'content_summary' => 'Berdasarkan keputusan pemerintah, libur awal puasa diundur satu hari.',
-        'content_full' => 'Diberitahukan kepada seluruh warga sekolah bahwa berdasarkan keputusan terbaru dari Kementerian Agama dan Dinas Pendidikan, libur awal puasa yang semula dijadwalkan pada tanggal 10 Maret, diundur menjadi tanggal 11 Maret 2026. Kegiatan belajar mengajar akan tetap berjalan seperti biasa pada tanggal 10 Maret dengan jam pulang lebih awal (pukulu 11.00 WIB).',
-        'urgency' => 'high',
-        'status' => 'active',
-        'author' => 'Kepala Sekolah',
-        'target' => 'Semua'
-    ],
-    [
-        'id' => 2,
-        'title' => 'Pengumpulan Soal PTS Genap',
-        'category' => 'Akademik',
-        'date' => date('Y-m-d', strtotime('-3 days')),
-        'content_summary' => 'Batas akhir pengumpulan soal PTS adalah tanggal 20 Februari 2026.',
-        'content_full' => 'Mengingatkan kepada Bapak/Ibu Guru bahwa batas akhir pengumpulan naskah soal Penilaian Tengah Semester (PTS) Genap Tahun Ajaran 2025/2026 adalah hari Jumat, 20 Februari 2026. Naskah soal mohon dikirimkan dalam format Word (.docx) ke email kurikulum atau melalui link Google Drive yang telah disediakan. Pastikan soal sudah melalui proses editing dan validasi MGMP sekolah.',
-        'urgency' => 'medium',
-        'status' => 'active',
-        'author' => 'Waka Kurikulum',
-        'target' => 'Guru'
-    ],
-    [
-        'id' => 3,
-        'title' => 'Pembersihan Area Parkir Guru',
-        'category' => 'Administrasi',
-        'date' => date('Y-m-d', strtotime('-5 days')),
-        'content_summary' => 'Akan dilakukan pengecatan ulang area parkir pada hari Sabtu.',
-        'content_full' => 'Mohon perhatiannya, pada hari Sabtu, 21 Februari 2026, akan dilakukan pengecatan ulang garis parkir di area parkir khusus guru. Dimohon untuk tidak memarkirkan kendaraan di area tersebut pada hari Sabtu. Parkir dialihkan sementara ke lapangan basket indoor. Terima kasih atas kerjasamanya.',
-        'urgency' => 'low',
-        'status' => 'active',
-        'author' => 'Sarpras',
-        'target' => 'Guru & Staff'
-    ],
-    [
-        'id' => 4,
-        'title' => 'Workshop Digital Learning Tools',
-        'category' => 'Event',
-        'date' => date('Y-m-d', strtotime('-10 days')),
-        'content_summary' => 'Undangan workshop penggunaan AI dalam pembelajaran.',
-        'content_full' => 'Mengundang Bapak/Ibu Guru untuk menghadiri workshop "Digital Learning Tools & AI integration" yang akan dilaksanakan pada tanggal 28 Februari 2026 di Aula Sekolah. Materi akan mencakup penggunaan ChatGPT, Canva Edu, dan Quizizz AI. Pendaftaran dapat dilakukan melalui TU.',
-        'urgency' => 'low',
-        'status' => 'active',
-        'author' => 'Panitia Workshop',
-        'target' => 'Guru'
-    ],
-    [
-        'id' => 5,
-        'title' => 'Hasil Rapat Evaluasi Bulanan',
-        'category' => 'Administrasi',
-        'date' => date('Y-m-d', strtotime('-20 days')),
-        'content_summary' => 'Notulensi rapat evaluasi bulan Januari telah tersedia.',
-        'content_full' => 'Berikut kami lampirkan notulensi hasil rapat evaluasi kinerja guru dan karyawan periode Januari 2026. Mohon untuk dibaca dan ditindaklanjuti poin-poin yang menjadi catatan perbaikan bersama.',
-        'urgency' => 'low',
-        'status' => 'archived',
-        'author' => 'Sekretaris Sekolah',
-        'target' => 'Guru'
-    ]
-];
+// Map Database Announcements to Alpine structure
+$announcementsData = [];
+if (isset($pengumuman)) {
+    foreach ($pengumuman as $p) {
+        $category = 'Administrasi';
+        if (stripos($p->judul, 'libur') !== false) {
+            $category = 'Libur';
+        } elseif (stripos($p->judul, 'PTS') !== false || stripos($p->judul, 'Ujian') !== false || stripos($p->judul, 'Rapor') !== false || stripos($p->judul, 'Nilai') !== false) {
+            $category = 'Akademik';
+        } elseif (stripos($p->judul, 'workshop') !== false || stripos($p->judul, 'seminar') !== false) {
+            $category = 'Event';
+        }
 
-$announcementsData = $announcements ?? $mockAnnouncements;
+        // Urgency
+        $urgency = 'low';
+        if ($p->status === 'Aktif') {
+            if ($p->jenis === 'Semua' || stripos($p->judul, 'penting') !== false || stripos($p->judul, 'mendesak') !== false) {
+                $urgency = 'high';
+            } else {
+                $urgency = 'medium';
+            }
+        }
+
+        $summary = strlen($p->deskripsi) > 100 ? substr($p->deskripsi, 0, 100) . '...' : $p->deskripsi;
+
+        $announcementsData[] = [
+            'id' => $p->id,
+            'title' => $p->judul,
+            'category' => $category,
+            'date' => $p->tanggal_pelaksanaan,
+            'content_summary' => $summary,
+            'content_full' => $p->deskripsi,
+            'urgency' => $urgency,
+            'status' => $p->status === 'Aktif' ? 'active' : 'archived',
+            'author' => 'Admin Sekolah',
+            'target' => $p->jenis ?? 'Semua'
+        ];
+    }
+}
 @endphp
 
 @section('content')
@@ -100,18 +74,11 @@ $announcementsData = $announcements ?? $mockAnnouncements;
                 <select x-model="sortOrder" class="appearance-none bg-white border border-gray-200 text-gray-700 py-2.5 pl-4 pr-10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-medium shadow-sm transition-all cursor-pointer hover:bg-gray-50">
                     <option value="newest">Terbaru</option>
                     <option value="oldest">Terlama</option>
-                    <option value="urgent">Paling Penting</option>
                 </select>
                 <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12"/></svg>
                 </div>
             </div>
-
-            {{-- Add Button --}}
-            <button class="flex items-center gap-2 bg-blue-600 text-white px-5 py-2.5 rounded-xl font-semibold shadow hover:bg-blue-700 transition-all active:scale-95">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                Buat Pengumuman
-            </button>
         </div>
     </div>
 
@@ -182,7 +149,7 @@ $announcementsData = $announcements ?? $mockAnnouncements;
                                       <span class="text-xs text-gray-400 font-medium" x-text="formatDate(item.date)"></span>
                                 </div>
                                 
-                                <h3 class="text-lg font-bold text-gray-900 mb-1" x-text="item.title"></h3>
+                                <h3 class="text-lg font-bold text-gray-900 mb-1 cursor-pointer" @click="openModal(item)" x-text="item.title"></h3>
                                 <p class="text-sm text-gray-600 mb-4 line-clamp-2" x-text="item.content_summary"></p>
                                 
                                 <div class="flex justify-between items-center pt-3 border-t border-gray-100">
@@ -194,7 +161,7 @@ $announcementsData = $announcements ?? $mockAnnouncements;
                                     </button>
                                 </div>
                             </div>
-                        </div>
+                         </div>
                     </template>
                 </div>
              </div>
@@ -202,32 +169,25 @@ $announcementsData = $announcements ?? $mockAnnouncements;
 
         {{-- Normal List --}}
         <template x-for="item in filteredAnnouncements" :key="item.id">
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 hover:border-blue-300 hover:shadow-md transition-all group">
-                <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-2 gap-2">
-                    <span class="px-2.5 py-0.5 rounded text-xs font-bold w-fit"
-                        :class="{
-                            'bg-green-50 text-green-700': item.category === 'Akademik',
-                            'bg-yellow-50 text-yellow-700': item.category === 'Libur',
-                            'bg-purple-50 text-purple-700': item.category === 'Event',
-                            'bg-gray-100 text-gray-700': item.category === 'Administrasi'
-                        }"
-                        x-text="item.category">
-                    </span>
-                    <span class="text-xs text-gray-400 font-medium" x-text="formatDate(item.date)"></span>
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 hover:border-blue-300 hover:shadow-md transition-all group flex flex-col justify-between">
+                <div>
+                    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-2 gap-2">
+                        <span class="px-2.5 py-0.5 rounded text-xs font-bold w-fit bg-blue-50 text-blue-700"
+                            x-text="item.category">
+                        </span>
+                        <span class="text-xs text-gray-400 font-medium" x-text="formatDate(item.date)"></span>
+                    </div>
+
+                    <h3 class="text-lg font-bold text-gray-900 mb-1 group-hover:text-blue-600 transition-colors cursor-pointer" @click="openModal(item)" x-text="item.title"></h3>
+                    <p class="text-sm text-gray-600 mb-4 line-clamp-2" x-text="item.content_summary"></p>
                 </div>
 
-                <h3 class="text-lg font-bold text-gray-900 mb-1 group-hover:text-blue-600 transition-colors" x-text="item.title"></h3>
-                <p class="text-sm text-gray-600 mb-4 line-clamp-2" x-text="item.content_summary"></p>
-
-                <div class="flex justify-between items-center pt-3 border-t border-gray-50 bg-gray-50/30 -mx-5 -mb-5 px-5 py-3 mt-auto">
+                <div class="flex justify-between items-center pt-3 border-t border-gray-50 bg-gray-50/30 -mx-5 -mb-5 px-5 py-3 mt-4">
                      <div class="text-xs text-gray-400 flex items-center gap-1">
                         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
                         <span x-text="item.author"></span>
                     </div>
                     <div class="flex items-center gap-3">
-                         <button class="text-gray-400 hover:text-blue-600 transition-colors" title="Edit">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
-                        </button>
                         <button @click="openModal(item)" class="text-sm font-bold text-blue-600 hover:text-blue-800 transition-colors">
                             Lihat Detail
                         </button>
@@ -238,10 +198,10 @@ $announcementsData = $announcements ?? $mockAnnouncements;
         
         <div x-show="filteredAnnouncements.length === 0 && urgentAnnouncements.length === 0" class="p-12 text-center text-gray-500">
              <div class="w-16 h-16 bg-gray-100 text-gray-400 rounded-full flex items-center justify-center mx-auto mb-4">
-                 <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/></svg>
-            </div>
-            <h3 class="text-lg font-bold text-gray-900">Tidak ada pengumuman</h3>
-            <p class="text-sm">Silakan ubah filter atau kata kunci pencarian Anda.</p>
+                  <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/></svg>
+             </div>
+             <h3 class="text-lg font-bold text-gray-900">Tidak ada pengumuman</h3>
+             <p class="text-sm">Silakan ubah filter atau kata kunci pencarian Anda.</p>
         </div>
     </div>
 
@@ -270,13 +230,7 @@ $announcementsData = $announcements ?? $mockAnnouncements;
                     <template x-if="selectedAnnouncement">
                         <div>
                             <div class="flex items-center gap-3 mb-4">
-                                <span class="px-3 py-1 rounded-full text-xs font-bold tracking-wide uppercase"
-                                     :class="{
-                                        'bg-green-100 text-green-700': selectedAnnouncement.category === 'Akademik',
-                                        'bg-yellow-100 text-yellow-700': selectedAnnouncement.category === 'Libur',
-                                        'bg-purple-100 text-purple-700': selectedAnnouncement.category === 'Event',
-                                        'bg-gray-100 text-gray-700': selectedAnnouncement.category === 'Administrasi'
-                                    }"
+                                <span class="px-3 py-1 rounded-full text-xs font-bold tracking-wide uppercase bg-blue-100 text-blue-700"
                                     x-text="selectedAnnouncement.category"></span>
                                 <span class="text-sm text-gray-500" x-text="formatDate(selectedAnnouncement.date)"></span>
                             </div>
@@ -284,7 +238,7 @@ $announcementsData = $announcements ?? $mockAnnouncements;
                             <h2 class="text-2xl font-bold text-gray-900 mb-6 leading-tight" x-text="selectedAnnouncement.title"></h2>
 
                             <div class="prose prose-blue max-w-none text-gray-700 mb-8 border-t border-gray-100 pt-6">
-                                <p x-text="selectedAnnouncement.content_full"></p>
+                                <p class="whitespace-pre-wrap" x-text="selectedAnnouncement.content_full"></p>
                             </div>
 
                             <div class="bg-gray-50 rounded-xl p-4 border border-gray-100 flex flex-col sm:flex-row justify-between gap-4 text-sm">
@@ -366,12 +320,12 @@ $announcementsData = $announcements ?? $mockAnnouncements;
 
             sortList(list) {
                  return list.sort((a, b) => {
-                    const dateA = new Date(a.date);
-                    const dateB = new Date(b.date);
-                    if (this.sortOrder === 'newest') return dateB - dateA;
-                    if (this.sortOrder === 'oldest') return dateA - dateB;
-                    return 0; // Urgent sorting handled by separation
-                });
+                     const dateA = new Date(a.date);
+                     const dateB = new Date(b.date);
+                     if (this.sortOrder === 'newest') return dateB - dateA;
+                     if (this.sortOrder === 'oldest') return dateA - dateB;
+                     return 0;
+                 });
             },
 
             // Stats

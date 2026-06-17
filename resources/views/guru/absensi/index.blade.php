@@ -39,7 +39,7 @@
                     <option value="">-- Pilih Jadwal Mengajar --</option>
                     @foreach($jadwalMengajar as $j)
                         <option value="{{ $j->id }}" {{ $selectedScheduleId == $j->id ? 'selected' : '' }}>
-                            {{ $j->subject->nama_pelajaran ?? '-' }} - Kelas {{ $j->schoolClass->tingkat ?? '' }} {{ $j->schoolClass->nama_kelas ?? '' }} ({{ $j->hari }}, {{ \Carbon\Carbon::parse($j->jam_mulai)->format('H:i') }})
+                            {{ $j->subject->nama ?? 'Mapel Unknown' }} - Kelas {{ $j->schoolClass ? ($j->schoolClass->tingkat . ' ' . $j->schoolClass->nama_kelas) : $j->kelas }} ({{ $j->hari }}, {{ \Carbon\Carbon::parse($j->jam_mulai)->format('H:i') }})
                         </option>
                     @endforeach
                 </select>

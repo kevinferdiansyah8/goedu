@@ -782,4 +782,170 @@ class GuruController extends Controller
 
         return redirect()->back()->with('success', 'Data absensi kelas berhasil disimpan!');
     }
+    public function absensiRekap(Request $request)
+    {
+        $teacher = $this->getTeacher();
+        
+        $classIds = \App\Models\Schedule::whereHas('subject', function($q) use ($teacher) {
+            $q->where('teacher_id', $teacher->id);
+        })->pluck('school_class_id')->unique()->filter();
+
+        $classes = \App\Models\SchoolClass::whereIn('id', $classIds)->orderBy('tingkat')->orderBy('nama_kelas')->get();
+        
+        $selectedClassId = $request->input('class_id', $classes->first()->id ?? null);
+        $tanggal = $request->input('tanggal', date('Y-m-d'));
+        $bulan = $request->input('bulan', date('Y-m'));
+        
+        $totalSiswa = 0;
+        $statsHadir = 0;
+        $statsSakit = 0;
+        $statsIzin = 0;
+        $statsAlpha = 0;
+        $pctKehadiran = 0;
+        $rekapHarian = [];
+        $rekapBulanan = [];
+        $individuSiswa = [];
+        $donutData = [0, 0, 0, 0];
+        $chartLabels = [];
+        $chartData = [];
+
+        if ($selectedClassId) {
+            $students = \App\Models\Student::where('school_class_id', $selectedClassId)->get();
+            $totalSiswa = $students->count();
+            
+            $attendancesToday = \App\Models\Attendance::whereIn('student_id', $students->pluck('id'))
+                ->where('tanggal', $tanggal)->get();
+                
+            $statsHadir = $attendancesToday->where('status', 'Hadir')->count();
+            $statsSakit = $attendancesToday->where('status', 'Sakit')->count();
+            $statsIzin = $attendancesToday->where('status', 'Izin')->count();
+            $statsAlpha = $attendancesToday->whereIn('status', ['Alpha', 'Tanpa Keterangan'])->count();
+            
+            $totalAbsenToday = $statsHadir + $statsSakit + $statsIzin + $statsAlpha;
+            $pctKehadiran = $totalAbsenToday > 0 ? round(($statsHadir / $totalAbsenToday) * 100) : 0;
+            $donutData = [$statsHadir, $statsSakit, $statsIzin, $statsAlpha];
+            
+            foreach ($students as $s) {
+                $att = $attendancesToday->where('student_id', $s->id)->first();
+                $rekapHarian[] = [
+                    'nama' => $s->nama,
+                    'kelas' => $s->schoolClass->nama_kelas ?? '-',
+                    'status' => $att ? $att->status : 'Belum Absen',
+                    'jam_masuk' => $att ? $att->created_at->format('H:i') : '-'
+                ];
+                
+                $attBulan = \App\Models\Attendance::where('student_id', $s->id)
+                    ->where('tanggal', 'like', $bulan . '-%')->get();
+                    
+                $bHadir = $attBulan->where('status', 'Hadir')->count();
+                $bSakit = $attBulan->where('status', 'Sakit')->count();
+                $bIzin = $attBulan->where('status', 'Izin')->count();
+                $bAlpha = $attBulan->whereIn('status', ['Alpha', 'Tanpa Keterangan'])->count();
+                $bTotal = $bHadir + $bSakit + $bIzin + $bAlpha;
+                $bPct = $bTotal > 0 ? round(($bHadir / $bTotal) * 100) : 0;
+                
+                $rekapBulanan[] = [
+                    'nama' => $s->nama,
+                    'hadir' => $bHadir,
+                    'sakit' => $bSakit,
+                    'izin' => $bIzin,
+                    'alpha' => $bAlpha,
+                    'persen' => $bPct
+                ];
+                
+                $riwayatAll = \App\Models\Attendance::where('student_id', $s->id)->orderBy('tanggal', 'desc')->take(10)->get();
+                $iHadir = \App\Models\Attendance::where('student_id', $s->id)->where('status', 'Hadir')->count();
+                $iSakit = \App\Models\Attendance::where('student_id', $s->id)->where('status', 'Sakit')->count();
+                $iIzin = \App\Models\Attendance::where('student_id', $s->id)->where('status', 'Izin')->count();
+                $iAlpha = \App\Models\Attendance::where('student_id', $s->id)->whereIn('status', ['Alpha', 'Tanpa Keterangan'])->count();
+                $iTotal = $iHadir + $iSakit + $iIzin + $iAlpha;
+                
+                $individuSiswa[] = [
+                    'nama' => $s->nama,
+                    'kelas' => $s->schoolClass->nama_kelas ?? '-',
+                    'nis' => $s->nis,
+                    'hadir' => $iHadir,
+                    'sakit' => $iSakit,
+                    'izin' => $iIzin,
+                    'alpha' => $iAlpha,
+                    'persen' => $iTotal > 0 ? round(($iHadir / $iTotal) * 100) : 0,
+                    'riwayat' => $riwayatAll->map(function($r) {
+                        return [
+                            'tanggal' => \Carbon\Carbon::parse($r->tanggal)->format('d M Y'),
+                            'status' => $r->status
+                        ];
+                    })->toArray()
+                ];
+            }
+            
+            for ($i = 6; $i >= 0; $i--) {
+                $d = \Carbon\Carbon::now()->subDays($i)->format('Y-m-d');
+                $chartLabels[] = \Carbon\Carbon::parse($d)->format('d M');
+                
+                $dayAtt = \App\Models\Attendance::whereIn('student_id', $students->pluck('id'))->where('tanggal', $d)->get();
+                $dH = $dayAtt->where('status', 'Hadir')->count();
+                $dT = $dayAtt->count();
+                $chartData[] = $dT > 0 ? round(($dH / $dT) * 100) : 0;
+            }
+        }
+
+        return view('guru.absensi.rekap-absensi', compact(
+            'classes', 'selectedClassId', 'tanggal', 'bulan', 
+            'totalSiswa', 'statsHadir', 'statsSakit', 'statsIzin', 'statsAlpha', 'pctKehadiran',
+            'rekapHarian', 'rekapBulanan', 'individuSiswa', 'donutData', 'chartLabels', 'chartData'
+        ));
+    }
+
+    // ==========================================
+    // IZIN / SAKIT / ALPHA
+    // ==========================================
+    public function absensiIzinSakitAlpha(Request $request)
+    {
+        $teacher = $this->getTeacher();
+
+        // Ambil class_id dari jadwal mengajar guru ini
+        $classIds = \App\Models\Schedule::whereHas('subject', function($q) use ($teacher) {
+            $q->where('teacher_id', $teacher->id);
+        })->pluck('school_class_id')->unique()->filter();
+
+        $classes = \App\Models\SchoolClass::whereIn('id', $classIds)
+            ->orderBy('tingkat')->orderBy('nama_kelas')->get();
+
+        // Ambil student_id dari kelas yang diajar
+        $studentIds = \App\Models\Student::whereIn('school_class_id', $classIds)->pluck('id');
+
+        // Query attendance dengan status Izin / Sakit / Alpha
+        $query = \App\Models\Attendance::whereIn('student_id', $studentIds)
+            ->whereIn('status', ['Izin', 'Sakit', 'Alpha', 'Tanpa Keterangan'])
+            ->with(['student.schoolClass', 'schedule.subject']);
+
+        // Filter kelas
+        if ($request->filled('kelas')) {
+            $filteredStudentIds = \App\Models\Student::where('school_class_id', $request->kelas)->pluck('id');
+            $query->whereIn('student_id', $filteredStudentIds);
+        }
+
+        // Filter tanggal
+        if ($request->filled('tanggal')) {
+            $query->where('tanggal', $request->tanggal);
+        }
+
+        // Filter search nama
+        if ($request->filled('search')) {
+            $searchStudentIds = \App\Models\Student::where('nama', 'like', '%' . $request->search . '%')->pluck('id');
+            $query->whereIn('student_id', $searchStudentIds);
+        }
+
+        $records = $query->orderBy('tanggal', 'desc')->get();
+
+        // Stats
+        $totalAll   = $records->count();
+        $totalIzin  = $records->where('status', 'Izin')->count();
+        $totalSakit = $records->where('status', 'Sakit')->count();
+        $totalAlpha = $records->whereIn('status', ['Alpha', 'Tanpa Keterangan'])->count();
+
+        return view('guru.absensi.izin-sakit-alpha', compact(
+            'records', 'classes', 'totalAll', 'totalIzin', 'totalSakit', 'totalAlpha'
+        ));
+    }
 }

@@ -22,27 +22,29 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100 text-sm">
+                    @forelse($tugas as $item)
                     <tr class="hover:bg-gray-50 transition-colors">
-                        <td class="p-4 font-medium text-gray-800">Matematika</td>
-                         <td class="p-4"><span class="px-2 py-1 bg-blue-100 text-blue-700 rounded-md text-xs font-medium">Tugas</span></td>
-                        <td class="p-4 text-gray-600">Aljabar Linear</td>
-                        <td class="p-4 font-bold text-green-600">90</td>
-                        <td class="p-4 text-gray-500">Pengerjaan sangat rapi.</td>
+                        <td class="p-4 font-medium text-gray-800">{{ $item['mapel'] }}</td>
+                        <td class="p-4">
+                            @if($item['status'] == 'Belum')
+                                <span class="px-2 py-1 bg-red-100 text-red-700 rounded-md text-xs font-medium">Belum Dikerjakan</span>
+                            @elseif($item['status'] == 'Terkumpul')
+                                <span class="px-2 py-1 bg-yellow-100 text-yellow-700 rounded-md text-xs font-medium">Menunggu Nilai</span>
+                            @elseif($item['status'] == 'Dinilai' || $item['status'] == 'Selesai')
+                                <span class="px-2 py-1 bg-green-100 text-green-700 rounded-md text-xs font-medium">Selesai</span>
+                            @else
+                                <span class="px-2 py-1 bg-gray-100 text-gray-700 rounded-md text-xs font-medium">{{ $item['status'] }}</span>
+                            @endif
+                        </td>
+                        <td class="p-4 text-gray-600">{{ $item['judul'] }} <br><span class="text-xs text-gray-400">Tenggat: {{ \Carbon\Carbon::parse($item['deadline'])->format('d M Y') }}</span></td>
+                        <td class="p-4 font-bold {{ $item['nilai'] != '-' ? 'text-green-600' : 'text-gray-400' }}">{{ $item['nilai'] }}</td>
+                        <td class="p-4 text-gray-500">{{ $item['feedback'] }}</td>
                     </tr>
-                    <tr class="hover:bg-gray-50 transition-colors">
-                        <td class="p-4 font-medium text-gray-800">Bahasa Indonesia</td>
-                         <td class="p-4"><span class="px-2 py-1 bg-purple-100 text-purple-700 rounded-md text-xs font-medium">Ulangan</span></td>
-                        <td class="p-4 text-gray-600">Puisi Baru</td>
-                        <td class="p-4 font-bold text-green-600">85</td>
-                        <td class="p-4 text-gray-500">Perhatikan diksi.</td>
+                    @empty
+                    <tr>
+                        <td colspan="5" class="p-4 text-center text-gray-500">Belum ada tugas atau ulangan.</td>
                     </tr>
-                     <tr class="hover:bg-gray-50 transition-colors">
-                        <td class="p-4 font-medium text-gray-800">IPA</td>
-                         <td class="p-4"><span class="px-2 py-1 bg-blue-100 text-blue-700 rounded-md text-xs font-medium">Tugas</span></td>
-                        <td class="p-4 text-gray-600">Laporan Praktikum</td>
-                        <td class="p-4 font-bold text-blue-600">88</td>
-                        <td class="p-4 text-gray-500">-</td>
-                    </tr>
+                    @endforelse
                 </tbody>
             </table>
         </div>

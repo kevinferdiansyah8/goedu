@@ -37,42 +37,32 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100 text-sm">
-                    <!-- Kelompok A -->
+                    @forelse($rapor as $idx => $r)
                     <tr>
-                        <td colspan="6" class="p-4 bg-gray-50 font-semibold text-gray-700">Kelompok A (Wajib)</td>
+                        <td class="p-4 text-center">{{ $idx + 1 }}</td>
+                        <td class="p-4">{{ $r->subject->nama ?? '-' }}</td>
+                        <td class="p-4 text-center">75</td>
+                        <td class="p-4 text-center font-bold">{{ $r->nilai_akhir ?? '-' }}</td>
+                        <td class="p-4 text-center">
+                            @if($r->nilai_akhir >= 90) A
+                            @elseif($r->nilai_akhir >= 80) B
+                            @elseif($r->nilai_akhir >= 75) C
+                            @else D
+                            @endif
+                        </td>
+                        <td class="p-4">
+                            @if($r->nilai_akhir >= 90) Sangat Baik
+                            @elseif($r->nilai_akhir >= 80) Baik
+                            @elseif($r->nilai_akhir >= 75) Cukup
+                            @else Perlu Peningkatan
+                            @endif
+                        </td>
                     </tr>
+                    @empty
                     <tr>
-                        <td class="p-4 text-center">1</td>
-                        <td class="p-4">Pendidikan Agama dan Budi Pekerti</td>
-                        <td class="p-4 text-center">75</td>
-                        <td class="p-4 text-center font-bold">90</td>
-                        <td class="p-4 text-center">A</td>
-                        <td class="p-4">Sangat Baik</td>
+                        <td colspan="6" class="p-4 text-center text-gray-500">Belum ada data nilai rapor.</td>
                     </tr>
-                     <tr>
-                        <td class="p-4 text-center">2</td>
-                        <td class="p-4">Pendidikan Pancasila dan Kewarganegaraan</td>
-                        <td class="p-4 text-center">75</td>
-                        <td class="p-4 text-center font-bold">85</td>
-                        <td class="p-4 text-center">B</td>
-                        <td class="p-4">Baik</td>
-                    </tr>
-                     <tr>
-                        <td class="p-4 text-center">3</td>
-                        <td class="p-4">Bahasa Indonesia</td>
-                        <td class="p-4 text-center">75</td>
-                        <td class="p-4 text-center font-bold">88</td>
-                        <td class="p-4 text-center">B</td>
-                        <td class="p-4">Baik</td>
-                    </tr>
-                     <tr>
-                        <td class="p-4 text-center">4</td>
-                        <td class="p-4">Matematika</td>
-                        <td class="p-4 text-center">70</td>
-                        <td class="p-4 text-center font-bold">92</td>
-                        <td class="p-4 text-center">A</td>
-                        <td class="p-4">Sangat Baik</td>
-                    </tr>
+                    @endforelse
                 </tbody>
             </table>
         </div>

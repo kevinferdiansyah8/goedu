@@ -3,48 +3,6 @@
 @section('title', 'Laporan PPDB')
 
 @section('content')
-@php
-$ppdb = [
-    [
-        'no_daftar' => 'PPDB001',
-        'nama' => 'Ahmad Fauzi',
-        'jurusan' => 'RPL',
-        'jalur' => 'Zonasi',
-        'tanggal' => '2025-06-01',
-        'status' => 'Lulus',
-    ],
-    [
-        'no_daftar' => 'PPDB002',
-        'nama' => 'Siti Aminah',
-        'jurusan' => 'TKJ',
-        'jalur' => 'Prestasi',
-        'tanggal' => '2025-06-03',
-        'status' => 'Diverifikasi',
-    ],
-    [
-        'no_daftar' => 'PPDB003',
-        'nama' => 'Budi Santoso',
-        'jurusan' => 'AKL',
-        'jalur' => 'Zonasi',
-        'tanggal' => '2025-06-05',
-        'status' => 'Menunggu',
-    ],
-    [
-        'no_daftar' => 'PPDB004',
-        'nama' => 'Dewi Lestari',
-        'jurusan' => 'RPL',
-        'jalur' => 'Afirmasi',
-        'tanggal' => '2025-06-07',
-        'status' => 'Tidak Lulus',
-    ],
-];
-
-$totalPendaftar = count($ppdb);
-$lulus = collect($ppdb)->where('status', 'Lulus')->count();
-$diverifikasi = collect($ppdb)->where('status', 'Diverifikasi')->count();
-$menunggu = collect($ppdb)->where('status', 'Menunggu')->count();
-@endphp
-
 <div class="max-w-7xl mx-auto px-4 py-12 space-y-12">
 
     <!-- HEADER -->
@@ -59,33 +17,32 @@ $menunggu = collect($ppdb)->where('status', 'Menunggu')->count();
     </div>
 
     <!-- FILTER & EXPORT -->
-    <div class="bg-white border border-blue-200 rounded-2xl p-6 flex flex-col md:flex-row gap-4 md:items-center md:justify-between shadow-lg">
+    <form method="GET" action="{{ route('admin.laporan.ppdb') }}" class="bg-white border border-blue-200 rounded-2xl p-6 flex flex-col md:flex-row gap-4 md:items-center md:justify-between shadow-lg">
         <div class="flex flex-wrap gap-3">
-            <select class="input bg-gray-100 border-2 border-blue-400 rounded-full shadow-sm font-semibold text-gray-800 px-4 py-2 min-w-[120px] text-base appearance-none">
+            <select name="jurusan" onchange="this.form.submit()" class="input bg-gray-100 border-2 border-blue-400 rounded-full shadow-sm font-semibold text-gray-800 px-4 py-2 min-w-[120px] text-base appearance-none">
                 <option value="">Semua Jurusan</option>
-                <option>RPL</option>
-                <option>TKJ</option>
-                <option>AKL</option>
+                @foreach($jurusanList as $j)
+                    <option value="{{ $j }}" {{ $jurusan === $j ? 'selected' : '' }}>{{ $j }}</option>
+                @endforeach
             </select>
-            <select class="input bg-gray-100 border-2 border-blue-400 rounded-full shadow-sm font-semibold text-gray-800 px-4 py-2 min-w-[120px] text-base appearance-none">
+            <select name="jalur" onchange="this.form.submit()" class="input bg-gray-100 border-2 border-blue-400 rounded-full shadow-sm font-semibold text-gray-800 px-4 py-2 min-w-[120px] text-base appearance-none">
                 <option value="">Semua Jalur</option>
-                <option>Zonasi</option>
-                <option>Prestasi</option>
-                <option>Afirmasi</option>
+                @foreach($jalurList as $jl)
+                    <option value="{{ $jl }}" {{ $jalur === $jl ? 'selected' : '' }}>{{ $jl }}</option>
+                @endforeach
             </select>
-            <select class="input bg-gray-100 border-2 border-blue-400 rounded-full shadow-sm font-semibold text-gray-800 px-4 py-2 min-w-[120px] text-base appearance-none">
+            <select name="status" onchange="this.form.submit()" class="input bg-gray-100 border-2 border-blue-400 rounded-full shadow-sm font-semibold text-gray-800 px-4 py-2 min-w-[120px] text-base appearance-none">
                 <option value="">Semua Status</option>
-                <option>Menunggu</option>
-                <option>Diverifikasi</option>
-                <option>Lulus</option>
-                <option>Tidak Lulus</option>
+                <option value="Menunggu" {{ $status === 'Menunggu' ? 'selected' : '' }}>Menunggu</option>
+                <option value="Diverifikasi" {{ $status === 'Diverifikasi' ? 'selected' : '' }}>Diverifikasi</option>
+                <option value="Lulus" {{ $status === 'Lulus' ? 'selected' : '' }}>Lulus</option>
+                <option value="Tidak Lulus" {{ $status === 'Tidak Lulus' ? 'selected' : '' }}>Tidak Lulus</option>
             </select>
         </div>
         <div class="flex gap-2">
-            <button class="px-5 py-2 rounded-xl border font-bold hover:bg-gray-50 transition">Export Excel</button>
-            <button class="px-5 py-2 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-700 transition">Export PDF</button>
+            <button type="button" onclick="window.print()" class="px-5 py-2 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-700 transition">Cetak Laporan</button>
         </div>
-    </div>
+    </form>
 
     <!-- SUMMARY CARDS -->
     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
@@ -121,7 +78,7 @@ $menunggu = collect($ppdb)->where('status', 'Menunggu')->count();
                 </tr>
             </thead>
             <tbody>
-                @foreach($ppdb as $p)
+                @forelse($ppdb as $p)
                 <tr class="border-t hover:bg-blue-50 transition group">
                     <td class="px-6 py-4 font-semibold">{{ $p['no_daftar'] }}</td>
                     <td class="px-6 py-4">{{ $p['nama'] }}</td>
@@ -140,9 +97,23 @@ $menunggu = collect($ppdb)->where('status', 'Menunggu')->count();
                         @endif
                     </td>
                 </tr>
-                @endforeach
+                @empty
+                <tr>
+                    <td colspan="6" class="px-6 py-8 text-center text-gray-400">Tidak ada data calon pendaftar PPDB.</td>
+                </tr>
+                @endforelse
             </tbody>
         </table>
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    if (window.lucide) {
+        lucide.createIcons();
+    }
+});
+</script>
+@endpush

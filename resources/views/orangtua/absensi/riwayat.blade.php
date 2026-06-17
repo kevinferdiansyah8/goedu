@@ -60,34 +60,29 @@
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100 text-sm">
+                        @forelse($riwayat as $r)
                         <tr class="hover:bg-gray-50 transition-colors">
-                            <td class="p-4 text-gray-700">09 Feb 2024</td>
-                            <td class="p-4">07:00</td>
-                            <td class="p-4">14:00</td>
-                            <td class="p-4"><span class="px-2 py-1 bg-green-100 text-green-700 rounded-md text-xs font-medium">Hadir</span></td>
-                             <td class="p-4 text-gray-500">-</td>
-                        </tr>
-                        <tr class="hover:bg-gray-50 transition-colors">
-                            <td class="p-4 text-gray-700">08 Feb 2024</td>
+                            <td class="p-4 text-gray-700">{{ \Carbon\Carbon::parse($r->tanggal)->format('d M Y') }}</td>
+                            <td class="p-4">{{ $r->status == 'Hadir' ? \Carbon\Carbon::parse($r->created_at)->format('H:i') : '-' }}</td>
                             <td class="p-4">-</td>
-                            <td class="p-4">-</td>
-                            <td class="p-4"><span class="px-2 py-1 bg-blue-100 text-blue-700 rounded-md text-xs font-medium">Sakit</span></td>
-                             <td class="p-4 text-gray-500">Demam Tinggi</td>
+                            <td class="p-4">
+                                @if($r->status == 'Hadir')
+                                    <span class="px-2 py-1 bg-green-100 text-green-700 rounded-md text-xs font-medium">Hadir</span>
+                                @elseif($r->status == 'Sakit')
+                                    <span class="px-2 py-1 bg-yellow-100 text-yellow-700 rounded-md text-xs font-medium">Sakit</span>
+                                @elseif($r->status == 'Izin')
+                                    <span class="px-2 py-1 bg-blue-100 text-blue-700 rounded-md text-xs font-medium">Izin</span>
+                                @else
+                                    <span class="px-2 py-1 bg-red-100 text-red-700 rounded-md text-xs font-medium">{{ $r->status }}</span>
+                                @endif
+                            </td>
+                             <td class="p-4 text-gray-500">{{ $r->keterangan ?? '-' }}</td>
                         </tr>
-                         <tr class="hover:bg-gray-50 transition-colors">
-                            <td class="p-4 text-gray-700">07 Feb 2024</td>
-                            <td class="p-4">07:05</td>
-                            <td class="p-4">14:00</td>
-                            <td class="p-4"><span class="px-2 py-1 bg-green-100 text-green-700 rounded-md text-xs font-medium">Hadir</span></td>
-                             <td class="p-4 text-gray-500">-</td>
+                        @empty
+                        <tr>
+                            <td colspan="5" class="p-4 text-center text-gray-500">Belum ada riwayat absensi.</td>
                         </tr>
-                         <tr class="hover:bg-gray-50 transition-colors">
-                            <td class="p-4 text-gray-700">06 Feb 2024</td>
-                            <td class="p-4">06:55</td>
-                            <td class="p-4">14:00</td>
-                            <td class="p-4"><span class="px-2 py-1 bg-green-100 text-green-700 rounded-md text-xs font-medium">Hadir</span></td>
-                             <td class="p-4 text-gray-500">-</td>
-                        </tr>
+                        @endforelse
                     </tbody>
                 </table>
             </div>

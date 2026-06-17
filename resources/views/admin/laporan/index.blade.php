@@ -12,7 +12,7 @@
         </span>
         <div>
             <h1 class="text-4xl font-extrabold text-gray-900 tracking-tight mb-1">Dashboard Laporan</h1>
-            <p class="text-gray-400 text-lg">Ringkasan dan monitoring seluruh laporan sekolah</p>
+            <p class="text-gray-400 text-lg">Ringkasan dan monitoring seluruh laporan sekolah secara realtime</p>
         </div>
     </div>
 
@@ -21,52 +21,79 @@
 
         <!-- Absensi -->
         <div class="bg-white border border-blue-100 rounded-3xl shadow-xl p-8 flex flex-col justify-between hover:shadow-2xl transition group">
-            <div class="flex items-center gap-3 mb-4">
-                <span class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-blue-100">
-                    <i data-lucide="calendar-check" class="w-6 h-6 text-blue-600"></i>
-                </span>
-                <h3 class="font-bold text-blue-700 text-lg group-hover:text-blue-600">Laporan Absensi</h3>
+            <div>
+                <div class="flex items-center gap-3 mb-4">
+                    <span class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-blue-100">
+                        <i data-lucide="calendar-check" class="w-6 h-6 text-blue-600"></i>
+                    </span>
+                    <h3 class="font-bold text-blue-700 text-lg group-hover:text-blue-600">Laporan Absensi</h3>
+                </div>
+                <p class="text-base text-gray-500 mb-6">Rekap kehadiran siswa & guru (harian dan bulanan).</p>
+                <div class="mb-6 p-4 bg-blue-50 rounded-2xl text-sm text-blue-800 font-semibold flex justify-between">
+                    <span>Siswa Aktif:</span>
+                    <span>{{ $stats['total_siswa'] }} Siswa</span>
+                </div>
             </div>
-            <p class="text-base text-gray-500 mb-6">Rekap kehadiran siswa & guru (harian, bulanan, tahunan)</p>
             <a href="{{ route('admin.laporan.absensi') }}" class="inline-flex items-center gap-2 text-base font-bold text-blue-600 hover:underline">
                 Lihat Detail <i data-lucide="arrow-right" class="w-5 h-5"></i>
             </a>
         </div>
+
         <!-- Akademik -->
         <div class="bg-white border border-green-100 rounded-3xl shadow-xl p-8 flex flex-col justify-between hover:shadow-2xl transition group">
-            <div class="flex items-center gap-3 mb-4">
-                <span class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-green-100">
-                    <i data-lucide="book-open" class="w-6 h-6 text-green-600"></i>
-                </span>
-                <h3 class="font-bold text-green-700 text-lg group-hover:text-green-600">Laporan Akademik</h3>
+            <div>
+                <div class="flex items-center gap-3 mb-4">
+                    <span class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-green-100">
+                        <i data-lucide="book-open" class="w-6 h-6 text-green-600"></i>
+                    </span>
+                    <h3 class="font-bold text-green-700 text-lg group-hover:text-green-600">Laporan Akademik</h3>
+                </div>
+                <p class="text-base text-gray-500 mb-6">Nilai, peringkat, rapor, dan performa akademik siswa.</p>
+                <div class="mb-6 p-4 bg-green-50 rounded-2xl text-sm text-green-800 font-semibold flex justify-between">
+                    <span>Siswa Dinilai:</span>
+                    <span>{{ $stats['total_siswa'] }} Siswa</span>
+                </div>
             </div>
-            <p class="text-base text-gray-500 mb-6">Nilai, peringkat, rapor, dan performa akademik siswa</p>
             <a href="{{ route('admin.laporan.akademik') }}" class="inline-flex items-center gap-2 text-base font-bold text-green-600 hover:underline">
                 Lihat Detail <i data-lucide="arrow-right" class="w-5 h-5"></i>
             </a>
         </div>
+
         <!-- Keuangan -->
         <div class="bg-white border border-yellow-100 rounded-3xl shadow-xl p-8 flex flex-col justify-between hover:shadow-2xl transition group">
-            <div class="flex items-center gap-3 mb-4">
-                <span class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-yellow-100">
-                    <i data-lucide="wallet" class="w-6 h-6 text-yellow-600"></i>
-                </span>
-                <h3 class="font-bold text-yellow-700 text-lg group-hover:text-yellow-600">Laporan Keuangan</h3>
+            <div>
+                <div class="flex items-center gap-3 mb-4">
+                    <span class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-yellow-100">
+                        <i data-lucide="wallet" class="w-6 h-6 text-yellow-600"></i>
+                    </span>
+                    <h3 class="font-bold text-yellow-700 text-lg group-hover:text-yellow-600">Laporan Keuangan</h3>
+                </div>
+                <p class="text-base text-gray-500 mb-6">Pemasukan SPP, PPDB, dan status kas sekolah.</p>
+                <div class="mb-6 p-4 bg-yellow-50 rounded-2xl text-sm text-yellow-850 font-semibold flex justify-between">
+                    <span>Total Pemasukan:</span>
+                    <span>Rp {{ number_format($stats['spp_pemasukan'], 0, ',', '.') }}</span>
+                </div>
             </div>
-            <p class="text-base text-gray-500 mb-6">Pembayaran SPP, PPDB, dan transaksi sekolah</p>
             <a href="{{ route('admin.laporan.keuangan') }}" class="inline-flex items-center gap-2 text-base font-bold text-yellow-600 hover:underline">
                 Lihat Detail <i data-lucide="arrow-right" class="w-5 h-5"></i>
             </a>
         </div>
+
         <!-- PPDB -->
         <div class="bg-white border border-purple-100 rounded-3xl shadow-xl p-8 flex flex-col justify-between hover:shadow-2xl transition group">
-            <div class="flex items-center gap-3 mb-4">
-                <span class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-purple-100">
-                    <i data-lucide="user-plus" class="w-6 h-6 text-purple-600"></i>
-                </span>
-                <h3 class="font-bold text-purple-700 text-lg group-hover:text-purple-600">Laporan PPDB</h3>
+            <div>
+                <div class="flex items-center gap-3 mb-4">
+                    <span class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-purple-100">
+                        <i data-lucide="user-plus" class="w-6 h-6 text-purple-600"></i>
+                    </span>
+                    <h3 class="font-bold text-purple-700 text-lg group-hover:text-purple-600">Laporan PPDB</h3>
+                </div>
+                <p class="text-base text-gray-500 mb-6">Pendaftaran, seleksi, kelulusan, dan statistik PPDB.</p>
+                <div class="mb-6 p-4 bg-purple-50 rounded-2xl text-sm text-purple-800 font-semibold flex justify-between">
+                    <span>Total Pendaftar:</span>
+                    <span>{{ $stats['ppdb_pendaftar'] }} Calon Siswa</span>
+                </div>
             </div>
-            <p class="text-base text-gray-500 mb-6">Pendaftaran, seleksi, kelulusan, dan statistik PPDB</p>
             <a href="{{ route('admin.laporan.ppdb') }}" class="inline-flex items-center gap-2 text-base font-bold text-purple-600 hover:underline">
                 Lihat Detail <i data-lucide="arrow-right" class="w-5 h-5"></i>
             </a>
@@ -74,13 +101,19 @@
 
         <!-- Kegiatan -->
         <div class="bg-white border border-red-100 rounded-3xl shadow-xl p-8 flex flex-col justify-between hover:shadow-2xl transition group">
-            <div class="flex items-center gap-3 mb-4">
-                <span class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-red-100">
-                    <i data-lucide="calendar-days" class="w-6 h-6 text-red-600"></i>
-                </span>
-                <h3 class="font-bold text-red-700 text-lg group-hover:text-red-600">Laporan Kegiatan</h3>
+            <div>
+                <div class="flex items-center gap-3 mb-4">
+                    <span class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-red-100">
+                        <i data-lucide="calendar-days" class="w-6 h-6 text-red-600"></i>
+                    </span>
+                    <h3 class="font-bold text-red-700 text-lg group-hover:text-red-600">Laporan Kegiatan</h3>
+                </div>
+                <p class="text-base text-gray-500 mb-6">Event sekolah, agenda, dan arsip kegiatan.</p>
+                <div class="mb-6 p-4 bg-red-50 rounded-2xl text-sm text-red-800 font-semibold flex justify-between">
+                    <span>Total Agenda/Event:</span>
+                    <span>{{ $stats['total_kegiatan'] }} Kegiatan</span>
+                </div>
             </div>
-            <p class="text-base text-gray-500 mb-6">Event sekolah, agenda, dan dokumentasi</p>
             <a href="{{ route('admin.laporan.kegiatan') }}" class="inline-flex items-center gap-2 text-base font-bold text-red-600 hover:underline">
                 Lihat Detail <i data-lucide="arrow-right" class="w-5 h-5"></i>
             </a>

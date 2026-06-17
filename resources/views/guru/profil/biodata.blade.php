@@ -1,30 +1,9 @@
-@extends('layouts.admin')
+@extends('layouts.sidebar-guru')
 
 @section('title', 'Biodata Guru')
 
 @section('content')
-@php
-$guru = [
-	'nama' => 'Bambang Suryanto, S.Pd., M.Pd.',
-	'nip' => '198706152010011003',
-	'nuptk' => '4647750652200003',
-	'email' => 'bambang.suryanto@edugo.sch.id',
-	'telp' => '0812-3456-7890',
-	'tempat_lahir' => 'Bandung',
-	'tanggal_lahir' => '15 Juni 1987',
-	'jenis_kelamin' => 'Laki-laki',
-	'agama' => 'Islam',
-	'alamat' => 'Jl. Merdeka No. 45, Kel. Cibinong, Kec. Cibinong, Kab. Bogor, Jawa Barat 16911',
-	'status' => 'PNS',
-	'jabatan' => 'Guru Mata Pelajaran',
-	'golongan' => 'III/c',
-	'pendidikan' => 'S2 — Pendidikan Matematika, Universitas Pendidikan Indonesia',
-	'mapel' => 'Matematika',
-	'kelas_diampu' => ['X RPL 1', 'X RPL 2', 'XI TKJ 1'],
-	'tahun_masuk' => '2010',
-	'wali_kelas' => 'X RPL 1',
-];
-@endphp
+
 
 <div class="max-w-5xl mx-auto">
 

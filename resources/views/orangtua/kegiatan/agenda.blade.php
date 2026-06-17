@@ -50,46 +50,27 @@
 
         <!-- Agenda List -->
         <div class="lg:col-span-2 space-y-4">
-             <div class="bg-white rounded-xl shadow-sm border-l-4 border-blue-500 p-5 flex items-start gap-4">
-                <div class="w-16 h-16 bg-blue-50 text-blue-600 rounded-lg flex flex-col items-center justify-center flex-shrink-0">
-                    <span class="text-xs font-bold uppercase">Feb</span>
-                    <span class="text-2xl font-bold">12</span>
+            @forelse($agenda as $a)
+            <div class="bg-white rounded-xl shadow-sm border-l-4 @if($a->jenis === 'Akademik') border-blue-500 @elseif($a->jenis === 'Non-Akademik') border-green-500 @else border-orange-500 @endif p-5 flex items-start gap-4">
+                <div class="w-16 h-16 bg-gray-50 text-gray-600 rounded-lg flex flex-col items-center justify-center flex-shrink-0">
+                    <span class="text-xs font-bold uppercase">{{ \Carbon\Carbon::parse($a->tanggal_pelaksanaan)->translatedFormat('M') }}</span>
+                    <span class="text-2xl font-bold">{{ \Carbon\Carbon::parse($a->tanggal_pelaksanaan)->format('d') }}</span>
                 </div>
                 <div>
-                    <h3 class="font-bold text-gray-800 text-lg">Ujian Tengah Semester (UTS)</h3>
-                    <p class="text-gray-600 text-sm mt-1">UTS Semester Genap T.A. 2023/2024 dimulai.</p>
+                    <h3 class="font-bold text-gray-800 text-lg">{{ $a->judul }}</h3>
+                    <p class="text-gray-600 text-sm mt-1">{{ $a->deskripsi }}</p>
                     <div class="flex items-center gap-4 mt-3 text-xs text-gray-500">
-                        <span class="flex items-center gap-1"><i data-lucide="clock" class="w-3 h-3"></i> 07:30 - 12:00</span>
-                        <span class="flex items-center gap-1"><i data-lucide="map-pin" class="w-3 h-3"></i> Ruang Kelas</span>
+                        <span class="flex items-center gap-1"><i data-lucide="clock" class="w-3 h-3"></i> {{ $a->waktu_pelaksanaan }}</span>
+                        <span class="flex items-center gap-1"><i data-lucide="map-pin" class="w-3 h-3"></i> {{ $a->lokasi }}</span>
                     </div>
                 </div>
             </div>
-
-            <div class="bg-white rounded-xl shadow-sm border-l-4 border-green-500 p-5 flex items-start gap-4">
-                <div class="w-16 h-16 bg-green-50 text-green-600 rounded-lg flex flex-col items-center justify-center flex-shrink-0">
-                    <span class="text-xs font-bold uppercase">Feb</span>
-                    <span class="text-2xl font-bold">20</span>
-                </div>
-                <div>
-                    <h3 class="font-bold text-gray-800 text-lg">Pentas Seni Tahunan</h3>
-                    <p class="text-gray-600 text-sm mt-1">Pertunjukan seni siswa-siswi GOEDU.</p>
-                     <div class="flex items-center gap-4 mt-3 text-xs text-gray-500">
-                        <span class="flex items-center gap-1"><i data-lucide="clock" class="w-3 h-3"></i> 08:00 - 15:00</span>
-                        <span class="flex items-center gap-1"><i data-lucide="map-pin" class="w-3 h-3"></i> Aula Sekolah</span>
-                    </div>
-                </div>
+            @empty
+            <div class="py-12 flex flex-col items-center justify-center text-gray-400 bg-white rounded-xl border border-gray-100">
+                <i data-lucide="calendar" class="w-12 h-12 mb-4 text-gray-300"></i>
+                <span class="text-lg font-medium">Belum ada agenda sekolah</span>
             </div>
-
-             <div class="bg-white rounded-xl shadow-sm border-l-4 border-red-500 p-5 flex items-start gap-4">
-                <div class="w-16 h-16 bg-red-50 text-red-600 rounded-lg flex flex-col items-center justify-center flex-shrink-0">
-                    <span class="text-xs font-bold uppercase">Feb</span>
-                    <span class="text-2xl font-bold">28</span>
-                </div>
-                <div>
-                    <h3 class="font-bold text-gray-800 text-lg">Libur Isra Mi'raj</h3>
-                    <p class="text-gray-600 text-sm mt-1">Libur Nasional peringatan Isra Mi'raj Nabi Muhammad SAW.</p>
-                </div>
-            </div>
+            @endforelse
         </div>
     </div>
 </div>

@@ -37,24 +37,24 @@
                     @foreach($riwayat as $log)
                     <tr class="hover:bg-gray-50 transition-colors text-sm text-gray-700">
                         <td class="px-6 py-4 font-medium text-gray-900">
-                            {{ \Carbon\Carbon::parse($log['tanggal'])->isoFormat('dddd, D MMMM Y') }}
+                            {{ \Carbon\Carbon::parse($log->tanggal)->isoFormat('dddd, D MMMM Y') }}
                         </td>
-                        <td class="px-6 py-4 text-center">{{ $log['jam_masuk'] }}</td>
-                        <td class="px-6 py-4 text-center">{{ $log['jam_pulang'] }}</td>
+                        <td class="px-6 py-4 text-center">{{ $log->status == 'Hadir' ? \Carbon\Carbon::parse($log->created_at)->format('H:i') : '-' }}</td>
+                        <td class="px-6 py-4 text-center">-</td>
                         <td class="px-6 py-4 text-center">
-                            @if($log['status'] == 'Hadir')
+                            @if($log->status == 'Hadir')
                                 <span class="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-semibold">Hadir</span>
-                            @elseif($log['status'] == 'Izin')
+                            @elseif($log->status == 'Izin')
                                 <span class="px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold">Izin</span>
-                            @elseif($log['status'] == 'Sakit')
+                            @elseif($log->status == 'Sakit')
                                 <span class="px-2 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-semibold">Sakit</span>
-                            @elseif($log['status'] == 'Terlambat')
+                            @elseif($log->status == 'Terlambat')
                                 <span class="px-2 py-1 bg-orange-100 text-orange-700 rounded-full text-xs font-semibold">Terlambat</span>
                             @else
-                                <span class="px-2 py-1 bg-red-100 text-red-700 rounded-full text-xs font-semibold">Alpha</span>
+                                <span class="px-2 py-1 bg-red-100 text-red-700 rounded-full text-xs font-semibold">{{ $log->status }}</span>
                             @endif
                         </td>
-                        <td class="px-6 py-4">{{ $log['keterangan'] }}</td>
+                        <td class="px-6 py-4">{{ $log->keterangan ?? '-' }}</td>
                     </tr>
                     @endforeach
                 </tbody>

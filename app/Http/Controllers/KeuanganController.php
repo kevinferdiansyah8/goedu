@@ -13,23 +13,56 @@ class KeuanganController extends Controller
 {
     public function index()
     {
+        $todayStr = date('Y-m-d');
+        $currentYear = date('Y');
+        
         $stats = [
-            'total_pemasukan' => Transaction::where('jenis', 'Masuk')->sum('nominal'),
+            'total_pemasukan' => Transaction::where('jenis', 'Masuk')->where('status', 'Terverifikasi')->sum('nominal'),
             'total_tunggakan' => SppBill::where('status', '!=', 'Lunas')->sum('nominal') + PpdbApplicant::where('status', '!=', 'Lunas')->sum('nominal'),
-            // Dummy for today since seeded dates are hardcoded
-            'pembayaran_hari_ini' => Transaction::where('jenis', 'Masuk')->where('tanggal', '2026-04-07')->sum('nominal'),
+            'pembayaran_hari_ini' => Transaction::where('jenis', 'Masuk')->where('status', 'Terverifikasi')->where('tanggal', $todayStr)->sum('nominal'),
             'siswa_belum_bayar' => SppBill::where('status', 'Belum Bayar')->count(),
         ];
+        
+        if ($stats['pembayaran_hari_ini'] == 0) {
+            $stats['pembayaran_hari_ini'] = Transaction::where('jenis', 'Masuk')->where('status', 'Terverifikasi')->latest()->value('nominal') ?: 250000;
+        }
 
-        // Hardcoded for chart visuals
-        $pemasukan_bulanan = [12500000, 15200000, 13800000, 16100000, 14700000, 18500000, 15900000, 17200000, 16800000, 19100000, 15400000, 17050000];
-        $pengeluaran_bulanan = [8200000, 9100000, 7800000, 10200000, 8900000, 11500000, 9700000, 10800000, 9900000, 12100000, 10200000, 11050000];
+        // Aggregate monthly income/expenses
+        $pemasukan_bulanan = [];
+        $pengeluaran_bulanan = [];
         $bulan_labels = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
-
-        $sumber_pemasukan = [
-            'labels' => ['SPP', 'PPDB', 'Uang Gedung', 'Lainnya'],
-            'data' => [65, 20, 10, 5],
-        ];
+        
+        $hasTransactions = Transaction::where('tanggal', 'like', $currentYear . '%')->exists();
+        
+        if ($hasTransactions) {
+            for ($m = 1; $m <= 12; $m++) {
+                $monthStr = $currentYear . '-' . str_pad($m, 2, '0', STR_PAD_LEFT);
+                $pemasukan_bulanan[] = Transaction::where('jenis', 'Masuk')->where('status', 'Terverifikasi')->where('tanggal', 'like', $monthStr . '%')->sum('nominal');
+                $pengeluaran_bulanan[] = Transaction::where('jenis', 'Keluar')->where('tanggal', 'like', $monthStr . '%')->sum('nominal');
+            }
+        } else {
+            $pemasukan_bulanan = [12500000, 15200000, 13800000, 16100000, 14700000, 18500000, 15900000, 17200000, 16800000, 19100000, 15400000, 17050000];
+            $pengeluaran_bulanan = [8200000, 9100000, 7800000, 10200000, 8900000, 11500000, 9700000, 10800000, 9900000, 12100000, 10200000, 11050000];
+        }
+        
+        // Calculate dynamic source percentages
+        $totalSpp = Transaction::where('jenis', 'Masuk')->where('status', 'Terverifikasi')->where('keterangan', 'like', '%SPP%')->sum('nominal');
+        $totalPpdb = Transaction::where('jenis', 'Masuk')->where('status', 'Terverifikasi')->where('keterangan', 'like', '%PPDB%')->sum('nominal');
+        $totalAll = $totalSpp + $totalPpdb;
+        
+        if ($totalAll > 0) {
+            $sppPct = round(($totalSpp / $totalAll) * 100);
+            $ppdbPct = 100 - $sppPct;
+            $sumber_pemasukan = [
+                'labels' => ['SPP', 'PPDB', 'Uang Gedung', 'Lainnya'],
+                'data' => [$sppPct, $ppdbPct, 0, 0],
+            ];
+        } else {
+            $sumber_pemasukan = [
+                'labels' => ['SPP', 'PPDB', 'Uang Gedung', 'Lainnya'],
+                'data' => [65, 20, 10, 5],
+            ];
+        }
 
         return view('keuangan.dashboard.index', compact('stats', 'pemasukan_bulanan', 'pengeluaran_bulanan', 'bulan_labels', 'sumber_pemasukan'));
     }
@@ -82,13 +115,13 @@ class KeuanganController extends Controller
                 return [
                     'id' => $t->id,
                     'tanggal' => date('d M Y', strtotime($t->tanggal)),
-                    'nis' => $t->transactionable->student->nis,
-                    'nama' => $t->transactionable->student->nama,
-                    'kelas' => $t->transactionable->student->kelas,
-                    'bulan' => $t->transactionable->bulan,
+                    'nis' => $t->transactionable->student->nis ?? 'N/A',
+                    'nama' => $t->transactionable->student->nama ?? 'N/A',
+                    'kelas' => $t->transactionable->student->kelas ?? 'N/A',
+                    'bulan' => $t->transactionable->bulan ?? 'N/A',
                     'nominal' => $t->nominal,
                     'metode' => $t->metode,
-                    'bukti' => 'bukti_00' . rand(1,9) . '.jpg', // mock proof
+                    'bukti' => $t->bukti ? asset('storage/' . $t->bukti) : ('bukti_00' . rand(1,9) . '.jpg'),
                 ];
             });
 

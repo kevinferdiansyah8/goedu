@@ -3,78 +3,53 @@
 @section('title', 'Absensi Guru')
 
 @section('content')
-@php
-$absensiGuru = [
-    [
-        'nama' => 'Budi Santoso, S.Pd',
-        'nip' => '198712312021011001',
-        'tanggal' => '2026-01-31',
-        'jam' => '07:12',
-        'status' => 'Hadir',
-        'keterangan' => '-'
-    ],
-    [
-        'nama' => 'Siti Aminah, S.Pd',
-        'nip' => '198902122022011002',
-        'tanggal' => '2026-01-31',
-        'jam' => '07:25',
-        'status' => 'Izin',
-        'keterangan' => 'Urusan keluarga'
-    ],
-    [
-        'nama' => 'Dewi Lestari, S.Pd',
-        'nip' => '199001052023011003',
-        'tanggal' => '2026-01-31',
-        'jam' => '-',
-        'status' => 'Sakit',
-        'keterangan' => 'Demam'
-    ],
-];
-@endphp
-
-
 <div class="min-h-screen w-full bg-gradient-to-br from-slate-50 via-white to-blue-100 py-10 px-2 md:px-0">
     <div class="max-w-6xl mx-auto">
         <!-- Header -->
-        <div class="mb-8">
-            <h1 class="text-3xl font-bold text-gray-900">Absensi Guru</h1>
-            <p class="text-base text-gray-500">Monitoring kehadiran guru (admin)</p>
-        </div>
-
-        <!-- Summary Cards -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
-            <div class="flex flex-col items-center bg-white/80 border-2 border-gray-200 rounded-2xl shadow p-6 relative overflow-hidden">
-                <span class="absolute top-2 right-2 text-gray-300 text-2xl"><i class="fa fa-users"></i></span>
-                <span class="text-3xl font-extrabold text-gray-800 mb-1">{{ count($absensiGuru) }}</span>
-                <span class="font-semibold text-gray-500 text-lg">Total Guru</span>
-            </div>
-            <div class="flex flex-col items-center bg-white/80 border-2 border-green-200 rounded-2xl shadow p-6 relative overflow-hidden">
-                <span class="absolute top-2 right-2 text-green-300 text-2xl"><i class="fa fa-user-check"></i></span>
-                <span class="text-3xl font-extrabold text-green-700 mb-1">{{ collect($absensiGuru)->where('status','Hadir')->count() }}</span>
-                <span class="font-semibold text-green-700 text-lg">Hadir</span>
-            </div>
-            <div class="flex flex-col items-center bg-white/80 border-2 border-yellow-200 rounded-2xl shadow p-6 relative overflow-hidden">
-                <span class="absolute top-2 right-2 text-yellow-300 text-2xl"><i class="fa fa-user-clock"></i></span>
-                <span class="text-3xl font-extrabold text-yellow-700 mb-1">{{ collect($absensiGuru)->where('status','Izin')->count() }}</span>
-                <span class="font-semibold text-yellow-700 text-lg">Izin</span>
-            </div>
-            <div class="flex flex-col items-center bg-white/80 border-2 border-red-200 rounded-2xl shadow p-6 relative overflow-hidden">
-                <span class="absolute top-2 right-2 text-red-300 text-2xl"><i class="fa fa-user-times"></i></span>
-                <span class="text-3xl font-extrabold text-red-700 mb-1">{{ collect($absensiGuru)->where('status','Sakit')->count() }}</span>
-                <span class="font-semibold text-red-700 text-lg">Sakit</span>
+        <div class="mb-8 flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900">Absensi Guru</h1>
+                <p class="text-base text-gray-500">Monitoring kehadiran guru (admin)</p>
             </div>
         </div>
 
         <!-- Filter -->
-        <div class="flex flex-col md:flex-row gap-4 mb-6">
-            <input type="date" class="border border-blue-200 rounded-lg px-4 py-2 w-full md:w-56 focus:ring-2 focus:ring-blue-200">
-            <select id="filterStatus" class="border border-blue-200 rounded-lg px-4 py-2 w-full md:w-56 focus:ring-2 focus:ring-blue-200">
+        <form method="GET" action="{{ route('admin.absensi.guru') }}" class="flex flex-col md:flex-row gap-4 mb-6">
+            <input type="date" name="tanggal" value="{{ $tanggal }}"
+                   class="border border-blue-200 rounded-lg px-4 py-2 w-full md:w-56 focus:ring-2 focus:ring-blue-200">
+            <select name="status" id="filterStatus" class="border border-blue-200 rounded-lg px-4 py-2 w-full md:w-56">
                 <option value="">Semua Status</option>
-                <option value="Hadir">Hadir</option>
-                <option value="Izin">Izin</option>
-                <option value="Sakit">Sakit</option>
-                <option value="Dinas">Dinas</option>
+                <option value="Hadir"  {{ $filterStatus === 'Hadir'  ? 'selected' : '' }}>Hadir</option>
+                <option value="Izin"   {{ $filterStatus === 'Izin'   ? 'selected' : '' }}>Izin</option>
+                <option value="Sakit"  {{ $filterStatus === 'Sakit'  ? 'selected' : '' }}>Sakit</option>
             </select>
+            <button type="submit" class="bg-blue-700 text-white font-bold px-6 py-2 rounded-xl shadow hover:bg-blue-800 transition">
+                <i class="fa fa-search mr-1"></i> Tampilkan
+            </button>
+        </form>
+
+        <!-- Summary Cards -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
+            <div class="flex flex-col items-center bg-white/80 border-2 border-gray-200 rounded-2xl shadow p-6">
+                <span class="text-gray-300 text-2xl"><i class="fa fa-users"></i></span>
+                <span class="text-3xl font-extrabold text-gray-800 mb-1">{{ $absensiGuru->count() }}</span>
+                <span class="font-semibold text-gray-500 text-lg">Total Guru</span>
+            </div>
+            <div class="flex flex-col items-center bg-white/80 border-2 border-green-200 rounded-2xl shadow p-6">
+                <span class="text-green-300 text-2xl"><i class="fa fa-user-check"></i></span>
+                <span class="text-3xl font-extrabold text-green-700 mb-1">{{ $totalHadir }}</span>
+                <span class="font-semibold text-green-700 text-lg">Hadir</span>
+            </div>
+            <div class="flex flex-col items-center bg-white/80 border-2 border-yellow-200 rounded-2xl shadow p-6">
+                <span class="text-yellow-300 text-2xl"><i class="fa fa-user-clock"></i></span>
+                <span class="text-3xl font-extrabold text-yellow-700 mb-1">{{ $totalIzin }}</span>
+                <span class="font-semibold text-yellow-700 text-lg">Izin</span>
+            </div>
+            <div class="flex flex-col items-center bg-white/80 border-2 border-red-200 rounded-2xl shadow p-6">
+                <span class="text-red-300 text-2xl"><i class="fa fa-user-times"></i></span>
+                <span class="text-3xl font-extrabold text-red-700 mb-1">{{ $totalSakit }}</span>
+                <span class="font-semibold text-red-700 text-lg">Sakit</span>
+            </div>
         </div>
 
         <!-- Table -->
@@ -86,15 +61,17 @@ $absensiGuru = [
                         <th class="px-5 py-3 text-left font-bold">NIP</th>
                         <th class="px-5 py-3 text-center font-bold">Tanggal</th>
                         <th class="px-5 py-3 text-center font-bold">Jam</th>
-                        <th class="px-5 py-3 text-center font-bold">Status</th>
-                        <th class="px-5 py-3 text-left font-bold rounded-tr-xl">Keterangan</th>
+                        <th class="px-5 py-3 text-center font-bold rounded-tr-xl">Status</th>
                     </tr>
                 </thead>
                 <tbody id="tableAbsensi">
-                    @foreach($absensiGuru as $a)
-                    <tr class="group bg-white even:bg-blue-50/40 hover:shadow-lg hover:scale-[1.01] transition rounded-xl" data-status="{{ $a['status'] }}">
+                    @forelse($absensiGuru as $a)
+                    @if(!$filterStatus || $a['status'] === $filterStatus)
+                    <tr class="group bg-white even:bg-blue-50/40 hover:shadow-lg transition rounded-xl" data-status="{{ $a['status'] }}">
                         <td class="px-5 py-3 flex items-center gap-3">
-                            <span class='w-12 h-12 rounded-full bg-gradient-to-br from-blue-200 to-blue-400 text-blue-800 font-bold flex items-center justify-center shadow text-sm'>{{ collect(explode(' ', $a['nama']))->map(fn($n)=>$n[0])->join('') }}</span>
+                            <span class="w-12 h-12 rounded-full bg-gradient-to-br from-blue-200 to-blue-400 text-blue-800 font-bold flex items-center justify-center shadow text-sm">
+                                {{ collect(explode(' ', $a['nama']))->map(fn($n)=>$n[0])->join('') }}
+                            </span>
                             <span class="font-medium text-gray-800">{{ $a['nama'] }}</span>
                         </td>
                         <td class="px-5 py-3 text-gray-700">{{ $a['nip'] }}</td>
@@ -111,27 +88,19 @@ $absensiGuru = [
                                 <span class="px-3 py-1 rounded-full bg-gray-100 text-gray-700 text-xs font-semibold flex items-center gap-1 justify-center"><i class='fa fa-info-circle'></i> {{ $a['status'] }}</span>
                             @endif
                         </td>
-                        <td class="px-5 py-3 text-gray-700">{{ $a['keterangan'] }}</td>
                     </tr>
-                    @endforeach
+                    @endif
+                    @empty
+                    <tr>
+                        <td colspan="5" class="px-5 py-10 text-center text-gray-400">
+                            <i class="fa fa-chalkboard-teacher text-3xl mb-2"></i>
+                            <p>Belum ada data guru terdaftar.</p>
+                        </td>
+                    </tr>
+                    @endforelse
                 </tbody>
             </table>
         </div>
     </div>
 </div>
 @endsection
-
-@push('scripts')
-<script>
-document.getElementById('filterStatus').addEventListener('change', function () {
-    const status = this.value;
-    document.querySelectorAll('#tableAbsensi tr').forEach(row => {
-        if (!status || row.dataset.status === status) {
-            row.classList.remove('hidden');
-        } else {
-            row.classList.add('hidden');
-        }
-    });
-});
-</script>
-@endpush

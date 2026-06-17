@@ -71,17 +71,30 @@ Route::view('/ppdb/register/smk/success', 'ppdb.smk.success')->name('ppdb.regist
 
 
 
+// ================= PORTAL PPDB (LANDING PAGE) =================
+Route::get('/ppdb', [\App\Http\Controllers\PpdbFrontendController::class, 'index'])->name('ppdb.index');
+
+// ================= DAFTAR PPDB =================
+Route::get('/ppdb/daftar', [\App\Http\Controllers\PpdbFrontendController::class, 'showRegisterForm'])->name('ppdb.daftar');
+Route::post('/ppdb/daftar', [\App\Http\Controllers\PpdbFrontendController::class, 'register']);
+
 // ================= LOGIN PPDB =================
-Route::view('/ppdb/login', 'ppdb.login')->name('ppdb.login');
+Route::get('/ppdb/login', [\App\Http\Controllers\PpdbFrontendController::class, 'showLoginForm'])->name('ppdb.login');
+Route::post('/ppdb/login', [\App\Http\Controllers\PpdbFrontendController::class, 'login']);
+Route::post('/ppdb/logout', [\App\Http\Controllers\PpdbFrontendController::class, 'logout'])->name('ppdb.logout');
 
 // ================= CEK STATUS PPDB =================
-Route::view('/ppdb/cek-status', 'ppdb.cek-status')->name('ppdb.cek-status');
+Route::get('/ppdb/cek-status', [\App\Http\Controllers\PpdbFrontendController::class, 'showCekStatus'])->name('ppdb.cek-status');
+Route::post('/ppdb/cek-status', [\App\Http\Controllers\PpdbFrontendController::class, 'searchStatus'])->name('ppdb.cek-status.search');
 
 // ================= CETAK BUKTI PPDB =================
-Route::view('/ppdb/cetak-bukti', 'ppdb.cetak-bukti')->name('ppdb.cetak-bukti');
+Route::get('/ppdb/cetak-bukti', [\App\Http\Controllers\PpdbFrontendController::class, 'cetakBukti'])->name('ppdb.cetak-bukti');
 
 // ================= DASHBOARD PPDB =================
-Route::view('/ppdb/dashboard', 'ppdb.dashboard')->name('ppdb.dashboard');
+Route::get('/ppdb/dashboard', [\App\Http\Controllers\PpdbFrontendController::class, 'dashboard'])->name('ppdb.dashboard');
+Route::post('/ppdb/upload-document', [\App\Http\Controllers\PpdbFrontendController::class, 'uploadDocument'])->name('ppdb.upload-document');
+Route::post('/ppdb/upload-payment', [\App\Http\Controllers\PpdbFrontendController::class, 'uploadPayment'])->name('ppdb.upload-payment');
+Route::get('/ppdb/api/status', [\App\Http\Controllers\PpdbFrontendController::class, 'getStatusApi'])->name('ppdb.api.status');
 /*
 |--------------------------------------------------------------------------
 | ADMIN AREA
@@ -98,33 +111,26 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
                 Route::put('/data-guru/{id}', [\App\Http\Controllers\Admin\TeacherController::class, 'update'])->name('admin.kepegawaian.data-guru.update');
                 Route::delete('/data-guru/{id}', [\App\Http\Controllers\Admin\TeacherController::class, 'destroy'])->name('admin.kepegawaian.data-guru.destroy');
 
-                Route::get('/jadwal-mengajar', function () {
-                    return view('admin.kepegawaian.jadwal-mengajar');
-                })->name('admin.kepegawaian.jadwal-mengajar');
+                Route::get('/jadwal-mengajar', [\App\Http\Controllers\Admin\TeacherController::class, 'jadwalMengajar'])->name('admin.kepegawaian.jadwal-mengajar');
 
-                Route::get('/arsip-kepegawaian', function () {
-                    return view('admin.kepegawaian.arsip-kepegawaian');
-                })->name('admin.kepegawaian.arsip-kepegawaian');
+                // Arsip Kepegawaian
+            Route::get('/arsip-kepegawaian', [\App\Http\Controllers\Admin\ArchiveController::class, 'index'])->name('admin.kepegawaian.arsip-kepegawaian');
+            Route::put('/arsip/{id}/profil', [\App\Http\Controllers\Admin\ArchiveController::class, 'updateProfile'])->name('admin.kepegawaian.arsip.profil');
+            Route::post('/arsip/{id}/dokumen', [\App\Http\Controllers\Admin\ArchiveController::class, 'storeDocument'])->name('admin.kepegawaian.arsip.dokumen');
+            Route::delete('/arsip/dokumen/{id}', [\App\Http\Controllers\Admin\ArchiveController::class, 'destroyDocument'])->name('admin.kepegawaian.arsip.dokumen.destroy');
+            Route::post('/arsip/{id}/riwayat', [\App\Http\Controllers\Admin\ArchiveController::class, 'storeHistory'])->name('admin.kepegawaian.arsip.riwayat');
+            Route::delete('/arsip/riwayat/{id}', [\App\Http\Controllers\Admin\ArchiveController::class, 'destroyHistory'])->name('admin.kepegawaian.arsip.riwayat.destroy');
+            Route::post('/arsip/{id}/sertifikasi', [\App\Http\Controllers\Admin\ArchiveController::class, 'storeCertification'])->name('admin.kepegawaian.arsip.sertifikasi');
+            Route::delete('/arsip/sertifikasi/{id}', [\App\Http\Controllers\Admin\ArchiveController::class, 'destroyCertification'])->name('admin.kepegawaian.arsip.sertifikasi.destroy');
             });
         // ========================
         // ABSENSI
         // ========================
         Route::prefix('absensi')->group(function () {
-            Route::get('/siswa', function () {
-                return view('admin.absensi.absensi-siswa');
-            })->name('admin.absensi.siswa');
-
-            Route::get('/guru', function () {
-                return view('admin.absensi.absensi-guru');
-            })->name('admin.absensi.guru');
-
-            Route::get('/rekap', function () {
-                return view('admin.absensi.rekap-absensi');
-            })->name('admin.absensi.rekap');
-
-            Route::get('/izin-sakit-alpha', function () {
-                return view('admin.absensi.izin-sakit-alpha');
-            })->name('admin.absensi.izin-sakit-alpha');
+            Route::get('/siswa', [\App\Http\Controllers\Admin\AdminAbsensiController::class, 'absensiSiswa'])->name('admin.absensi.siswa');
+            Route::get('/guru', [\App\Http\Controllers\Admin\AdminAbsensiController::class, 'absensiGuru'])->name('admin.absensi.guru');
+            Route::get('/rekap', [\App\Http\Controllers\Admin\AdminAbsensiController::class, 'rekapAbsensi'])->name('admin.absensi.rekap');
+            Route::get('/izin-sakit-alpha', [\App\Http\Controllers\Admin\AdminAbsensiController::class, 'izinSakitAlpha'])->name('admin.absensi.izin-sakit-alpha');
         });
     // ========================
     // AKADEMIK
@@ -135,13 +141,8 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
         Route::put('/jadwal-pelajaran/{id}', [\App\Http\Controllers\Admin\ScheduleController::class, 'update'])->name('admin.akademik.jadwal-pelajaran.update');
         Route::delete('/jadwal-pelajaran/{id}', [\App\Http\Controllers\Admin\ScheduleController::class, 'destroy'])->name('admin.akademik.jadwal-pelajaran.destroy');
 
-        Route::get('/penilaian', function () {
-            return view('admin.akademik.penilaian');
-        })->name('admin.akademik.penilaian');
-
-        Route::get('/rapor', function () {
-            return view('admin.akademik.rapor');
-        })->name('admin.akademik.rapor');
+        Route::get('/penilaian', [\App\Http\Controllers\Admin\AdminAkademikController::class, 'penilaian'])->name('admin.akademik.penilaian');
+        Route::get('/rapor', [\App\Http\Controllers\Admin\AdminAkademikController::class, 'rapor'])->name('admin.akademik.rapor');
 
         Route::get('/kelas-wali-kelas', [\App\Http\Controllers\Admin\SchoolClassController::class, 'index'])->name('admin.akademik.kelas-wali-kelas');
         Route::post('/kelas-wali-kelas', [\App\Http\Controllers\Admin\SchoolClassController::class, 'store'])->name('admin.akademik.kelas-wali-kelas.store');
@@ -195,68 +196,57 @@ Route::delete('/users/{id}', [\App\Http\Controllers\Admin\StudentController::cla
     // ========================
     Route::prefix('kegiatan')->group(function () {
         // Event
-        Route::get('/event', function () {
-            return view('admin.kegiatan.event.index');
-        })->name('admin.kegiatan.event.index');
-        Route::get('/event/form', function () {
-            return view('admin.kegiatan.event.form');
-        })->name('admin.kegiatan.event.form');
-        Route::get('/event/detail', function () {
-            return view('admin.kegiatan.event.detail');
-        })->name('admin.kegiatan.event.detail');
+        Route::get('/event', [\App\Http\Controllers\Admin\KegiatanController::class, 'eventIndex'])->name('admin.kegiatan.event.index');
+        Route::post('/event', [\App\Http\Controllers\Admin\KegiatanController::class, 'eventStore'])->name('admin.kegiatan.event.store');
+        Route::put('/event/{id}', [\App\Http\Controllers\Admin\KegiatanController::class, 'eventUpdate'])->name('admin.kegiatan.event.update');
+        Route::delete('/event/{id}', [\App\Http\Controllers\Admin\KegiatanController::class, 'eventDestroy'])->name('admin.kegiatan.event.destroy');
+
         // Agenda
-        Route::get('/agenda', function () {
-            return view('admin.kegiatan.agenda.index');
-        })->name('admin.kegiatan.agenda.index');
+        Route::get('/agenda', [\App\Http\Controllers\Admin\KegiatanController::class, 'agendaIndex'])->name('admin.kegiatan.agenda.index');
+        Route::post('/agenda', [\App\Http\Controllers\Admin\KegiatanController::class, 'agendaStore'])->name('admin.kegiatan.agenda.store');
+        Route::put('/agenda/{id}', [\App\Http\Controllers\Admin\KegiatanController::class, 'agendaUpdate'])->name('admin.kegiatan.agenda.update');
+        Route::delete('/agenda/{id}', [\App\Http\Controllers\Admin\KegiatanController::class, 'agendaDestroy'])->name('admin.kegiatan.agenda.destroy');
+
         // Dokumentasi
-        Route::get('/dokumentasi', function () {
-            return view('admin.kegiatan.dokumentasi.index');
-        })->name('admin.kegiatan.dokumentasi.index');
+        Route::get('/dokumentasi', [\App\Http\Controllers\Admin\KegiatanController::class, 'dokumentasiIndex'])->name('admin.kegiatan.dokumentasi.index');
+        Route::post('/dokumentasi', [\App\Http\Controllers\Admin\KegiatanController::class, 'dokumentasiStore'])->name('admin.kegiatan.dokumentasi.store');
+        Route::put('/dokumentasi/{id}', [\App\Http\Controllers\Admin\KegiatanController::class, 'dokumentasiUpdate'])->name('admin.kegiatan.dokumentasi.update');
+        Route::delete('/dokumentasi/{id}', [\App\Http\Controllers\Admin\KegiatanController::class, 'dokumentasiDestroy'])->name('admin.kegiatan.dokumentasi.destroy');
+
         // Pengumuman
-        Route::get('/pengumuman', function () {
-            return view('admin.kegiatan.pengumuman.index');
-        })->name('admin.kegiatan.pengumuman.index');
+        Route::get('/pengumuman', [\App\Http\Controllers\Admin\KegiatanController::class, 'pengumumanIndex'])->name('admin.kegiatan.pengumuman.index');
+        Route::post('/pengumuman', [\App\Http\Controllers\Admin\KegiatanController::class, 'pengumumanStore'])->name('admin.kegiatan.pengumuman.store');
+        Route::put('/pengumuman/{id}', [\App\Http\Controllers\Admin\KegiatanController::class, 'pengumumanUpdate'])->name('admin.kegiatan.pengumuman.update');
+        Route::delete('/pengumuman/{id}', [\App\Http\Controllers\Admin\KegiatanController::class, 'pengumumanDestroy'])->name('admin.kegiatan.pengumuman.destroy');
     });
     // ========================
     // PPDB (ADMIN)
     // ========================
     Route::prefix('ppdb')->group(function () {
-        Route::get('/data-pendaftar', function () {
-            return view('admin.ppdb.data-pendaftar');
-        })->name('admin.ppdb.data-pendaftar');
-        Route::get('/verifikasi-berkas', function () {
-            return view('admin.ppdb.verifikasi-berkas');
-        })->name('admin.ppdb.verifikasi-berkas');
-        Route::get('/seleksi', function () {
-            return view('admin.ppdb.seleksi');
-        })->name('admin.ppdb.seleksi');
-        Route::get('/pembayaran', function () {
-            return view('admin.ppdb.pembayaran');
-        })->name('admin.ppdb.pembayaran');
+        Route::get('/data-pendaftar', [\App\Http\Controllers\Admin\PpdbController::class, 'dataPendaftar'])->name('admin.ppdb.data-pendaftar');
+        Route::post('/data-pendaftar', [\App\Http\Controllers\Admin\PpdbController::class, 'store'])->name('admin.ppdb.store');
+        Route::put('/data-pendaftar/{id}/status', [\App\Http\Controllers\Admin\PpdbController::class, 'updateStatus'])->name('admin.ppdb.update-status');
+        Route::delete('/data-pendaftar/{id}', [\App\Http\Controllers\Admin\PpdbController::class, 'destroy'])->name('admin.ppdb.destroy');
+
+        Route::get('/verifikasi-berkas', [\App\Http\Controllers\Admin\PpdbController::class, 'verifikasiBerkas'])->name('admin.ppdb.verifikasi-berkas');
+        Route::put('/verifikasi-berkas/{id}', [\App\Http\Controllers\Admin\PpdbController::class, 'updateBerkas'])->name('admin.ppdb.update-berkas');
+
+        Route::get('/seleksi', [\App\Http\Controllers\Admin\PpdbController::class, 'seleksi'])->name('admin.ppdb.seleksi');
+        Route::put('/seleksi/{id}', [\App\Http\Controllers\Admin\PpdbController::class, 'updateSeleksi'])->name('admin.ppdb.update-seleksi');
+
+        Route::get('/pembayaran', [\App\Http\Controllers\Admin\PpdbController::class, 'pembayaran'])->name('admin.ppdb.pembayaran');
+        Route::put('/pembayaran/{id}', [\App\Http\Controllers\Admin\PpdbController::class, 'updatePembayaran'])->name('admin.ppdb.update-pembayaran');
     });
     // ========================
     // LAPORAN
     // ========================
     Route::prefix('laporan')->group(function () {
-        Route::get('/', function () {
-            return view('admin.laporan.index');
-        })->name('admin.laporan.index');
-        Route::get('/absensi', function () {
-            return view('admin.laporan.absensi');
-        })->name('admin.laporan.absensi');
-        Route::get('/akademik', function () {
-            return view('admin.laporan.akademik');
-        })->name('admin.laporan.akademik');
-        Route::get('/keuangan', function () {
-            return view('admin.laporan.keuangan');
-        })->name('admin.laporan.keuangan');
-        Route::get('/ppdb', function () {
-            return view('admin.laporan.ppdb');
-        })->name('admin.laporan.ppdb');
-
-        Route::get('/kegiatan', function () {
-            return view('admin.laporan.kegiatan');
-        })->name('admin.laporan.kegiatan');
+        Route::get('/', [\App\Http\Controllers\Admin\LaporanController::class, 'index'])->name('admin.laporan.index');
+        Route::get('/absensi', [\App\Http\Controllers\Admin\LaporanController::class, 'absensi'])->name('admin.laporan.absensi');
+        Route::get('/akademik', [\App\Http\Controllers\Admin\LaporanController::class, 'akademik'])->name('admin.laporan.akademik');
+        Route::get('/keuangan', [\App\Http\Controllers\Admin\LaporanController::class, 'keuangan'])->name('admin.laporan.keuangan');
+        Route::get('/ppdb', [\App\Http\Controllers\Admin\LaporanController::class, 'ppdb'])->name('admin.laporan.ppdb');
+        Route::get('/kegiatan', [\App\Http\Controllers\Admin\LaporanController::class, 'kegiatan'])->name('admin.laporan.kegiatan');
     });
 });
 
@@ -295,8 +285,8 @@ Route::middleware(['auth', 'role:guru'])->prefix('guru')->name('guru.')->group(f
         Route::get('/', function () { return view('guru.absensi.index'); })->name('index');
         Route::get('/absensi-pertemuan', [\App\Http\Controllers\GuruController::class, 'absensiPertemuan'])->name('pertemuan');
         Route::post('/absensi-pertemuan', [\App\Http\Controllers\GuruController::class, 'storeAbsensi'])->name('pertemuan.store');
-        Route::get('/izin-sakit-alpha', function () { return view('guru.absensi.izin-sakit-alpha'); })->name('izin');
-        Route::get('/rekap-absensi', function () { return view('guru.absensi.rekap-absensi'); })->name('rekap');
+        Route::get('/izin-sakit-alpha', [\App\Http\Controllers\GuruController::class, 'absensiIzinSakitAlpha'])->name('izin');
+        Route::get('/rekap-absensi', [\App\Http\Controllers\GuruController::class, 'absensiRekap'])->name('rekap');
         
         // Reports CRUD
         Route::get('/reports', [\App\Http\Controllers\GuruController::class, 'reportsIndex'])->name('reports.index');
@@ -320,22 +310,25 @@ Route::middleware(['auth', 'role:guru'])->prefix('guru')->name('guru.')->group(f
         
         Route::get('/penilaian', [\App\Http\Controllers\GuruController::class, 'penilaianIndex'])->name('tugas.penilaian');
         Route::put('/penilaian/{id}', [\App\Http\Controllers\GuruController::class, 'updateNilai'])->name('tugas.penilaian.update');
-        Route::get('/feedback', function () { return view('guru.materi-tugas.komentar-feedback'); })->name('tugas.feedback');
+        Route::get('/feedback', [\App\Http\Controllers\GuruController::class, 'feedbackIndex'])->name('tugas.feedback');
     });
 
     // Kegiatan (masih statis)
-    Route::prefix('kegiatan')->group(function () {
-        Route::get('/agenda', function () { return view('guru.kegiatan.agenda'); });
-        Route::get('/event', function () { return view('guru.kegiatan.event'); });
-        Route::get('/pengumuman', function () { return view('guru.kegiatan.pengumuman'); });
+    Route::prefix('kegiatan')->name('kegiatan.')->group(function () {
+        Route::get('/agenda', [\App\Http\Controllers\GuruController::class, 'kegiatanAgenda'])->name('agenda');
+        Route::get('/event', [\App\Http\Controllers\GuruController::class, 'kegiatanEvent'])->name('event');
+        Route::get('/pengumuman', [\App\Http\Controllers\GuruController::class, 'kegiatanPengumuman'])->name('pengumuman');
     });
 
-    // Profil (masih statis)
+    // Profil (Dinamis)
     Route::prefix('profil')->name('profil.')->group(function () {
-        Route::get('/biodata', function () { return view('guru.profil.biodata'); })->name('biodata');
-        Route::get('/riwayat-mengajar', function () { return view('guru.profil.riwayat-mengajar'); })->name('riwayat');
-        Route::get('/arsip-dokumen', function () { return view('guru.profil.arsip-dokumen'); })->name('arsip');
-        Route::get('/ganti-password', function () { return view('guru.profil.ganti-password'); })->name('password');
+        Route::get('/biodata', [\App\Http\Controllers\GuruController::class, 'profilBiodata'])->name('biodata');
+        Route::get('/riwayat-mengajar', [\App\Http\Controllers\GuruController::class, 'profilRiwayat'])->name('riwayat');
+        Route::get('/arsip-dokumen', [\App\Http\Controllers\GuruController::class, 'profilArsip'])->name('arsip');
+        Route::post('/arsip-dokumen', [\App\Http\Controllers\GuruController::class, 'storeArsip'])->name('arsip.store');
+        Route::delete('/arsip-dokumen/{id}', [\App\Http\Controllers\GuruController::class, 'destroyArsip'])->name('arsip.destroy');
+        Route::get('/ganti-password', [\App\Http\Controllers\GuruController::class, 'profilPassword'])->name('password');
+        Route::post('/ganti-password', [\App\Http\Controllers\GuruController::class, 'updatePassword'])->name('password.update');
     });
 });
 
@@ -363,6 +356,7 @@ Route::middleware(['auth', 'role:guru'])->prefix('guru')->name('guru.')->group(f
         Route::prefix('absensi')->group(function () {
             Route::get('/riwayat', [\App\Http\Controllers\OrangtuaController::class, 'absensiRiwayat'])->name('orangtua.absensi.riwayat');
             Route::get('/izin', [\App\Http\Controllers\OrangtuaController::class, 'absensiIzin'])->name('orangtua.absensi.izin');
+            Route::post('/izin', [\App\Http\Controllers\OrangtuaController::class, 'storeIzin'])->name('orangtua.absensi.izin.store');
             Route::get('/rekap', [\App\Http\Controllers\OrangtuaController::class, 'absensiRekap'])->name('orangtua.absensi.rekap');
         });
 
@@ -371,6 +365,7 @@ Route::middleware(['auth', 'role:guru'])->prefix('guru')->name('guru.')->group(f
             Route::get('/tagihan', [\App\Http\Controllers\OrangtuaController::class, 'keuanganTagihan'])->name('orangtua.keuangan.tagihan');
             Route::get('/riwayat', [\App\Http\Controllers\OrangtuaController::class, 'keuanganRiwayat'])->name('orangtua.keuangan.riwayat');
             Route::get('/bukti', [\App\Http\Controllers\OrangtuaController::class, 'keuanganBukti'])->name('orangtua.keuangan.bukti');
+            Route::post('/bukti', [\App\Http\Controllers\OrangtuaController::class, 'storeBukti'])->name('orangtua.keuangan.bukti.store');
         });
 
         // Kegiatan & Info
@@ -405,6 +400,7 @@ Route::middleware(['auth', 'role:guru'])->prefix('guru')->name('guru.')->group(f
         Route::prefix('kehadiran')->group(function () {
             Route::get('/riwayat', [\App\Http\Controllers\SiswaController::class, 'kehadiranRiwayat'])->name('siswa.kehadiran.riwayat');
             Route::get('/izin', [\App\Http\Controllers\SiswaController::class, 'kehadiranIzin'])->name('siswa.kehadiran.izin');
+            Route::post('/izin', [\App\Http\Controllers\SiswaController::class, 'storeIzin'])->name('siswa.kehadiran.izin.store');
             Route::get('/rekap', [\App\Http\Controllers\SiswaController::class, 'kehadiranRekap'])->name('siswa.kehadiran.rekap');
         });
 

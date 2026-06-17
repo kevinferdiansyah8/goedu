@@ -3,44 +3,23 @@
 @section('title', 'Izin / Sakit / Alpha')
 
 @section('content')
-@php
-$izinSiswa = [
-  [
-    'nama' => 'Andi Pratama',
-    'kelas' => 'X RPL 1',
-    'jenis' => 'Sakit',
-    'tanggal' => '2026-02-01',
-    'alasan' => 'Demam tinggi',
-    'status' => 'Menunggu',
-  ],
-  [
-    'nama' => 'Siti Aisyah',
-    'kelas' => 'XI AKL 2',
-    'jenis' => 'Izin',
-    'tanggal' => '2026-02-01',
-    'alasan' => 'Acara keluarga',
-    'status' => 'Disetujui',
-  ],
-];
-
-$izinGuru = [
-  [
-    'nama' => 'Budi Santoso, S.Pd',
-    'mapel' => 'Matematika',
-    'jenis' => 'Izin',
-    'tanggal' => '2026-02-01',
-    'alasan' => 'Urusan keluarga',
-    'status' => 'Menunggu',
-  ],
-];
-@endphp
-
 <div class="max-w-7xl mx-auto px-4 py-8">
 
   <!-- Header -->
-  <div class="mb-6">
-    <h1 class="text-3xl font-bold text-gray-900">Izin / Sakit / Alpha</h1>
-    <p class="text-gray-500">Monitoring pengajuan izin dan ketidakhadiran siswa & guru</p>
+  <div class="mb-6 flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+    <div>
+      <h1 class="text-3xl font-bold text-gray-900">Izin / Sakit / Alpha</h1>
+      <p class="text-gray-500">Monitoring ketidakhadiran siswa berdasarkan data absensi</p>
+    </div>
+    <!-- Filter Bulan -->
+    <form method="GET" action="{{ route('admin.absensi.izin-sakit-alpha') }}" class="flex gap-2 items-center">
+      <label class="text-sm font-semibold text-gray-600">Bulan:</label>
+      <input type="month" name="bulan" value="{{ $bulan }}"
+             class="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-200">
+      <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 transition">
+        <i class="fa fa-filter mr-1"></i> Filter
+      </button>
+    </form>
   </div>
 
   <!-- Tabs -->
@@ -61,36 +40,40 @@ $izinGuru = [
             <th class="px-5 py-3 text-left font-bold">Kelas</th>
             <th class="px-5 py-3 text-center font-bold">Jenis</th>
             <th class="px-5 py-3 text-center font-bold">Tanggal</th>
-            <th class="px-5 py-3 text-left font-bold">Alasan</th>
-            <th class="px-5 py-3 text-center font-bold">Status</th>
-            <th class="px-5 py-3 text-center font-bold rounded-tr-xl">Aksi</th>
+            <th class="px-5 py-3 text-left font-bold rounded-tr-xl">Keterangan</th>
           </tr>
         </thead>
         <tbody>
-          @foreach($izinSiswa as $row)
+          @forelse($izinSiswa as $row)
           @php
-            $status = strtolower($row['status']);
-            $badge = $status == 'menunggu' ? 'bg-yellow-100 text-yellow-700' : ($status == 'disetujui' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700');
-            $icon = $status == 'menunggu' ? 'fa-clock' : ($status == 'disetujui' ? 'fa-check-circle' : 'fa-times-circle');
+            $jenis = $row['jenis'];
+            $badge = $jenis === 'Izin' ? 'bg-yellow-100 text-yellow-700' : ($jenis === 'Sakit' ? 'bg-blue-100 text-blue-700' : 'bg-red-100 text-red-700');
+            $icon  = $jenis === 'Izin' ? 'fa-clock' : ($jenis === 'Sakit' ? 'fa-user-md' : 'fa-times-circle');
           @endphp
           <tr class="group bg-white even:bg-blue-50/40 hover:shadow-lg hover:scale-[1.01] transition rounded-xl">
             <td class="px-5 py-3 flex items-center gap-3">
-              <span class='w-10 h-10 rounded-full bg-gradient-to-br from-pink-200 to-pink-400 text-pink-800 font-bold flex items-center justify-center shadow'>{{ collect(explode(' ', $row['nama']))->map(fn($n)=>$n[0])->join('') }}</span>
+              <span class='w-10 h-10 rounded-full bg-gradient-to-br from-pink-200 to-pink-400 text-pink-800 font-bold flex items-center justify-center shadow'>
+                {{ collect(explode(' ', $row['nama']))->map(fn($n)=>$n[0])->join('') }}
+              </span>
               <span class="font-medium text-gray-800">{{ $row['nama'] }}</span>
             </td>
             <td class="px-5 py-3">{{ $row['kelas'] }}</td>
-            <td class="px-5 py-3 text-center">{{ $row['jenis'] }}</td>
-            <td class="px-5 py-3 text-center">{{ $row['tanggal'] }}</td>
-            <td class="px-5 py-3">{{ $row['alasan'] }}</td>
             <td class="px-5 py-3 text-center">
-              <span class="px-3 py-1 rounded-full {{$badge}} text-xs font-semibold flex items-center gap-1 justify-center"><i class='fa {{$icon}}'></i> {{ $row['status'] }}</span>
+              <span class="px-3 py-1 rounded-full {{ $badge }} text-xs font-semibold flex items-center gap-1 justify-center">
+                <i class='fa {{ $icon }}'></i> {{ $jenis }}
+              </span>
             </td>
-            <td class="px-5 py-3 text-center flex gap-2 justify-center">
-              <button class="btn-approve flex items-center gap-1"><i class="fa fa-check"></i> Setujui</button>
-              <button class="btn-reject flex items-center gap-1"><i class="fa fa-times"></i> Tolak</button>
+            <td class="px-5 py-3 text-center">{{ $row['tanggal'] }}</td>
+            <td class="px-5 py-3 text-gray-600">{{ $row['alasan'] }}</td>
+          </tr>
+          @empty
+          <tr>
+            <td colspan="5" class="px-5 py-12 text-center text-gray-400">
+              <i class="fa fa-check-circle text-3xl text-green-400 mb-2"></i>
+              <p class="font-semibold">Tidak ada ketidakhadiran siswa pada bulan <strong>{{ $bulan }}</strong></p>
             </td>
           </tr>
-          @endforeach
+          @endforelse
         </tbody>
       </table>
     </div>
@@ -105,39 +88,34 @@ $izinGuru = [
         <thead class="bg-slate-100 text-blue-900">
           <tr>
             <th class="px-5 py-3 text-left font-bold rounded-tl-xl">Nama</th>
-            <th class="px-5 py-3 text-left font-bold">Mapel</th>
+            <th class="px-5 py-3 text-left font-bold">Mata Pelajaran</th>
             <th class="px-5 py-3 text-center font-bold">Jenis</th>
             <th class="px-5 py-3 text-center font-bold">Tanggal</th>
-            <th class="px-5 py-3 text-left font-bold">Alasan</th>
-            <th class="px-5 py-3 text-center font-bold">Status</th>
-            <th class="px-5 py-3 text-center font-bold rounded-tr-xl">Aksi</th>
+            <th class="px-5 py-3 text-left font-bold rounded-tr-xl">Keterangan</th>
           </tr>
         </thead>
         <tbody>
-          @foreach($izinGuru as $row)
-          @php
-            $status = strtolower($row['status']);
-            $badge = $status == 'menunggu' ? 'bg-yellow-100 text-yellow-700' : ($status == 'disetujui' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700');
-            $icon = $status == 'menunggu' ? 'fa-clock' : ($status == 'disetujui' ? 'fa-check-circle' : 'fa-times-circle');
-          @endphp
-          <tr class="group bg-white even:bg-blue-50/40 hover:shadow-lg hover:scale-[1.01] transition rounded-xl">
+          @forelse($izinGuru as $row)
+          <tr class="group bg-white even:bg-blue-50/40 hover:shadow-lg transition">
             <td class="px-5 py-3 flex items-center gap-3">
-              <span class='w-10 h-10 rounded-full bg-gradient-to-br from-blue-200 to-blue-400 text-blue-800 font-bold flex items-center justify-center shadow'>{{ collect(explode(' ', $row['nama']))->map(fn($n)=>$n[0])->join('') }}</span>
+              <span class='w-10 h-10 rounded-full bg-gradient-to-br from-blue-200 to-blue-400 text-blue-800 font-bold flex items-center justify-center shadow'>
+                {{ collect(explode(' ', $row['nama']))->map(fn($n)=>$n[0])->join('') }}
+              </span>
               <span class="font-medium text-gray-800">{{ $row['nama'] }}</span>
             </td>
-            <td class="px-5 py-3">{{ $row['mapel'] }}</td>
+            <td class="px-5 py-3">{{ $row['mapel'] ?? '-' }}</td>
             <td class="px-5 py-3 text-center">{{ $row['jenis'] }}</td>
             <td class="px-5 py-3 text-center">{{ $row['tanggal'] }}</td>
-            <td class="px-5 py-3">{{ $row['alasan'] }}</td>
-            <td class="px-5 py-3 text-center">
-              <span class="px-3 py-1 rounded-full {{$badge}} text-xs font-semibold flex items-center gap-1 justify-center"><i class='fa {{$icon}}'></i> {{ $row['status'] }}</span>
-            </td>
-            <td class="px-5 py-3 text-center flex gap-2 justify-center">
-              <button class="btn-approve flex items-center gap-1"><i class="fa fa-check"></i> Setujui</button>
-              <button class="btn-reject flex items-center gap-1"><i class="fa fa-times"></i> Tolak</button>
+            <td class="px-5 py-3 text-gray-600">{{ $row['alasan'] }}</td>
+          </tr>
+          @empty
+          <tr>
+            <td colspan="5" class="px-5 py-12 text-center text-gray-400">
+              <i class="fa fa-info-circle text-3xl mb-2"></i>
+              <p>Data absensi guru belum tersedia.</p>
             </td>
           </tr>
-          @endforeach
+          @endforelse
         </tbody>
       </table>
     </div>
@@ -158,37 +136,13 @@ $izinGuru = [
   color: white;
   border-color: #2563eb;
 }
-.btn-approve {
-  background:#16a34a;
-  color:white;
-  padding:6px 16px;
-  border-radius:8px;
-  font-size:14px;
-  font-weight:600;
-  box-shadow:0 2px 8px #16a34a22;
-  transition:all .15s;
-}
-.btn-approve:hover { background:#15803d; box-shadow:0 4px 16px #16a34a33; transform:scale(1.05); }
-.btn-reject {
-  background:#dc2626;
-  color:white;
-  padding:6px 16px;
-  border-radius:8px;
-  font-size:14px;
-  font-weight:600;
-  box-shadow:0 2px 8px #dc262622;
-  transition:all .15s;
-}
-.btn-reject:hover { background:#b91c1c; box-shadow:0 4px 16px #dc262633; transform:scale(1.05); }
 </style>
 
 <script>
 function switchTab(tab, btn) {
   document.getElementById('tab-siswa').classList.add('hidden');
   document.getElementById('tab-guru').classList.add('hidden');
-
   document.getElementById('tab-' + tab).classList.remove('hidden');
-
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
 }
