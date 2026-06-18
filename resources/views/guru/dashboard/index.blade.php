@@ -62,7 +62,7 @@
                 </span>
             </div>
             <p class="text-xs font-semibold text-gray-500 uppercase">Rata-rata Nilai</p>
-            <h3 class="text-2xl font-bold text-gray-900">84.5</h3>
+            <h3 class="text-2xl font-bold text-gray-900">{{ $averageGrade }}</h3>
         </div>
 
         {{-- Kehadiran --}}
@@ -76,7 +76,7 @@
                 </span>
             </div>
             <p class="text-xs font-semibold text-gray-500 uppercase">Kehadiran</p>
-            <h3 class="text-2xl font-bold text-gray-900">95.2%</h3>
+            <h3 class="text-2xl font-bold text-gray-900">{{ $attendancePercentage }}%</h3>
         </div>
 
         {{-- Total Siswa --}}
@@ -195,70 +195,35 @@
                 
                 <div class="space-y-6 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-gray-200 before:to-transparent">
                     
-                    {{-- Item 1 --}}
+                    @forelse ($notifikasi as $notif)
                     <div class="relative flex items-start group">
-                        <div class="absolute h-full w-full left-0 top-0 overflow-hidden rounded-xl bg-orange-50 opacity-0 group-hover:opacity-100 transition-opacity -z-10"></div>
-                        <div class="h-10 w-10 flex items-center justify-center rounded-full bg-white border-2 border-orange-100 shadow-sm z-10 shrink-0 mt-1">
-                            <span class="font-bold text-orange-500 text-xs">TGS</span>
+                        <div class="absolute h-full w-full left-0 top-0 overflow-hidden rounded-xl bg-{{ $notif['color'] ?? 'gray' }}-50 opacity-0 group-hover:opacity-100 transition-opacity -z-10"></div>
+                        <div class="h-10 w-10 flex items-center justify-center rounded-full bg-white border-2 border-{{ $notif['color'] ?? 'gray' }}-100 shadow-sm z-10 shrink-0 mt-1">
+                            <span class="font-bold text-{{ $notif['color'] ?? 'gray' }}-500 text-xs">{{ $notif['type'] }}</span>
                         </div>
                         <div class="ml-4 flex-1 py-1">
                             <div class="flex justify-between items-start">
-                                <h4 class="text-sm font-bold text-gray-900">4 Tugas Menunggu</h4>
-                                <span class="text-xs text-gray-400">2j yang lalu</span>
+                                <h4 class="text-sm font-bold text-gray-900">{{ $notif['title'] }}</h4>
+                                <span class="text-xs text-gray-400">{{ $notif['time'] }}</span>
                             </div>
-                            <p class="text-xs text-gray-600 mt-1">Tugas "Aljabar Linear" kelas X IPA 1 belum dinilai.</p>
-                            <button class="mt-2 text-xs font-bold text-orange-600 hover:underline">Nilai Sekarang</button>
-                        </div>
-                    </div>
-
-                    {{-- Item 2 --}}
-                    <div class="relative flex items-start group">
-                        <div class="absolute h-full w-full left-0 top-0 overflow-hidden rounded-xl bg-blue-50 opacity-0 group-hover:opacity-100 transition-opacity -z-10"></div>
-                        <div class="h-10 w-10 flex items-center justify-center rounded-full bg-white border-2 border-blue-100 shadow-sm z-10 shrink-0 mt-1">
-                            <span class="font-bold text-blue-500 text-xs">IZN</span>
-                        </div>
-                        <div class="ml-4 flex-1 py-1">
-                             <div class="flex justify-between items-start">
-                                <h4 class="text-sm font-bold text-gray-900">Izin Siswa</h4>
-                                <span class="text-xs text-gray-400">08:30</span>
-                            </div>
-                            <p class="text-xs text-gray-600 mt-1"><span class="font-semibold text-gray-800">Budi Santoso</span> (X IPA 1) mengajukan izin sakit.</p>
+                            <p class="text-xs text-gray-600 mt-1">{!! $notif['desc'] !!}</p>
+                            @if ($notif['action_text'])
                             <div class="flex gap-2 mt-2">
-                                <button class="px-3 py-1 rounded-lg bg-green-100 text-green-700 text-xs font-bold hover:bg-green-200">Terima</button>
-                                <button class="px-3 py-1 rounded-lg bg-gray-100 text-gray-600 text-xs font-bold hover:bg-gray-200">Tolak</button>
+                                <a href="{{ $notif['action_url'] }}" class="px-3 py-1 rounded-lg bg-{{ $notif['color'] ?? 'gray' }}-100 text-{{ $notif['color'] ?? 'gray' }}-700 text-xs font-bold hover:bg-{{ $notif['color'] ?? 'gray' }}-200">{{ $notif['action_text'] }}</a>
                             </div>
+                            @endif
                         </div>
                     </div>
-
-                    {{-- Item 3 --}}
-                    <div class="relative flex items-start group">
-                        <div class="absolute h-full w-full left-0 top-0 overflow-hidden rounded-xl bg-purple-50 opacity-0 group-hover:opacity-100 transition-opacity -z-10"></div>
-                        <div class="h-10 w-10 flex items-center justify-center rounded-full bg-white border-2 border-purple-100 shadow-sm z-10 shrink-0 mt-1">
-                            <span class="font-bold text-purple-500 text-xs">INFO</span>
-                        </div>
-                        <div class="ml-4 flex-1 py-1">
-                             <div class="flex justify-between items-start">
-                                <h4 class="text-sm font-bold text-gray-900">Rapat Guru</h4>
-                                <span class="text-xs text-gray-400">Kemarin</span>
-                            </div>
-                            <p class="text-xs text-gray-600 mt-1">Pengumuman rapat evaluasi bulanan hari Jumat, 13:00 di Ruang Guru.</p>
-                        </div>
+                    @empty
+                    <div class="text-center py-6 text-gray-500 text-sm">
+                        Tidak ada aktivitas terbaru.
                     </div>
+                    @endforelse
 
                 </div>
             </div>
 
-            {{-- QUICK LINKS --}}
-            <div class="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl shadow-lg shadow-blue-200 p-6 text-white relative overflow-hidden">
-                <div class="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-white opacity-10 rounded-full blur-xl"></div>
-                <div class="relative z-10">
-                    <h3 class="font-bold text-lg mb-2">Butuh Bantuan?</h3>
-                    <p class="text-blue-100 text-sm mb-4">Panduan penggunaan sistem EduGo untuk guru.</p>
-                    <button class="w-full bg-white text-blue-600 font-bold py-2 rounded-lg text-sm hover:bg-blue-50 transition-colors shadow-sm">
-                        Buka Pusat Bantuan
-                    </button>
-                </div>
-            </div>
+           
 
         </div>
     </div>
@@ -284,10 +249,10 @@
                 new Chart(ctx, {
                     type: 'line',
                     data: {
-                        labels: ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'],
+                        labels: {!! json_encode($chartLabels) !!},
                         datasets: [{
                             label: 'Kehadiran (%)',
-                            data: [92, 94, 89, 95, 96, 0, 0], // Mock Data
+                            data: {!! json_encode($chartData) !!},
                             borderColor: '#2563eb', // Blue 600
                             backgroundColor: (context) => {
                                 const ctx = context.chart.ctx;

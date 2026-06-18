@@ -93,35 +93,43 @@ class LaporanController extends Controller
                 }
             }
         } else {
-            // Role Guru (No Attendance table, list real teachers with mock attendance)
             $teachers = Teacher::orderBy('nama')->get();
             if ($mode === 'harian') {
                 foreach ($teachers as $teacher) {
-                    // Seed deterministic statuses based on id
-                    $status = ($teacher->id % 15 === 0) ? 'Izin' : (($teacher->id % 20 === 0) ? 'Sakit' : 'Hadir');
+                    $attendance = \App\Models\TeacherAttendance::where('teacher_id', $teacher->id)
+                        ->where('tanggal', $tanggal)
+                        ->first();
+
+                    $status = $attendance ? $attendance->status : 'Alpha';
                     
-                    if ($status === 'Hadir') $summary['hadir']++;
-                    elseif ($status === 'Izin') $summary['izin']++;
-                    elseif ($status === 'Sakit') $summary['sakit']++;
+                    if (strtolower($status) === 'hadir') $summary['hadir']++;
+                    elseif (strtolower($status) === 'izin') $summary['izin']++;
+                    elseif (strtolower($status) === 'sakit') $summary['sakit']++;
+                    else $summary['alpha']++;
 
                     $rekapHarian[] = [
                         'nama' => $teacher->nama,
-                        'hadir' => $status === 'Hadir',
-                        'izin' => $status === 'Izin',
-                        'sakit' => $status === 'Sakit',
-                        'alpha' => false,
+                        'hadir' => strtolower($status) === 'hadir',
+                        'izin' => strtolower($status) === 'izin',
+                        'sakit' => strtolower($status) === 'sakit',
+                        'alpha' => strtolower($status) === 'alpha' || strtolower($status) === 'tanpa keterangan',
                     ];
                 }
             } else {
                 foreach ($teachers as $teacher) {
-                    $hadir = 22 - ($teacher->id % 3);
-                    $izin = $teacher->id % 2;
-                    $sakit = $teacher->id % 3 === 0 ? 1 : 0;
-                    $alpha = 0;
+                    $attendances = \App\Models\TeacherAttendance::where('teacher_id', $teacher->id)
+                        ->where('tanggal', 'like', $bulan . '%')
+                        ->get();
+
+                    $hadir = $attendances->where('status', 'Hadir')->count();
+                    $izin = $attendances->where('status', 'Izin')->count();
+                    $sakit = $attendances->where('status', 'Sakit')->count();
+                    $alpha = $attendances->whereIn('status', ['Alpha', 'Tanpa Keterangan'])->count();
 
                     $summary['hadir'] += $hadir;
                     $summary['izin'] += $izin;
                     $summary['sakit'] += $sakit;
+                    $summary['alpha'] += $alpha;
 
                     $rekapBulanan[] = [
                         'nama' => $teacher->nama,
@@ -183,7 +191,7 @@ class LaporanController extends Controller
                             ->first();
                     }
 
-                    $nilai = $grade ? $grade->nilai_akhir : rand(70, 95); // fallback random grade for completeness
+                    $nilai = $grade ? $grade->nilai_akhir : 0; // use 0 if no grade
                     $studentGrades[$mapelName] = $nilai;
                     
                     $sum += $nilai;
@@ -245,14 +253,6 @@ class LaporanController extends Controller
                 ];
             })->toArray();
 
-        // Fallback dummy records if empty to make the reports page look premium
-        if (count($pemasukan) === 0) {
-            $pemasukan = [
-                ['tanggal' => $yearMonth . '-01', 'sumber' => 'SPP', 'keterangan' => 'Pembayaran SPP Siswa', 'jumlah' => 1500000],
-                ['tanggal' => $yearMonth . '-05', 'sumber' => 'PPDB', 'keterangan' => 'Uang pangkal siswa baru', 'jumlah' => 2500000]
-            ];
-        }
-
         $pengeluaran = Transaction::where('jenis', 'Keluar')
             ->where('tanggal', 'like', $yearMonth . '%')
             ->get()
@@ -264,13 +264,6 @@ class LaporanController extends Controller
                     'jumlah' => $t->nominal
                 ];
             })->toArray();
-
-        if (count($pengeluaran) === 0) {
-            $pengeluaran = [
-                ['tanggal' => $yearMonth . '-03', 'kategori' => 'ATK', 'keterangan' => 'Pembelian alat tulis kantor', 'jumlah' => 200000],
-                ['tanggal' => $yearMonth . '-10', 'kategori' => 'Listrik', 'keterangan' => 'Pembayaran tagihan listrik', 'jumlah' => 500000]
-            ];
-        }
 
         $totalMasuk = collect($pemasukan)->sum('jumlah');
         $totalKeluar = collect($pengeluaran)->sum('jumlah');

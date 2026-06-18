@@ -307,6 +307,13 @@
         </div>
       </div>
     </div>
+    
+    <!-- Main content area -->
+    <div class="flex-1 overflow-y-auto bg-muted">
+        @yield('content')
+    </div>
+  </main>
+</div>
     <script>
 document.addEventListener('DOMContentLoaded', function() {
   lucide.createIcons();

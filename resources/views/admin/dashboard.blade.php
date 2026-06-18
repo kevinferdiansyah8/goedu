@@ -142,71 +142,27 @@
             <a href="#" class="cursor-pointer"><span class="text-sm text-primary font-semibold hover:underline">View All</span></a>
           </div>
           <div class="space-y-4">
+            @forelse ($laporanHariIni as $laporan)
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 py-3 border-b border-gray-100 last:border-0">
               <div class="flex items-center gap-3 min-w-0 flex-1">
-                <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop" class="w-10 h-10 rounded-full object-cover flex-shrink-0" alt="Student profile">
+                <div class="w-10 h-10 bg-primary/10 text-primary rounded-full flex items-center justify-center flex-shrink-0">
+                    <i data-lucide="{{ $laporan['type'] == 'ppdb' ? 'user-plus' : 'bell' }}" class="w-5 h-5"></i>
+                </div>
                 <div class="min-w-0 flex-1">
-                  <h4 class="text-foreground text-sm font-medium truncate">John Smith enrolled in Computer Science</h4>
-                  <p class="text-gray-500 text-xs truncate">New student registration • CS Department</p>
+                  <h4 class="text-foreground text-sm font-medium truncate">{{ $laporan['title'] }}</h4>
+                  <p class="text-gray-500 text-xs truncate">{{ $laporan['desc'] }}</p>
                 </div>
               </div>
               <div class="flex items-center gap-2 pl-13 sm:pl-0 sm:flex-shrink-0">
-                <span class="text-gray-500 text-xs whitespace-nowrap">2 hours ago</span>
-                <span class="bg-success-light text-success-dark text-xs font-medium px-2 py-1 rounded-full whitespace-nowrap">Enrolled</span>
+                <span class="text-gray-500 text-xs whitespace-nowrap">{{ $laporan['time'] }}</span>
+                <span class="bg-success-light text-success-dark text-xs font-medium px-2 py-1 rounded-full whitespace-nowrap">{{ $laporan['status'] }}</span>
               </div>
             </div>
-            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 py-3 border-b border-gray-100 last:border-0">
-              <div class="flex items-center gap-3 min-w-0 flex-1">
-                <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop" class="w-10 h-10 rounded-full object-cover flex-shrink-0" alt="Lecturer profile">
-                <div class="min-w-0 flex-1">
-                  <h4 class="text-foreground text-sm font-medium truncate">Dr. Sarah Johnson updated course materials</h4>
-                  <p class="text-gray-500 text-xs truncate">Mathematics 101 • Course update</p>
-                </div>
-              </div>
-              <div class="flex items-center gap-2 pl-13 sm:pl-0 sm:flex-shrink-0">
-                <span class="text-gray-500 text-xs whitespace-nowrap">4 hours ago</span>
-                <span class="bg-info-light text-info-dark text-xs font-medium px-2 py-1 rounded-full whitespace-nowrap">Updated</span>
-              </div>
+            @empty
+            <div class="py-6 text-center text-sm text-gray-500">
+                Tidak ada laporan hari ini.
             </div>
-            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 py-3 border-b border-gray-100 last:border-0">
-              <div class="flex items-center gap-3 min-w-0 flex-1">
-                <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop" class="w-10 h-10 rounded-full object-cover flex-shrink-0" alt="Admin profile">
-                <div class="min-w-0 flex-1">
-                  <h4 class="text-foreground text-sm font-medium truncate">System backup completed successfully</h4>
-                  <p class="text-gray-500 text-xs truncate">Database backup • System maintenance</p>
-                </div>
-              </div>
-              <div class="flex items-center gap-2 pl-13 sm:pl-0 sm:flex-shrink-0">
-                <span class="text-gray-500 text-xs whitespace-nowrap">6 hours ago</span>
-                <span class="bg-success-light text-success-dark text-xs font-medium px-2 py-1 rounded-full whitespace-nowrap">Complete</span>
-              </div>
-            </div>
-            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 py-3 border-b border-gray-100 last:border-0">
-              <div class="flex items-center gap-3 min-w-0 flex-1">
-                <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop" class="w-10 h-10 rounded-full object-cover flex-shrink-0" alt="Student profile">
-                <div class="min-w-0 flex-1">
-                  <h4 class="text-foreground text-sm font-medium truncate">Emma Wilson submitted assignment</h4>
-                  <p class="text-gray-500 text-xs truncate">Physics 201 • Assignment submission</p>
-                </div>
-              </div>
-              <div class="flex items-center gap-2 pl-13 sm:pl-0 sm:flex-shrink-0">
-                <span class="text-gray-500 text-xs whitespace-nowrap">8 hours ago</span>
-                <span class="bg-warning-light text-warning-dark text-xs font-medium px-2 py-1 rounded-full whitespace-nowrap">Submitted</span>
-              </div>
-            </div>
-            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 py-3 border-b border-gray-100 last:border-0">
-              <div class="flex items-center gap-3 min-w-0 flex-1">
-                <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop" class="w-10 h-10 rounded-full object-cover flex-shrink-0" alt="Lecturer profile">
-                <div class="min-w-0 flex-1">
-                  <h4 class="text-foreground text-sm font-medium truncate">Prof. Michael Brown scheduled exam</h4>
-                  <p class="text-gray-500 text-xs truncate">Chemistry 301 • Final examination</p>
-                </div>
-              </div>
-              <div class="flex items-center gap-2 pl-13 sm:pl-0 sm:flex-shrink-0">
-                <span class="text-gray-500 text-xs whitespace-nowrap">1 day ago</span>
-                <span class="bg-alert-light text-alert-dark text-xs font-medium px-2 py-1 rounded-full whitespace-nowrap">Scheduled</span>
-              </div>
-            </div>
+            @endforelse
           </div>
         </div>
 
@@ -217,81 +173,27 @@
             <a href="#" class="cursor-pointer"><span class="text-sm text-primary font-semibold hover:underline">Lihat Semua</span></a>
           </div>
           <div class="space-y-4">
+            @forelse ($jadwalSekolah as $jadwal)
             <div class="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
               <div class="flex items-center gap-3 min-w-0 flex-1">
                 <div class="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center flex-shrink-0">
                   <i data-lucide="book-open" class="w-5 h-5 text-primary"></i>
                 </div>
                 <div class="min-w-0 flex-1">
-                  <h4 class="text-foreground text-sm font-medium truncate">Mathematics 101</h4>
-                  <p class="text-gray-500 text-xs truncate">Room A-205 • Dr. Sarah Johnson</p>
+                  <h4 class="text-foreground text-sm font-medium truncate">{{ $jadwal->subject->nama ?? 'Mata Pelajaran' }}</h4>
+                  <p class="text-gray-500 text-xs truncate">Kelas {{ $jadwal->schoolClass->nama_kelas ?? $jadwal->kelas }} • {{ $jadwal->subject->teacher->nama ?? 'Guru' }}</p>
                 </div>
               </div>
               <div class="text-right flex-shrink-0">
-                <p class="text-foreground text-sm font-semibold">09:00 AM</p>
-                <span class="bg-success-light text-success-dark text-xs font-medium px-2 py-1 rounded-full">Today</span>
+                <p class="text-foreground text-sm font-semibold">{{ \Carbon\Carbon::parse($jadwal->jam_mulai)->format('H:i') }}</p>
+                <span class="bg-success-light text-success-dark text-xs font-medium px-2 py-1 rounded-full">Hari Ini</span>
               </div>
             </div>
-            <div class="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
-              <div class="flex items-center gap-3 min-w-0 flex-1">
-                <div class="w-10 h-10 bg-warning/10 rounded-xl flex items-center justify-center flex-shrink-0">
-                  <i data-lucide="flask-conical" class="w-5 h-5 text-warning-dark"></i>
-                </div>
-                <div class="min-w-0 flex-1">
-                  <h4 class="text-foreground text-sm font-medium truncate">Chemistry Lab</h4>
-                  <p class="text-gray-500 text-xs truncate">Lab B-102 • Prof. Michael Brown</p>
-                </div>
-              </div>
-              <div class="text-right flex-shrink-0">
-                <p class="text-foreground text-sm font-semibold">11:30 AM</p>
-                <span class="bg-success-light text-success-dark text-xs font-medium px-2 py-1 rounded-full">Today</span>
-              </div>
+            @empty
+            <div class="py-6 text-center text-sm text-gray-500">
+                Tidak ada jadwal sekolah yang berlangsung hari ini.
             </div>
-            <div class="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
-              <div class="flex items-center gap-3 min-w-0 flex-1">
-                <div class="w-10 h-10 bg-info/10 rounded-xl flex items-center justify-center flex-shrink-0">
-                  <i data-lucide="monitor" class="w-5 h-5 text-info"></i>
-                </div>
-                <div class="min-w-0 flex-1">
-                  <h4 class="text-foreground text-sm font-medium truncate">Computer Science 201</h4>
-                  <p class="text-gray-500 text-xs truncate">Room C-301 • Dr. Lisa Anderson</p>
-                </div>
-              </div>
-              <div class="text-right flex-shrink-0">
-                <p class="text-foreground text-sm font-semibold">02:00 PM</p>
-                <span class="bg-info-light text-info-dark text-xs font-medium px-2 py-1 rounded-full">Today</span>
-              </div>
-            </div>
-            <div class="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
-              <div class="flex items-center gap-3 min-w-0 flex-1">
-                <div class="w-10 h-10 bg-success/10 rounded-xl flex items-center justify-center flex-shrink-0">
-                  <i data-lucide="globe" class="w-5 h-5 text-success"></i>
-                </div>
-                <div class="min-w-0 flex-1">
-                  <h4 class="text-foreground text-sm font-medium truncate">English Literature</h4>
-                  <p class="text-gray-500 text-xs truncate">Room D-105 • Prof. James Wilson</p>
-                </div>
-              </div>
-              <div class="text-right flex-shrink-0">
-                <p class="text-foreground text-sm font-semibold">10:00 AM</p>
-                <span class="bg-warning-light text-warning-dark text-xs font-medium px-2 py-1 rounded-full">Tomorrow</span>
-              </div>
-            </div>
-            <div class="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
-              <div class="flex items-center gap-3 min-w-0 flex-1">
-                <div class="w-10 h-10 bg-alert/10 rounded-xl flex items-center justify-center flex-shrink-0">
-                  <i data-lucide="calculator" class="w-5 h-5 text-alert"></i>
-                </div>
-                <div class="min-w-0 flex-1">
-                  <h4 class="text-foreground text-sm font-medium truncate">Statistics 301</h4>
-                  <p class="text-gray-500 text-xs truncate">Room A-108 • Dr. Robert Davis</p>
-                </div>
-              </div>
-              <div class="text-right flex-shrink-0">
-                <p class="text-foreground text-sm font-semibold">03:30 PM</p>
-                <span class="bg-warning-light text-warning-dark text-xs font-medium px-2 py-1 rounded-full">Tomorrow</span>
-              </div>
-            </div>
+            @endforelse
           </div>
         </div>
       </div>
@@ -300,42 +202,21 @@
       <div class="flex flex-col rounded-2xl border border-border p-6 gap-4 bg-white">
         <h3 class="font-bold text-lg text-foreground">Notifikasi Sistem</h3>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div class="p-4 bg-warning-light rounded-card border-l-4 border-warning">
+          @forelse ($notifikasiSistem as $notif)
+          <div class="p-4 bg-{{ $notif['type'] }}-light rounded-card border-l-4 border-{{ $notif['type'] }}">
             <div class="flex items-start gap-3">
-              <i data-lucide="alert-triangle" class="w-5 h-5 text-warning-dark flex-shrink-0 mt-0.5"></i>
+              <i data-lucide="{{ $notif['icon'] }}" class="w-5 h-5 text-{{ $notif['type'] }}-dark flex-shrink-0 mt-0.5"></i>
               <div>
-                <h4 class="text-foreground text-sm font-medium">Low Attendance Alert</h4>
-                <p class="text-gray-500 text-xs mt-1">Physics 201 class has attendance below 75% threshold</p>
+                <h4 class="text-foreground text-sm font-medium">{{ $notif['title'] }}</h4>
+                <p class="text-gray-500 text-xs mt-1">{{ $notif['desc'] }}</p>
               </div>
             </div>
           </div>
-          <div class="p-4 bg-info-light rounded-card border-l-4 border-info">
-            <div class="flex items-start gap-3">
-              <i data-lucide="info" class="w-5 h-5 text-info-dark flex-shrink-0 mt-0.5"></i>
-              <div>
-                <h4 class="text-foreground text-sm font-medium">System Maintenance</h4>
-                <p class="text-gray-500 text-xs mt-1">Scheduled maintenance tonight from 11 PM to 2 AM</p>
-              </div>
-            </div>
+          @empty
+          <div class="p-4 text-sm text-gray-500 italic col-span-2 text-center">
+              Tidak ada notifikasi sistem hari ini.
           </div>
-          <div class="p-4 bg-error-light rounded-card border-l-4 border-error">
-            <div class="flex items-start gap-3">
-              <i data-lucide="alert-circle" class="w-5 h-5 text-error-dark flex-shrink-0 mt-0.5"></i>
-              <div>
-                <h4 class="text-foreground text-sm font-medium">Assignment Deadline</h4>
-                <p class="text-gray-500 text-xs mt-1">15 assignments are due within the next 24 hours</p>
-              </div>
-            </div>
-          </div>
-          <div class="p-4 bg-success-light rounded-card border-l-4 border-success">
-            <div class="flex items-start gap-3">
-              <i data-lucide="check-circle" class="w-5 h-5 text-success-dark flex-shrink-0 mt-0.5"></i>
-              <div>
-                <h4 class="text-foreground text-sm font-medium">Backup Complete</h4>
-                <p class="text-gray-500 text-xs mt-1">Daily database backup completed successfully at 3:00 AM</p>
-              </div>
-            </div>
-          </div>
+          @endforelse
         </div>
       </div>
     </div>

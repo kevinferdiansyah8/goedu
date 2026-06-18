@@ -51,7 +51,113 @@ class GuruController extends Controller
 
         $totalSesiHariIni = $jadwalHariIni->count();
 
-        return view('guru.dashboard.index', compact('totalMapel', 'totalKelas', 'totalSiswa', 'jadwalHariIni', 'totalSesiHariIni', 'hariIni'));
+        // - Rata-rata Nilai (Grade / Rapor Akhir)
+        $averageGrade = \App\Models\Grade::whereHas('subject', function($q) use ($teacher) {
+            $q->where('teacher_id', $teacher->id);
+        })->avg('nilai_akhir');
+        $averageGrade = round($averageGrade ?? 0, 1);
+
+        // - Tren Kehadiran & Chart (7 Hari Terakhir)
+        $studentsAjarIds = \App\Models\Student::whereIn('school_class_id', $classIds)->pluck('id');
+        
+        $chartLabels = [];
+        $chartData = [];
+        $totalHadir7Hari = 0;
+        $totalAbsen7Hari = 0;
+
+        for ($i = 6; $i >= 0; $i--) {
+            $date = \Carbon\Carbon::now()->subDays($i)->format('Y-m-d');
+            $label = \Carbon\Carbon::now()->subDays($i)->isoFormat('dddd');
+            $chartLabels[] = $label;
+            
+            $hadirCount = \App\Models\Attendance::whereIn('student_id', $studentsAjarIds)
+                ->where('tanggal', $date)
+                ->where('status', 'Hadir')
+                ->count();
+                
+            $totalCount = \App\Models\Attendance::whereIn('student_id', $studentsAjarIds)
+                ->where('tanggal', $date)
+                ->count();
+                
+            $persentase = $totalCount > 0 ? round(($hadirCount / $totalCount) * 100) : 0;
+            $chartData[] = $persentase;
+            
+            $totalHadir7Hari += $hadirCount;
+            $totalAbsen7Hari += $totalCount;
+        }
+
+        $attendancePercentage = $totalAbsen7Hari > 0 ? round(($totalHadir7Hari / $totalAbsen7Hari) * 100, 1) : 0;
+
+        // 4. Aktivitas & Notifikasi
+        $notifikasi = [];
+
+        // - Tugas Menunggu Penilaian
+        $tugasMenunggu = \App\Models\StudentAssignment::whereHas('assignment.subject', function($q) use($teacher) {
+            $q->where('teacher_id', $teacher->id);
+        })
+        ->whereNull('nilai')
+        ->with(['assignment.schoolClass', 'assignment.subject', 'student'])
+        ->latest()
+        ->take(3)
+        ->get();
+
+        foreach($tugasMenunggu as $tugas) {
+            $notifikasi[] = [
+                'type' => 'TGS',
+                'color' => 'orange',
+                'title' => 'Tugas Menunggu',
+                'time' => $tugas->created_at->diffForHumans(),
+                'desc' => 'Tugas "' . ($tugas->assignment->judul ?? '') . '" dari ' . ($tugas->student->nama ?? 'Siswa') . ' belum dinilai.',
+                'action_text' => 'Nilai Sekarang',
+                'action_url' => route('guru.materi-tugas.komentar-feedback')
+            ];
+        }
+
+        // - Izin Siswa hari ini (Siswa yang diajar)
+        $studentsAjarIds = Student::whereIn('school_class_id', $classIds)->pluck('id');
+        $izinSiswa = \App\Models\Attendance::whereIn('student_id', $studentsAjarIds)
+            ->whereIn('status', ['Izin', 'Sakit'])
+            ->whereDate('tanggal', date('Y-m-d'))
+            ->with(['student.schoolClass'])
+            ->take(3)
+            ->get();
+
+        foreach($izinSiswa as $izin) {
+            $notifikasi[] = [
+                'type' => 'IZN',
+                'color' => 'blue',
+                'title' => 'Izin Siswa',
+                'time' => $izin->created_at->format('H:i'),
+                'desc' => '<span class="font-semibold text-gray-800">' . ($izin->student->nama ?? 'Unknown') . '</span> (' . ($izin->student->schoolClass->nama_kelas ?? '') . ') izin ' . strtolower($izin->status) . '.',
+                'action_text' => 'Lihat Data',
+                'action_url' => route('guru.absensi.izin-sakit-alpha')
+            ];
+        }
+
+        // - Rapat / Pengumuman
+        $pengumuman = \App\Models\Event::whereIn('tipe_info', ['Pengumuman', 'Agenda'])
+            ->latest()
+            ->take(2)
+            ->get();
+
+        foreach($pengumuman as $info) {
+            $notifikasi[] = [
+                'type' => 'INFO',
+                'color' => 'purple',
+                'title' => $info->judul,
+                'time' => \Carbon\Carbon::parse($info->tanggal_pelaksanaan)->diffForHumans(),
+                'desc' => \Illuminate\Support\Str::limit($info->deskripsi, 60),
+                'action_text' => null,
+                'action_url' => null
+            ];
+        }
+        
+        $notifikasi = collect($notifikasi)->take(5)->toArray();
+
+        return view('guru.dashboard.index', compact(
+            'totalMapel', 'totalKelas', 'totalSiswa', 'jadwalHariIni', 'totalSesiHariIni', 'hariIni', 
+            'notifikasi', 'averageGrade', 'attendancePercentage', 'chartLabels', 'chartData'
+        ));
     }
 
     public function kelasSiswa(Request $request)
@@ -947,5 +1053,251 @@ class GuruController extends Controller
         return view('guru.absensi.izin-sakit-alpha', compact(
             'records', 'classes', 'totalAll', 'totalIzin', 'totalSakit', 'totalAlpha'
         ));
+    }
+
+    // ==========================================
+    // FEEDBACK & KOMENTAR
+    // ==========================================
+    public function feedbackIndex()
+    {
+        $teacher = $this->getTeacher();
+        
+        $feedbacks = \App\Models\StudentAssignment::whereHas('assignment.subject', function($q) use($teacher) {
+            $q->where('teacher_id', $teacher->id);
+        })
+        ->whereNotNull('feedback')
+        ->where('feedback', '!=', '')
+        ->with(['student', 'assignment.subject', 'assignment.schoolClass'])
+        ->latest('updated_at')
+        ->get();
+
+        $recentlyGraded = \App\Models\StudentAssignment::whereHas('assignment.subject', function($q) use($teacher) {
+            $q->where('teacher_id', $teacher->id);
+        })
+        ->whereNotNull('nilai')
+        ->with(['student', 'assignment.subject'])
+        ->latest('updated_at')
+        ->take(10)
+        ->get();
+
+        return view('guru.materi-tugas.komentar-feedback', compact('feedbacks', 'recentlyGraded'));
+    }
+
+    // ==========================================
+    // KEGIATAN & INFORMASI
+    // ==========================================
+    public function kegiatanAgenda(Request $request)
+    {
+        $agenda = \App\Models\Event::where('tipe_info', 'Agenda')
+            ->orderBy('tanggal_pelaksanaan', 'asc')
+            ->get();
+        return view('guru.kegiatan.agenda', compact('agenda'));
+    }
+
+    public function kegiatanEvent(Request $request)
+    {
+        $events = \App\Models\Event::where('tipe_info', 'Event')
+            ->orderBy('tanggal_pelaksanaan', 'desc')
+            ->get();
+        return view('guru.kegiatan.event', compact('events'));
+    }
+
+    public function kegiatanPengumuman(Request $request)
+    {
+        $pengumuman = \App\Models\Event::where('tipe_info', 'Pengumuman')
+            ->orderBy('created_at', 'desc')
+            ->get();
+        return view('guru.kegiatan.pengumuman', compact('pengumuman'));
+    }
+
+    // ==========================================
+    // PROFIL GURU & ARSIP
+    // ==========================================
+    public function profilBiodata()
+    {
+        $teacher = $this->getTeacher();
+        $user = \Illuminate\Support\Facades\Auth::user();
+        
+        $subjects = \App\Models\Subject::where('teacher_id', $teacher->id)->get();
+        $mapel = $subjects->pluck('nama')->unique()->implode(', ') ?: 'Belum Ada';
+        
+        $classes = \App\Models\Schedule::whereHas('subject', function($q) use ($teacher) {
+            $q->where('teacher_id', $teacher->id);
+        })->pluck('school_class_id')->unique()->filter();
+        
+        $classNames = \App\Models\SchoolClass::whereIn('id', $classes)->get()->map(function($c) {
+            return $c->tingkat . ' ' . $c->nama_kelas;
+        })->toArray();
+
+        $waliKelas = \App\Models\SchoolClass::where('teacher_id', $teacher->id)->first();
+
+        $guru = [
+            'nama' => $teacher->nama,
+            'nip' => $teacher->nip ?? '-',
+            'nuptk' => $teacher->nuptk ?? '-',
+            'status' => $teacher->status ?? 'Aktif',
+            'jabatan' => $teacher->jabatan ?? 'Guru Mata Pelajaran',
+            'golongan' => $teacher->golongan ?? '-',
+            'pendidikan' => $teacher->pendidikan ?? '-',
+            'mapel' => $mapel,
+            'kelas_diampu' => $classNames,
+            'wali_kelas' => $waliKelas ? $waliKelas->tingkat . ' ' . $waliKelas->nama_kelas : 'Bukan Wali Kelas',
+            'tahun_masuk' => $teacher->created_at ? $teacher->created_at->format('Y') : date('Y'),
+            
+            // Pribadi
+            'tempat_lahir' => $teacher->tempat_lahir ?? '-',
+            'tanggal_lahir' => $teacher->tanggal_lahir ? \Carbon\Carbon::parse($teacher->tanggal_lahir)->translatedFormat('d F Y') : '-',
+            'jenis_kelamin' => $teacher->jenis_kelamin ?? '-',
+            'agama' => $teacher->agama ?? '-',
+            'alamat' => $teacher->alamat ?? '-',
+            
+            // Kontak
+            'email' => $user->email ?? '-',
+            'telp' => $teacher->no_hp ?? '-'
+        ];
+
+        return view('guru.profil.biodata', compact('guru'));
+    }
+
+    public function profilRiwayat()
+    {
+        $teacher = $this->getTeacher();
+        
+        $schedules = \App\Models\Schedule::whereHas('subject', function($q) use ($teacher) {
+            $q->where('teacher_id', $teacher->id);
+        })->with(['subject', 'schoolClass'])->get();
+
+        $kelasArray = [];
+        foreach($schedules as $s) {
+            $namaKelas = $s->schoolClass ? $s->schoolClass->tingkat . ' ' . $s->schoolClass->nama_kelas : 'Unknown';
+            $kelasArray[$namaKelas] = [
+                'nama' => $namaKelas,
+                'mapel' => $s->subject->nama ?? '-',
+                'jam' => 2,
+                'siswa' => $s->schoolClass ? \App\Models\Student::where('school_class_id', $s->schoolClass->id)->count() : 0,
+                'wali' => $s->schoolClass && $s->schoolClass->teacher_id == $teacher->id
+            ];
+        }
+
+        $riwayat = [
+            [
+                'tahun' => date('Y').'/'.(date('Y')+1),
+                'semester' => 'Ganjil',
+                'status' => 'Berjalan',
+                'kelas' => array_values($kelasArray)
+            ]
+        ];
+
+        return view('guru.profil.riwayat-mengajar', compact('riwayat'));
+    }
+
+    public function profilArsip()
+    {
+        $teacher = $this->getTeacher();
+        $documents = \App\Models\TeacherDocument::where('teacher_id', $teacher->id)->get();
+        
+        $grouped = $documents->groupBy('kategori');
+        $dokumen = [];
+        
+        $categories = [
+            'Surat Keputusan' => ['icon' => 'file-text', 'color' => 'indigo'],
+            'Sertifikat & Pelatihan' => ['icon' => 'award', 'color' => 'emerald'],
+            'Ijazah & Transkrip' => ['icon' => 'graduation-cap', 'color' => 'blue'],
+            'Dokumen Lainnya' => ['icon' => 'folder', 'color' => 'gray'],
+        ];
+
+        foreach($categories as $catName => $style) {
+            $items = $grouped->get($catName, collect());
+            $dokItems = [];
+            foreach($items as $item) {
+                $sizeMb = 'Unknown';
+                if (\Illuminate\Support\Facades\Storage::disk('public')->exists($item->file_path)) {
+                    $sizeMb = number_format(\Illuminate\Support\Facades\Storage::disk('public')->size($item->file_path) / 1048576, 2) . ' MB';
+                }
+
+                $dokItems[] = [
+                    'id' => $item->id,
+                    'nama' => $item->nama_dokumen,
+                    'file' => basename($item->file_path),
+                    'ukuran' => $sizeMb,
+                    'tanggal' => $item->created_at->format('d/m/Y'),
+                    'status' => 'Aktif',
+                    'file_path' => asset('storage/' . $item->file_path)
+                ];
+            }
+            if(count($dokItems) > 0 || $catName == 'Surat Keputusan') {
+                $dokumen[] = [
+                    'kategori' => $catName,
+                    'icon' => $style['icon'],
+                    'color' => $style['color'],
+                    'items' => $dokItems
+                ];
+            }
+        }
+
+        return view('guru.profil.arsip-dokumen', compact('dokumen'));
+    }
+
+    public function storeArsip(Request $request)
+    {
+        $teacher = $this->getTeacher();
+        $request->validate([
+            'nama_dokumen' => 'required|string',
+            'kategori' => 'required|string',
+            'file' => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120',
+        ]);
+
+        $file = $request->file('file');
+        $fileName = time() . '_' . $file->getClientOriginalName();
+        $path = $file->storeAs('arsip_dokumen', $fileName, 'public');
+
+        \App\Models\TeacherDocument::create([
+            'teacher_id' => $teacher->id,
+            'nama_dokumen' => $request->nama_dokumen,
+            'kategori' => $request->kategori,
+            'file_path' => $path,
+        ]);
+
+        return redirect()->back()->with('success', 'Dokumen berhasil diunggah');
+    }
+
+    public function destroyArsip($id)
+    {
+        $teacher = $this->getTeacher();
+        $doc = \App\Models\TeacherDocument::where('teacher_id', $teacher->id)->findOrFail($id);
+        
+        if (\Illuminate\Support\Facades\Storage::disk('public')->exists($doc->file_path)) {
+            \Illuminate\Support\Facades\Storage::disk('public')->delete($doc->file_path);
+        }
+        $doc->delete();
+        
+        return redirect()->back()->with('success', 'Dokumen berhasil dihapus');
+    }
+
+    public function profilPassword()
+    {
+        $user = \Illuminate\Support\Facades\Auth::user();
+        $lastChanged = $user->updated_at;
+        return view('guru.profil.ganti-password', compact('lastChanged'));
+    }
+
+    public function updatePassword(Request $request)
+    {
+        $request->validate([
+            'old_password' => 'required',
+            'new_password' => 'required|min:8|confirmed',
+        ]);
+
+        $user = clone \Illuminate\Support\Facades\Auth::user();
+        $realUser = \App\Models\User::find($user->id);
+        
+        if (!\Illuminate\Support\Facades\Hash::check($request->old_password, $realUser->password)) {
+            return back()->withErrors(['old_password' => 'Password lama tidak sesuai']);
+        }
+
+        $realUser->password = \Illuminate\Support\Facades\Hash::make($request->new_password);
+        $realUser->save();
+
+        return redirect()->back()->with('success', 'Password berhasil diperbarui');
     }
 }

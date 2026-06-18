@@ -35,9 +35,7 @@ class SchoolClassController extends Controller
         $totalDenganWali = SchoolClass::whereNotNull('teacher_id')->count();
         $totalTanpaWali = SchoolClass::whereNull('teacher_id')->count();
 
-        // Calculate total siswa if students table is related but currently no direct relationship, we leave it static 0 for now
-        $totalSiswa = 0; 
-        
+        $totalSiswa = \App\Models\Student::whereNotNull('school_class_id')->count();
         return view('admin.akademik.kelas-wali-kelas', compact(
             'kelas', 'teachers', 'daftarTingkat', 'daftarTahunAjaran',
             'totalKelas', 'totalDenganWali', 'totalTanpaWali', 'totalSiswa'

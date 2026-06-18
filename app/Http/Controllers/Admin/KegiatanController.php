@@ -207,7 +207,7 @@ class KegiatanController extends Controller
             'jenis' => $request->kategori,
             'tanggal_pelaksanaan' => $request->tanggal,
             'gambar_attachment' => $filepath,
-            'waktu_pelaksanaan' => rand(10, 30), // mock jumlah_foto
+            'waktu_pelaksanaan' => 1, // represents 1 photo uploaded
         ]);
 
         return back()->with('success', 'Dokumentasi baru berhasil ditambahkan');

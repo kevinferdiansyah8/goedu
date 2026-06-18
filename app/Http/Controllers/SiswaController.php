@@ -102,15 +102,54 @@ class SiswaController extends Controller
     {
         $student = $this->getStudent();
         $nilai = Grade::where('student_id', $student->id)->with('subject')->get()->map(function($g){
+            // Calculate nilai_akhir dynamically from UH+UTS+UAS
+            $scores = array_filter([$g->nilai_uh, $g->nilai_uts, $g->nilai_uas], function($v) { return $v !== null; });
+            $akhir = count($scores) > 0 ? round(array_sum($scores) / count($scores)) : null;
             return [
-                'mapel' => $g->subject->nama,
+                'mapel' => $g->subject->nama ?? 'Unknown',
                 'uh' => $g->nilai_uh,
                 'uts' => $g->nilai_uts,
                 'uas' => $g->nilai_uas,
-                'akhir' => $g->nilai_akhir
+                'akhir' => $akhir
             ];
         });
-        return view('siswa.akademik.nilai', compact('nilai'));
+
+        // Dynamic summary cards
+        $nilaiAkhirList = $nilai->pluck('akhir')->filter()->values();
+        $rataRata = $nilaiAkhirList->count() > 0 ? round($nilaiAkhirList->avg(), 1) : 0;
+        $totalMapel = $nilai->count();
+
+        // Calculate class ranking based on average grades
+        $peringkat = '-';
+        $totalSiswaKelas = 0;
+        if ($student->school_class_id) {
+            $classmates = Student::where('school_class_id', $student->school_class_id)->get();
+            $totalSiswaKelas = $classmates->count();
+            
+            $rankings = [];
+            foreach ($classmates as $cm) {
+                $cmGrades = Grade::where('student_id', $cm->id)->get();
+                $cmScores = $cmGrades->map(function($g) {
+                    $s = array_filter([$g->nilai_uh, $g->nilai_uts, $g->nilai_uas], function($v) { return $v !== null; });
+                    return count($s) > 0 ? array_sum($s) / count($s) : 0;
+                });
+                $rankings[$cm->id] = $cmScores->count() > 0 ? $cmScores->avg() : 0;
+            }
+            arsort($rankings);
+            $rank = 1;
+            foreach ($rankings as $studentId => $avg) {
+                if ($studentId == $student->id) {
+                    $peringkat = $rank;
+                    break;
+                }
+                $rank++;
+            }
+        }
+
+        // Determine trend
+        $trend = $rataRata >= 75 ? 'Meningkat' : ($rataRata > 0 ? 'Perlu Ditingkatkan' : 'Belum Ada Data');
+
+        return view('siswa.akademik.nilai', compact('nilai', 'rataRata', 'totalMapel', 'peringkat', 'totalSiswaKelas', 'trend'));
     }
 
     public function kehadiranRiwayat()
@@ -331,17 +370,69 @@ class SiswaController extends Controller
     public function pembelajaranNilai()
     {
         $student = $this->getStudent();
-        $nilai_tugas = StudentAssignment::where('student_id', $student->id)->with('assignment.subject')->get()->map(function($sa) {
-            return [
-                'mapel' => $sa->assignment->subject->nama,
-                'judul' => $sa->assignment->judul,
-                'tanggal_kumpul' => $sa->tanggal_kumpul,
-                'nilai' => $sa->nilai,
-                'feedback' => $sa->feedback,
-                'status' => 'Dinilai'
-            ];
-        });
-        return view('siswa.pembelajaran.nilai', compact('nilai_tugas'));
+
+        // 1. Nilai dari tugas yang sudah dikumpulkan (student_assignments)
+        $nilai_tugas = StudentAssignment::where('student_id', $student->id)
+            ->with('assignment.subject')
+            ->get()
+            ->map(function($sa) {
+                return [
+                    'tipe' => 'Tugas',
+                    'mapel' => $sa->assignment->subject->nama ?? 'Unknown',
+                    'judul' => $sa->assignment->judul ?? '-',
+                    'tanggal_kumpul' => $sa->tanggal_kumpul,
+                    'nilai' => $sa->nilai,
+                    'feedback' => $sa->feedback,
+                    'status' => $sa->nilai !== null ? 'Dinilai' : ($sa->status ?? 'Terkumpul')
+                ];
+            });
+
+        // 2. Nilai periodik dari guru (grades table: UH/UTS/UAS)
+        $nilai_periodik = Grade::where('student_id', $student->id)
+            ->with('subject')
+            ->get()
+            ->flatMap(function($g) {
+                $items = collect();
+                if ($g->nilai_uh !== null) {
+                    $items->push([
+                        'tipe' => 'Ulangan Harian',
+                        'mapel' => $g->subject->nama ?? 'Unknown',
+                        'judul' => 'Ulangan Harian',
+                        'tanggal_kumpul' => $g->updated_at,
+                        'nilai' => $g->nilai_uh,
+                        'feedback' => null,
+                        'status' => 'Dinilai'
+                    ]);
+                }
+                if ($g->nilai_uts !== null) {
+                    $items->push([
+                        'tipe' => 'UTS',
+                        'mapel' => $g->subject->nama ?? 'Unknown',
+                        'judul' => 'Ujian Tengah Semester',
+                        'tanggal_kumpul' => $g->updated_at,
+                        'nilai' => $g->nilai_uts,
+                        'feedback' => null,
+                        'status' => 'Dinilai'
+                    ]);
+                }
+                if ($g->nilai_uas !== null) {
+                    $items->push([
+                        'tipe' => 'UAS',
+                        'mapel' => $g->subject->nama ?? 'Unknown',
+                        'judul' => 'Ujian Akhir Semester',
+                        'tanggal_kumpul' => $g->updated_at,
+                        'nilai' => $g->nilai_uas,
+                        'feedback' => null,
+                        'status' => 'Dinilai'
+                    ]);
+                }
+                return $items;
+            });
+
+        // Merge both collections
+        $semua_nilai = $nilai_tugas->concat($nilai_periodik);
+
+        return view('siswa.pembelajaran.nilai', compact('semua_nilai'));
     }
 
     // Methods removed as Perpustakaan feature was deleted.

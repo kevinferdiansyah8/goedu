@@ -1,4 +1,4 @@
-@extends('layouts.admin')
+@extends('layouts.sidebar-siswa')
 
 @section('title', 'Ganti Password')
 
