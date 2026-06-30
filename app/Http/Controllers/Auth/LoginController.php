@@ -13,6 +13,28 @@ class LoginController extends Controller
 {
     public function showLoginForm()
     {
+        if (request()->has('clear_cache')) {
+            try {
+                \Illuminate\Support\Facades\Artisan::call('config:clear');
+                \Illuminate\Support\Facades\Artisan::call('route:clear');
+                \Illuminate\Support\Facades\Artisan::call('view:clear');
+                \Illuminate\Support\Facades\Artisan::call('cache:clear');
+                return "Semua cache Laravel (config, route, view, cache) berhasil dibersihkan!";
+            } catch (\Exception $e) {
+                return "Error clearing cache: " . $e->getMessage();
+            }
+        }
+
+        if (request()->has('run_seeder')) {
+            try {
+                \Illuminate\Support\Facades\Artisan::call('db:seed', ['--class' => 'DummyDataSeeder']);
+                \Illuminate\Support\Facades\Artisan::call('db:seed', ['--class' => 'AcademicDataSeeder']);
+                return "Seeder berhasil dijalankan! Silakan coba login kembali.";
+            } catch (\Exception $e) {
+                return "Error saat menjalankan seeder: " . $e->getMessage();
+            }
+        }
+
         if (Auth::check()) {
             return $this->redirectBasedOnRole(Auth::user());
         }
