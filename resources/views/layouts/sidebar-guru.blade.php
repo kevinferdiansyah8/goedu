@@ -108,14 +108,9 @@
   <!-- SIDEBAR -->
   <aside id="sidebar" class="flex flex-col w-[280px] shrink-0 h-screen fixed inset-y-0 left-0 z-50 bg-white border-r border-border transform -translate-x-full lg:translate-x-0 transition-transform duration-300 overflow-hidden">
     <!-- Top Bar with logo and title -->
-    <div class="flex items-center justify-between border-b border-border h-[90px] px-5 gap-3">
-      <div class="flex items-center gap-3">
-        <div class="w-11 h-9 bg-primary rounded-xl flex items-center justify-center">
-          <i data-lucide="graduation-cap" class="w-5 h-5 text-white"></i>
-        </div>
-        <h1 class="font-semibold text-xl">EduGo</h1>
-      </div>
-      <div class="flex gap-2">
+    <div class="flex items-center justify-center border-b border-border h-[120px] px-5 gap-3 relative">
+      <img src="{{ asset('images/goedu_logo.png') }}" alt="GoEdu Logo" class="h-24 w-auto object-contain">
+      <div class="flex gap-2 absolute right-5 top-1/2 -translate-y-1/2">
         <button class="size-11 flex shrink-0 bg-white rounded-xl p-[10px] items-center justify-center ring-1 ring-border hover:ring-primary transition-all duration-300 cursor-pointer" aria-label="Search">
           <i data-lucide="search" class="size-6 text-secondary"></i>
         </button>
@@ -139,7 +134,15 @@
               <span class="font-medium text-secondary group-[.active]:font-semibold group-[.active]:text-foreground group-hover:text-foreground transition-all duration-300">Dashboard Guru</span>
             </div>
           </a>
-          
+
+          {{-- E-Learning --}}
+          <a href="{{ route('guru.elearning.index') }}"
+             class="group {{ request()->is('guru/elearning*') ? 'active' : '' }} cursor-pointer">
+            <div class="flex items-center rounded-xl p-4 gap-3 bg-white group-[.active]:bg-muted group-hover:bg-muted transition-all duration-300">
+              <i data-lucide="monitor-play" class="size-6 text-secondary group-[.active]:text-foreground group-hover:text-foreground transition-all duration-300"></i>
+              <span class="font-medium text-secondary group-[.active]:font-semibold group-[.active]:text-foreground group-hover:text-foreground transition-all duration-300">E-Learning</span>
+            </div>
+          </a>
 
           <!-- Akademik -->
           <!-- Akademik Dropdown -->
@@ -439,86 +442,6 @@
         </div> {{-- Close Menu Kegiatan --}}
     </div> {{-- Close Group Kegiatan --}}
          
-          <!-- Materi & Tugas -->
-    <div class="group cursor-pointer">
-      <button onclick="toggleMateri()"
-              class="flex items-center justify-between w-full rounded-xl p-4 gap-3 bg-white hover:bg-muted transition-all duration-300">
-
-        <div class="flex items-center gap-3">
-          <i data-lucide="book-open" class="size-6 text-secondary"></i>
-          <span class="font-medium text-secondary">Materi & Tugas</span>
-        </div>
-
-        <i id="arrowMateri"
-          data-lucide="chevron-down"
-          class="w-4 h-4 text-secondary transition-transform duration-300"></i>
-      </button>
-
-      <div id="menuMateri"
-     class="ml-4 mt-2 space-y-2 {{ request()->is('guru/materi*') || request()->is('guru/tugas*') ? '' : 'hidden' }}">
-
-  {{-- Upload Materi --}}
-  <a href="{{ route('guru.materi.upload') }}"
-     class="submenu-item flex items-center gap-3 rounded-xl px-4 py-3 text-sm
-     {{ request()->routeIs('guru.materi.upload') ? 'bg-muted text-foreground font-semibold' : 'text-secondary hover:bg-muted hover:text-foreground' }}">
-    <span class="menu-bullet flex-shrink-0">
-      <span class="menu-bullet-outer w-5 h-5 rounded-full border-2
-      {{ request()->routeIs('guru.materi.upload') ? 'border-primary' : 'border-gray-300' }}
-      flex items-center justify-center">
-        <span class="menu-bullet-inner w-2.5 h-2.5 rounded-full
-        {{ request()->routeIs('guru.materi.upload') ? 'bg-primary' : 'bg-transparent' }}"></span>
-      </span>
-    </span>
-    <span class="flex-1">Upload Materi</span>
-  </a>
-
-  {{-- Tugas --}}
-  <a href="{{ route('guru.tugas.index') }}"
-     class="submenu-item flex items-center gap-3 rounded-xl px-4 py-3 text-sm
-     {{ request()->routeIs('guru.tugas.index') ? 'bg-muted text-foreground font-semibold' : 'text-secondary hover:bg-muted hover:text-foreground' }}">
-    <span class="menu-bullet flex-shrink-0">
-      <span class="menu-bullet-outer w-5 h-5 rounded-full border-2
-      {{ request()->routeIs('guru.tugas.index') ? 'border-primary' : 'border-gray-300' }}
-      flex items-center justify-center">
-        <span class="menu-bullet-inner w-2.5 h-2.5 rounded-full
-        {{ request()->routeIs('guru.tugas.index') ? 'bg-primary' : 'bg-transparent' }}"></span>
-      </span>
-    </span>
-    <span class="flex-1">Tugas</span>
-  </a>
-
-  {{-- Penilaian Tugas --}}
-  <a href="{{ route('guru.tugas.penilaian') }}"
-     class="submenu-item flex items-center gap-3 rounded-xl px-4 py-3 text-sm
-     {{ request()->routeIs('guru.tugas.penilaian') ? 'bg-muted text-foreground font-semibold' : 'text-secondary hover:bg-muted hover:text-foreground' }}">
-    <span class="menu-bullet flex-shrink-0">
-      <span class="menu-bullet-outer w-5 h-5 rounded-full border-2
-      {{ request()->routeIs('guru.tugas.penilaian') ? 'border-primary' : 'border-gray-300' }}
-      flex items-center justify-center">
-        <span class="menu-bullet-inner w-2.5 h-2.5 rounded-full
-        {{ request()->routeIs('guru.tugas.penilaian') ? 'bg-primary' : 'bg-transparent' }}"></span>
-      </span>
-    </span>
-    <span class="flex-1">Penilaian Tugas</span>
-  </a>
-
-  {{-- Feedback --}}
-  <a href="{{ route('guru.tugas.feedback') }}"
-     class="submenu-item flex items-center gap-3 rounded-xl px-4 py-3 text-sm
-     {{ request()->routeIs('guru.tugas.feedback') ? 'bg-muted text-foreground font-semibold' : 'text-secondary hover:bg-muted hover:text-foreground' }}">
-    <span class="menu-bullet flex-shrink-0">
-      <span class="menu-bullet-outer w-5 h-5 rounded-full border-2
-      {{ request()->routeIs('guru.tugas.feedback') ? 'border-primary' : 'border-gray-300' }}
-      flex items-center justify-center">
-        <span class="menu-bullet-inner w-2.5 h-2.5 rounded-full
-        {{ request()->routeIs('guru.tugas.feedback') ? 'bg-primary' : 'bg-transparent' }}"></span>
-      </span>
-    </span>
-    <span class="flex-1">Feedback</span>
-  </a>
-
-</div>
-</div> {{-- Close Materi Group --}}
               
 
       </div>
@@ -642,12 +565,6 @@ function toggleAkademik() {
   }
 }
 
-function toggleMateri() {
-  const menu = document.getElementById('menuMateri');
-  const arrow = document.getElementById('arrowMateri');
-  menu.classList.toggle('hidden');
-  arrow.classList.toggle('rotate-180');
-}
 
 function toggleProfil() {
   const menu = document.getElementById('menuProfil');

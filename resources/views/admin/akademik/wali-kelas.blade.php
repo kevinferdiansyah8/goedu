@@ -15,17 +15,17 @@
         $waliKelas = [
             [
                 'nama' => 'Budi Santoso, S.Pd',
-                'kelas_diampu' => 'X RPL 1',
+                'kelas_diampu' => '7 A',
                 'kontak' => '081234567890',
             ],
             [
                 'nama' => 'Siti Aminah, S.Pd',
-                'kelas_diampu' => 'XI TKJ 2',
+                'kelas_diampu' => '8 A',
                 'kontak' => '081298765432',
             ],
             [
                 'nama' => 'Dewi Lestari, S.Pd',
-                'kelas_diampu' => 'XII AKL 1',
+                'kelas_diampu' => '9 A',
                 'kontak' => '081212345678',
             ],
         ];

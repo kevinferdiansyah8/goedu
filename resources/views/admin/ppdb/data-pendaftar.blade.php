@@ -64,7 +64,7 @@
     <form class="bg-white border-2 border-gray-200 rounded-2xl shadow-md px-6 py-4 flex flex-wrap gap-4 items-center mb-8" method="GET">
         <input type="text" name="q" value="{{ request('q') }}" placeholder="Cari nama / no daftar" class="px-5 py-2.5 rounded-full bg-gray-50 border border-gray-200 text-base w-72 focus:ring-2 focus:ring-blue-400 focus:outline-none">
         <select name="jurusan" class="px-5 py-2.5 rounded-full bg-gray-50 border border-gray-200 text-base font-bold" onchange="this.form.submit()">
-            <option value="">Semua Jurusan</option>
+            <option value="">Semua Pilihan Kelas</option>
             @foreach($jurusanList as $j)
                 <option value="{{ $j }}" {{ request('jurusan') == $j ? 'selected' : '' }}>{{ $j }}</option>
             @endforeach
@@ -77,7 +77,7 @@
         </select>
         <button type="submit" class="px-5 py-2.5 bg-blue-600 text-white rounded-full font-bold hover:bg-blue-700 transition"><i data-lucide="search" class="w-4 h-4 inline"></i> Cari</button>
     </form>
-
+ 
     {{-- TABLE --}}
     <div class="bg-white border-2 border-gray-200 rounded-2xl shadow-2xl overflow-x-auto">
         <table class="min-w-full text-base">
@@ -85,7 +85,7 @@
                 <tr>
                     <th class="px-5 py-3 text-left font-bold">No Daftar</th>
                     <th class="px-5 py-3 text-left font-bold">Nama</th>
-                    <th class="px-5 py-3 text-left font-bold">Jurusan</th>
+                    <th class="px-5 py-3 text-left font-bold">Pilihan Kelas</th>
                     <th class="px-5 py-3 text-left font-bold">Jalur</th>
                     <th class="px-5 py-3 text-center font-bold">Status</th>
                     <th class="px-5 py-3 text-center font-bold">Aksi</th>
@@ -194,13 +194,11 @@
                         <input type="date" name="tanggal_lahir" class="w-full px-4 py-2 border rounded-xl" placeholder="Untuk login calon siswa">
                     </div>
                     <div>
-                        <label class="block text-sm font-semibold mb-1">Jurusan <span class="text-red-500">*</span></label>
+                        <label class="block text-sm font-semibold mb-1">Pilihan Kelas <span class="text-red-500">*</span></label>
                         <select name="jurusan" class="w-full px-4 py-2 border rounded-xl" required>
-                            <option value="RPL">RPL</option>
-                            <option value="TKJ">TKJ</option>
-                            <option value="AKL">AKL</option>
-                            <option value="OTKP">OTKP</option>
-                            <option value="BDP">BDP</option>
+                            <option value="Kelas 7">Kelas 7</option>
+                            <option value="Kelas 8">Kelas 8</option>
+                            <option value="Kelas 9">Kelas 9</option>
                         </select>
                     </div>
                     <div>

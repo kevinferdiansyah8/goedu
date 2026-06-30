@@ -206,27 +206,32 @@ class OrangtuaController extends Controller
     {
         $student = $this->getStudent();
         $tagihan_aktif = SppBill::where('student_id', $student->id)->where('status', '!=', 'Lunas')->get()->map(function($t) {
-            $isOverdue = Carbon::parse($t->tanggal)->addDays(10)->isPast(); // 10 days grace period
+            $date = $t->created_at ?? now();
+            $isOverdue = Carbon::parse($date)->addDays(10)->isPast(); // 10 days grace period
             return [
                 'bulan' => $t->bulan,
-                'jatuh_tempo' => Carbon::parse($t->tanggal)->addDays(10)->translatedFormat('d F Y'),
+                'jatuh_tempo' => Carbon::parse($date)->addDays(10)->translatedFormat('d F Y'),
                 'nominal' => $t->nominal,
                 'status' => $isOverdue ? 'Terlambat' : 'Belum Bayar',
                 'denda' => $isOverdue ? 25000 : 0
             ];
         })->toArray();
         
-        $riwayat_bayar = Transaction::where('transactionable_type', SppBill::class)
-            ->where('status', 'Terverifikasi')
-            ->whereHas('transactionable', function($q) use ($student) {
+        $riwayat_bayar = Transaction::whereHasMorph(
+            'transactionable',
+            [SppBill::class],
+            function ($q) use ($student) {
                 $q->where('student_id', $student->id);
-            })
+            }
+        )
+            ->where('status', 'Terverifikasi')
+            ->with('transactionable')
             ->latest()
             ->get()
             ->map(function($t) {
                 return [
                     'bulan' => $t->transactionable->bulan ?? 'SPP',
-                    'tanggal_bayar' => Carbon::parse($t->tanggal)->translatedFormat('d M Y'),
+                    'tanggal_bayar' => Carbon::parse($t->tanggal ?? $t->created_at)->translatedFormat('d M Y'),
                     'nominal' => $t->nominal,
                     'metode' => $t->metode,
                     'status' => 'Lunas'
@@ -250,10 +255,13 @@ class OrangtuaController extends Controller
     public function keuanganRiwayat()
     {
         $student = $this->getStudent();
-        $riwayat = Transaction::where('transactionable_type', SppBill::class)
-            ->whereHas('transactionable', function($q) use($student){
+        $riwayat = Transaction::whereHasMorph(
+            'transactionable',
+            [SppBill::class],
+            function ($q) use ($student) {
                 $q->where('student_id', $student->id);
-            })
+            }
+        )
             ->orderByDesc('tanggal')
             ->get();
         return view('orangtua.keuangan.riwayat', compact('riwayat'));

@@ -22,3 +22,8 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# Temp/Scratch files
+goedu.git.zip
+scratch/
+check_db.php

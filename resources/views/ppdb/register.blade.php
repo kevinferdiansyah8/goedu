@@ -71,17 +71,14 @@
 
                     {{-- Jurusan --}}
                     <div>
-                        <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 ml-1">Jurusan / Program <span class="text-rose-500">*</span></label>
+                        <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 ml-1">Pilihan Kelas <span class="text-rose-500">*</span></label>
                         <div class="relative group">
                             <i data-lucide="book-open" class="w-5 h-5 text-gray-400 absolute left-4 top-3.5 group-focus-within:text-indigo-600 transition-colors pointer-events-none"></i>
                             <select name="jurusan" required class="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-transparent rounded-2xl text-sm font-medium focus:bg-white focus:ring-4 focus:ring-indigo-50 focus:border-indigo-500 outline-none transition-all appearance-none cursor-pointer">
-                                <option value="" disabled {{ old('jurusan') ? '' : 'selected' }}>Pilih Jurusan</option>
-                                <option value="SD" {{ old('jurusan') == 'SD' ? 'selected' : '' }}>SD</option>
-                                <option value="SMP" {{ old('jurusan') == 'SMP' ? 'selected' : '' }}>SMP</option>
-                                <option value="SMA IPA" {{ old('jurusan') == 'SMA IPA' ? 'selected' : '' }}>SMA - IPA</option>
-                                <option value="SMA IPS" {{ old('jurusan') == 'SMA IPS' ? 'selected' : '' }}>SMA - IPS</option>
-                                <option value="SMK RPL" {{ old('jurusan') == 'SMK RPL' ? 'selected' : '' }}>SMK - RPL</option>
-                                <option value="SMK TKJ" {{ old('jurusan') == 'SMK TKJ' ? 'selected' : '' }}>SMK - TKJ</option>
+                                <option value="" disabled {{ old('jurusan') ? '' : 'selected' }}>Pilih Kelas</option>
+                                <option value="Kelas 7" {{ old('jurusan') == 'Kelas 7' ? 'selected' : '' }}>Kelas 7</option>
+                                <option value="Kelas 8" {{ old('jurusan') == 'Kelas 8' ? 'selected' : '' }}>Kelas 8</option>
+                                <option value="Kelas 9" {{ old('jurusan') == 'Kelas 9' ? 'selected' : '' }}>Kelas 9</option>
                             </select>
                             <i data-lucide="chevron-down" class="w-4 h-4 text-gray-400 absolute right-4 top-4 pointer-events-none"></i>
                         </div>

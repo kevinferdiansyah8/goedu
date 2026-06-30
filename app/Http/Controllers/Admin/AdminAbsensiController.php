@@ -91,7 +91,7 @@ class AdminAbsensiController extends Controller
             $att = Attendance::where('student_id', $s->id)->where('tanggal', $tanggal)->first();
             return [
                 'nama'   => $s->nama,
-                'kelas'  => $s->schoolClass->nama_kelas ?? '-',
+                'kelas'  => $s->schoolClass ? ($s->schoolClass->tingkat . ' ' . $s->schoolClass->nama_kelas) : '-',
                 'status' => $att ? $att->status : 'Alpha',
                 'jam'    => $att && $att->jam_masuk ? $att->jam_masuk : '-',
             ];
@@ -105,7 +105,7 @@ class AdminAbsensiController extends Controller
             $alpha = $atts->whereIn('status', ['Alpha', 'Tanpa Keterangan'])->count();
             return [
                 'nama'  => $s->nama,
-                'kelas' => $s->schoolClass->nama_kelas ?? '-',
+                'kelas' => $s->schoolClass ? ($s->schoolClass->tingkat . ' ' . $s->schoolClass->nama_kelas) : '-',
                 'hadir' => $hadir,
                 'izin'  => $izin,
                 'sakit' => $sakit,
@@ -170,7 +170,7 @@ class AdminAbsensiController extends Controller
             ])->values()->toArray();
             return [
                 'nama'  => $s->nama,
-                'kelas' => $s->schoolClass->nama_kelas ?? '-',
+                'kelas' => $s->schoolClass ? ($s->schoolClass->tingkat . ' ' . $s->schoolClass->nama_kelas) : '-',
                 'role'  => 'Siswa',
                 'rekap' => compact('hadir', 'izin', 'sakit', 'alpha'),
                 'riwayat' => $riwayat,
@@ -202,7 +202,7 @@ class AdminAbsensiController extends Controller
             ->map(function ($att) {
                 return [
                     'nama'    => $att->student->nama ?? '-',
-                    'kelas'   => $att->student->schoolClass->nama_kelas ?? '-',
+                    'kelas'   => $att->student->schoolClass ? ($att->student->schoolClass->tingkat . ' ' . $att->student->schoolClass->nama_kelas) : '-',
                     'jenis'   => in_array($att->status, ['Alpha', 'Tanpa Keterangan']) ? 'Alpha' : $att->status,
                     'tanggal' => $att->tanggal,
                     'alasan'  => $att->keterangan ?? '-',

@@ -24,16 +24,30 @@ class SiswaController extends Controller
     public function index()
     {
         $student = $this->getStudent();
+        $user = Auth::user();
         
+        // Student info for display
+        $class = \App\Models\SchoolClass::find($student->school_class_id);
+        $namaKelas = $class ? $class->tingkat . ' ' . $class->nama_kelas : ($student->kelas ?? '-');
+        $studentInfo = [
+            'nama' => $student->nama ?? $user->name,
+            'kelas' => $namaKelas,
+            'nis' => $student->nis ?? '-',
+            'foto' => $student->foto ? asset('storage/'.$student->foto) : 'https://ui-avatars.com/api/?name='.urlencode($student->nama ?? $user->name).'&background=0D8ABC&color=fff',
+        ];
+
+        // Today's schedule
         $hariIni = now()->locale('id')->isoFormat('dddd');
         
         $jadwal_hari_ini = Schedule::where('school_class_id', $student->school_class_id)
             ->where('hari', $hariIni)
             ->with('subject.teacher')
+            ->orderBy('jam_mulai')
             ->get()->map(function($j) {
                 return ['jam' => $j->jam_mulai . ' - ' . $j->jam_selesai, 'mapel' => $j->subject->nama_pelajaran ?? $j->subject->nama ?? 'Unknown', 'guru' => $j->subject->teacher->nama ?? '-'];
             });
 
+        // Attendance stats
         $hadirCount = Attendance::where('student_id', $student->id)->where('status', 'Hadir')->count();
         $sakitCount = Attendance::where('student_id', $student->id)->where('status', 'Sakit')->count();
         $izinCount  = Attendance::where('student_id', $student->id)->where('status', 'Izin')->count();
@@ -41,31 +55,72 @@ class SiswaController extends Controller
         
         $totalAbsen = $hadirCount + $sakitCount + $izinCount + $alphaCount;
         $persenHadir = $totalAbsen > 0 ? round(($hadirCount / $totalAbsen) * 100) : 0;
+        $persenIzin = $totalAbsen > 0 ? round(($izinCount / $totalAbsen) * 100) : 0;
+        $persenSakit = $totalAbsen > 0 ? round(($sakitCount / $totalAbsen) * 100) : 0;
+        $persenAlpha = $totalAbsen > 0 ? round(($alphaCount / $totalAbsen) * 100) : 0;
 
         $kehadiran = [
             'hadir' => $persenHadir,
             'sakit' => $sakitCount,
             'izin'  => $izinCount,
             'alpha' => $alphaCount,
+            'persen_izin' => $persenIzin,
+            'persen_sakit' => $persenSakit,
+            'persen_alpha' => $persenAlpha,
+            'total' => $totalAbsen,
         ];
 
-        $tugas_aktif = Assignment::where('school_class_id', $student->school_class_id)
+        // Active assignments (only those not yet submitted by this student)
+        $allAssignments = Assignment::where('school_class_id', $student->school_class_id)
             ->with('subject')
-            ->get()->map(function($t) use($student) {
+            ->get();
+        
+        $tugas_aktif = $allAssignments->map(function($t) use($student) {
                 $sa = StudentAssignment::where('student_id', $student->id)->where('assignment_id', $t->id)->first();
                 return [
+                    'id' => $t->id,
                     'mapel' => $t->subject->nama_pelajaran ?? $t->subject->nama ?? 'Unknown',
                     'judul' => $t->judul,
                     'deadline' => $t->deadline,
                     'status' => $sa ? $sa->status : 'Belum'
                 ];
             });
+        
+        // Count only unfinished assignments
+        $tugasBelum = $tugas_aktif->filter(function($t) {
+            return $t['status'] === 'Belum' || $t['status'] === 'Proses';
+        })->count();
 
-        $pengumuman = Event::where('tipe_info', 'Pengumuman')->latest()->take(2)->get()->map(function($e) {
-            return ['judul' => $e->judul, 'tanggal' => $e->tanggal_pelaksanaan, 'isi' => substr($e->deskripsi, 0, 50) . '...'];
+        // Announcements - get all count and latest 3
+        $totalPengumuman = Event::where('tipe_info', 'Pengumuman')->count();
+        $pengumuman = Event::where('tipe_info', 'Pengumuman')->latest()->take(3)->get()->map(function($e) {
+            return [
+                'judul' => $e->judul, 
+                'tanggal' => $e->tanggal_pelaksanaan, 
+                'isi' => $e->deskripsi ? substr($e->deskripsi, 0, 80) . (strlen($e->deskripsi) > 80 ? '...' : '') : 'Tidak ada deskripsi.',
+                'waktu_lalu' => $e->created_at ? $e->created_at->diffForHumans() : '-',
+            ];
         });
 
-        return view('siswa.dashboard.index', compact('jadwal_hari_ini', 'kehadiran', 'tugas_aktif', 'pengumuman'));
+        // Nilai rata-rata for quick stat
+        $nilaiList = Grade::where('student_id', $student->id)->get();
+        $nilaiAkhirList = $nilaiList->map(function($g) {
+            $scores = array_filter([$g->nilai_uh, $g->nilai_uts, $g->nilai_uas], function($v) { return $v !== null; });
+            return count($scores) > 0 ? round(array_sum($scores) / count($scores)) : null;
+        })->filter();
+        $rataRataNilai = $nilaiAkhirList->count() > 0 ? round($nilaiAkhirList->avg(), 1) : 0;
+
+        // Upcoming events (non-pengumuman)
+        $upcomingEvents = Event::whereIn('tipe_info', ['Event', 'Agenda'])
+            ->where('tanggal_pelaksanaan', '>=', now()->toDateString())
+            ->orderBy('tanggal_pelaksanaan')
+            ->take(3)
+            ->get();
+
+        return view('siswa.dashboard.index', compact(
+            'studentInfo', 'jadwal_hari_ini', 'kehadiran', 'tugas_aktif', 'tugasBelum',
+            'pengumuman', 'totalPengumuman', 'rataRataNilai', 'upcomingEvents'
+        ));
     }
 
     public function akademikJadwal()

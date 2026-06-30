@@ -155,7 +155,7 @@ class LaporanController extends Controller
         })->toArray();
 
         // Default active class
-        $kelasAktif = $request->input('kelas', count($kelasList) > 0 ? $kelasList[0] : 'X RPL 1');
+        $kelasAktif = $request->input('kelas', count($kelasList) > 0 ? $kelasList[0] : '7 A');
 
         // Find the active class model
         $parts = explode(' ', $kelasAktif, 2);

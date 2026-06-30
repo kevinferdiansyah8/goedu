@@ -156,23 +156,38 @@ class PpdbFrontendController extends Controller
         $applicant = PpdbApplicant::findOrFail(Session::get('ppdb_applicant_id'));
 
         $request->validate([
-            'document_type' => 'required|in:kk,akta,raport,foto,ijazah',
-            'file' => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048',
+            'file_kk' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:20480',
+            'file_akta' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:20480',
+            'file_raport' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:20480',
+            'file_foto' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:20480',
+            'file_ijazah' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:20480',
         ]);
 
-        $type = $request->document_type;
-        $file = $request->file('file');
-        $filename = 'ppdb_' . $type . '_' . $applicant->no_daftar . '_' . time() . '.' . $file->getClientOriginalExtension();
-        
-        // Store in public/ppdb storage folder
-        $file->storeAs('ppdb', $filename, 'public');
+        $types = ['kk', 'akta', 'raport', 'foto', 'ijazah'];
+        $uploadedAny = false;
 
-        // Update database
-        $applicant->update([
-            'berkas_' . $type => 'ppdb/' . $filename,
-            'status_' . $type => 'Sudah Upload',
-            'catatan_' . $type => null,
-        ]);
+        foreach ($types as $type) {
+            if ($request->hasFile('file_' . $type)) {
+                $file = $request->file('file_' . $type);
+                $filename = 'ppdb_' . $type . '_' . $applicant->no_daftar . '_' . time() . '.' . $file->getClientOriginalExtension();
+                
+                // Store in public/ppdb storage folder
+                $file->storeAs('ppdb', $filename, 'public');
+
+                // Update database
+                $applicant->update([
+                    'berkas_' . $type => 'ppdb/' . $filename,
+                    'status_' . $type => 'Sudah Upload',
+                    'catatan_' . $type => null,
+                ]);
+
+                $uploadedAny = true;
+            }
+        }
+
+        if (!$uploadedAny) {
+            return back()->with('error', 'Pilih minimal satu dokumen untuk diunggah.');
+        }
 
         // Automatically update berkas_status to "Sudah Upload" if all documents have been uploaded
         $required = ['kk', 'akta', 'raport', 'foto', 'ijazah'];
@@ -187,7 +202,7 @@ class PpdbFrontendController extends Controller
             $applicant->update(['berkas_status' => 'Sudah Upload']);
         }
 
-        return back()->with('success', 'Dokumen ' . strtoupper($type) . ' berhasil diunggah!');
+        return back()->with('success', 'Dokumen berhasil diunggah!');
     }
 
     public function uploadPayment(Request $request)
@@ -198,7 +213,7 @@ class PpdbFrontendController extends Controller
         $applicant = PpdbApplicant::findOrFail(Session::get('ppdb_applicant_id'));
 
         $request->validate([
-            'file' => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048',
+            'file' => 'required|file|mimes:jpg,jpeg,png,pdf|max:20480',
             'catatan' => 'nullable|string|max:255',
         ]);
 
@@ -226,13 +241,14 @@ class PpdbFrontendController extends Controller
         return back()->with('success', 'Bukti pembayaran berhasil diunggah! Menunggu verifikasi admin.');
     }
 
-    public function getStatusApi()
+    public function getStatusApi(Request $request)
     {
-        if (!Session::has('ppdb_applicant_id')) {
+        $id = $request->id ?: Session::get('ppdb_applicant_id');
+        if (!$id) {
             return response()->json(['error' => 'Unauthenticated'], 401);
         }
 
-        $applicant = PpdbApplicant::find(Session::get('ppdb_applicant_id'));
+        $applicant = PpdbApplicant::find($id);
         if (!$applicant) {
             return response()->json(['error' => 'Not Found'], 404);
         }

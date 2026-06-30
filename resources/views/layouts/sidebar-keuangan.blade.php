@@ -107,14 +107,9 @@
   <!-- SIDEBAR -->
   <aside id="sidebar" class="flex flex-col w-[280px] shrink-0 h-screen fixed inset-y-0 left-0 z-50 bg-white border-r border-border transform -translate-x-full lg:translate-x-0 transition-transform duration-300 overflow-hidden">
     <!-- Top Bar with logo and title -->
-    <div class="flex items-center justify-between border-b border-border h-[90px] px-5 gap-3">
-      <div class="flex items-center gap-3">
-        <div class="w-11 h-9 bg-primary rounded-xl flex items-center justify-center">
-          <i data-lucide="graduation-cap" class="w-5 h-5 text-white"></i>
-        </div>
-        <h1 class="font-semibold text-xl">EduGo</h1>
-      </div>
-      <div class="flex gap-2">
+    <div class="flex items-center justify-center border-b border-border h-[120px] px-5 gap-3 relative">
+      <img src="{{ asset('images/goedu_logo.png') }}" alt="GoEdu Logo" class="h-24 w-auto object-contain">
+      <div class="flex gap-2 absolute right-5 top-1/2 -translate-y-1/2">
         <button class="size-11 flex shrink-0 bg-white rounded-xl p-[10px] items-center justify-center ring-1 ring-border hover:ring-primary transition-all duration-300 cursor-pointer" aria-label="Search">
           <i data-lucide="search" class="size-6 text-secondary"></i>
         </button>

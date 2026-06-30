@@ -34,7 +34,7 @@
                     </div>
                     <div>
                          <p class="text-sm text-gray-500 mb-1">Tempat, Tanggal Lahir</p>
-                         <p class="font-medium text-gray-800">{{ $siswa['tempat_lahir'] }}, {{ \Carbon\Carbon::parse($siswa['tanggal_lahir'])->format('d F Y') }}</p>
+                         <p class="font-medium text-gray-800">{{ $siswa['tempat_lahir'] }}, {{ $siswa['tanggal_lahir'] && $siswa['tanggal_lahir'] !== '-' ? \Carbon\Carbon::parse($siswa['tanggal_lahir'])->format('d F Y') : '-' }}</p>
                     </div>
                     <div>
                         <p class="text-sm text-gray-500 mb-1">Agama</p>

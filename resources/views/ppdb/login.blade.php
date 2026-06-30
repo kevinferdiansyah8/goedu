@@ -7,9 +7,7 @@
 
     {{-- Logo & Header --}}
     <div class="text-center mb-8">
-      <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-blue-200">
-        <span class="text-white font-extrabold text-2xl">EG</span>
-      </div>
+      <img src="{{ asset('images/goedu_logo.png') }}" alt="GoEdu Logo" class="h-24 w-auto object-contain mx-auto mb-4">
       <h1 class="text-2xl font-extrabold text-gray-900">Masuk Akun PPDB</h1>
       <p class="text-gray-500 text-sm mt-1.5">Pantau status pendaftaran dan kelola data Anda.</p>
     </div>

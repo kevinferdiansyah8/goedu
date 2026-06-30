@@ -18,6 +18,11 @@ Route::get('/login', [\App\Http\Controllers\Auth\LoginController::class, 'showLo
 Route::post('/login', [\App\Http\Controllers\Auth\LoginController::class, 'login']);
 Route::post('/logout', [\App\Http\Controllers\Auth\LoginController::class, 'logout'])->name('logout');
 
+Route::get('/forgot-password', [\App\Http\Controllers\Auth\ForgotPasswordController::class, 'showForgotForm'])->name('password.request');
+Route::post('/forgot-password', [\App\Http\Controllers\Auth\ForgotPasswordController::class, 'checkEmail'])->name('password.email');
+Route::get('/reset-password/{email}', [\App\Http\Controllers\Auth\ForgotPasswordController::class, 'showResetForm'])->name('password.reset');
+Route::post('/reset-password/{email}', [\App\Http\Controllers\Auth\ForgotPasswordController::class, 'resetPassword'])->name('password.update');
+
 Route::get('/', function () {
     return redirect('/login');
 });
@@ -330,6 +335,33 @@ Route::middleware(['auth', 'role:guru'])->prefix('guru')->name('guru.')->group(f
         Route::get('/ganti-password', [\App\Http\Controllers\GuruController::class, 'profilPassword'])->name('password');
         Route::post('/ganti-password', [\App\Http\Controllers\GuruController::class, 'updatePassword'])->name('password.update');
     });
+
+    // ========================
+    // E-LEARNING (GURU)
+    // ========================
+    Route::prefix('elearning')->name('elearning.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\ElearningGuruController::class, 'index'])->name('index');
+        Route::post('/', [\App\Http\Controllers\ElearningGuruController::class, 'store'])->name('store');
+        Route::get('/{id}', [\App\Http\Controllers\ElearningGuruController::class, 'show'])->name('show');
+        Route::put('/{id}', [\App\Http\Controllers\ElearningGuruController::class, 'update'])->name('update');
+        Route::delete('/{id}', [\App\Http\Controllers\ElearningGuruController::class, 'destroy'])->name('destroy');
+
+        // Soal pretest/posttest
+        Route::post('/{sessionId}/soal', [\App\Http\Controllers\ElearningGuruController::class, 'storeQuestion'])->name('soal.store');
+        Route::delete('/{sessionId}/soal/{questionId}', [\App\Http\Controllers\ElearningGuruController::class, 'destroyQuestion'])->name('soal.destroy');
+
+        // Materi/Link Pembelajaran
+        Route::post('/{sessionId}/materi', [\App\Http\Controllers\ElearningGuruController::class, 'storeMaterial'])->name('materi.store');
+        Route::delete('/{sessionId}/materi/{materialId}', [\App\Http\Controllers\ElearningGuruController::class, 'destroyMaterial'])->name('materi.destroy');
+
+        // Penugasan
+        Route::post('/{sessionId}/tugas', [\App\Http\Controllers\ElearningGuruController::class, 'storeAssignment'])->name('tugas.store');
+        Route::put('/submission/{submissionId}/grade', [\App\Http\Controllers\ElearningGuruController::class, 'gradeSubmission'])->name('submission.grade');
+
+        // Diskusi
+        Route::post('/{sessionId}/diskusi', [\App\Http\Controllers\ElearningGuruController::class, 'storeDiscussion'])->name('diskusi.store');
+        Route::delete('/{sessionId}/diskusi/{discussionId}', [\App\Http\Controllers\ElearningGuruController::class, 'destroyDiscussion'])->name('diskusi.destroy');
+    });
 });
 
     // ========================
@@ -426,6 +458,31 @@ Route::middleware(['auth', 'role:guru'])->prefix('guru')->name('guru.')->group(f
             Route::get('/biodata', [\App\Http\Controllers\SiswaController::class, 'profilBiodata'])->name('siswa.profil.biodata');
             Route::get('/orangtua', [\App\Http\Controllers\SiswaController::class, 'profilOrangtua'])->name('siswa.profil.orangtua');
             Route::get('/password', [\App\Http\Controllers\SiswaController::class, 'profilPassword'])->name('siswa.profil.password');
+        });
+
+        // ========================
+        // E-LEARNING (SISWA)
+        // ========================
+        Route::prefix('elearning')->group(function () {
+            Route::get('/', [\App\Http\Controllers\ElearningSiswaController::class, 'index'])->name('siswa.elearning.index');
+            Route::get('/{id}', [\App\Http\Controllers\ElearningSiswaController::class, 'show'])->name('siswa.elearning.show');
+
+            // Pretest
+            Route::get('/{id}/pretest', [\App\Http\Controllers\ElearningSiswaController::class, 'showPretest'])->name('siswa.elearning.pretest');
+            Route::post('/{id}/pretest', [\App\Http\Controllers\ElearningSiswaController::class, 'submitPretest'])->name('siswa.elearning.pretest.submit');
+
+            // Posttest
+            Route::get('/{id}/posttest', [\App\Http\Controllers\ElearningSiswaController::class, 'showPosttest'])->name('siswa.elearning.posttest');
+            Route::post('/{id}/posttest', [\App\Http\Controllers\ElearningSiswaController::class, 'submitPosttest'])->name('siswa.elearning.posttest.submit');
+
+            // Hasil
+            Route::get('/{id}/hasil/{tipe}', [\App\Http\Controllers\ElearningSiswaController::class, 'hasil'])->name('siswa.elearning.hasil');
+
+            // Upload Tugas
+            Route::post('/{sessionId}/submission', [\App\Http\Controllers\ElearningSiswaController::class, 'storeSubmission'])->name('siswa.elearning.submission.store');
+
+            // Forum Diskusi
+            Route::post('/{sessionId}/diskusi', [\App\Http\Controllers\ElearningSiswaController::class, 'storeDiscussion'])->name('siswa.elearning.diskusi.store');
         });
     });
 

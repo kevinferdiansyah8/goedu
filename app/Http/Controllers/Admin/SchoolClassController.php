@@ -46,10 +46,17 @@ class SchoolClassController extends Controller
     {
         $validated = $request->validate([
             'tingkat' => 'required',
-            'nama_kelas' => 'required|unique:school_classes,nama_kelas',
+            'nama_kelas' => 'required',
             'teacher_id' => 'nullable|exists:teachers,id',
             'tahun_ajaran' => 'required',
         ]);
+
+        $exists = SchoolClass::where('tingkat', $request->tingkat)
+            ->where('nama_kelas', $request->nama_kelas)
+            ->exists();
+        if ($exists) {
+            return redirect()->back()->withErrors(['nama_kelas' => 'Kelas dengan tingkat dan nama tersebut sudah ada.'])->withInput();
+        }
 
         SchoolClass::create($validated);
         return redirect()->back()->with('success', 'Data Kelas berhasil ditambahkan');
@@ -61,10 +68,18 @@ class SchoolClassController extends Controller
 
         $validated = $request->validate([
             'tingkat' => 'required',
-            'nama_kelas' => 'required|unique:school_classes,nama_kelas,' . $id,
+            'nama_kelas' => 'required',
             'teacher_id' => 'nullable|exists:teachers,id',
             'tahun_ajaran' => 'required',
         ]);
+
+        $exists = SchoolClass::where('tingkat', $request->tingkat)
+            ->where('nama_kelas', $request->nama_kelas)
+            ->where('id', '!=', $id)
+            ->exists();
+        if ($exists) {
+            return redirect()->back()->withErrors(['nama_kelas' => 'Kelas dengan tingkat dan nama tersebut sudah ada.'])->withInput();
+        }
 
         $schoolClass->update($validated);
         return redirect()->back()->with('success', 'Data Kelas berhasil diperbarui');

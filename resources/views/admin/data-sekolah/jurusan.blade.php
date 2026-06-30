@@ -74,7 +74,7 @@
             </select>
 
             <input type="text"
-                placeholder="Contoh: X RPL 1"
+                placeholder="Contoh: 7 A"
                 class="w-full px-4 py-3 border border-border rounded-xl
                        focus:ring-2 focus:ring-primary/20 focus:border-primary">
 
@@ -86,8 +86,8 @@
 
             <div class="pt-4 space-y-2">
                 <p class="text-sm font-semibold text-secondary">Daftar Kelas</p>
-                <div class="text-sm bg-muted rounded-xl p-3">X RPL 1</div>
-                <div class="text-sm bg-muted rounded-xl p-3">XI RPL 2</div>
+                <div class="text-sm bg-muted rounded-xl p-3">7 A</div>
+                <div class="text-sm bg-muted rounded-xl p-3">8 B</div>
             </div>
         </div>
 

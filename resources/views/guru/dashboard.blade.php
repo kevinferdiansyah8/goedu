@@ -53,17 +53,17 @@
                 <tr class="border-b">
                     <td class="py-2">07.00 - 08.30</td>
                     <td class="py-2">Matematika</td>
-                    <td class="py-2">X RPL 1</td>
+                    <td class="py-2">7 A</td>
                 </tr>
                 <tr class="border-b">
                     <td class="py-2">09.00 - 10.30</td>
                     <td class="py-2">Matematika</td>
-                    <td class="py-2">X RPL 2</td>
+                    <td class="py-2">7 B</td>
                 </tr>
                 <tr>
                     <td class="py-2">11.00 - 12.30</td>
                     <td class="py-2">Matematika</td>
-                    <td class="py-2">XI RPL</td>
+                    <td class="py-2">8 A</td>
                 </tr>
             </tbody>
         </table>
@@ -75,15 +75,15 @@
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div class="border rounded-lg p-4">
-                <p class="font-semibold">X RPL 1</p>
+                <p class="font-semibold">7 A</p>
                 <p class="text-sm text-gray-500">32 Siswa</p>
             </div>
             <div class="border rounded-lg p-4">
-                <p class="font-semibold">X RPL 2</p>
+                <p class="font-semibold">7 B</p>
                 <p class="text-sm text-gray-500">30 Siswa</p>
             </div>
             <div class="border rounded-lg p-4">
-                <p class="font-semibold">XI RPL</p>
+                <p class="font-semibold">8 A</p>
                 <p class="text-sm text-gray-500">28 Siswa</p>
             </div>
         </div>

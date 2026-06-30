@@ -1,8 +1,13 @@
 <?php
+require 'vendor/autoload.php';
+$app = require_once 'bootstrap/app.php';
+$kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
+$kernel->bootstrap();
+
 $classes = [
-    ['X', 'RPL 1'], ['X', 'RPL 2'], ['X', 'TKJ 1'],
-    ['XI', 'RPL 1'], ['XI', 'RPL 2'],
-    ['XII', 'RPL 1']
+    ['7', 'A'], ['7', 'B'],
+    ['8', 'A'], ['8', 'B'],
+    ['9', 'A'], ['9', 'B']
 ];
 
 foreach ($classes as $c) {

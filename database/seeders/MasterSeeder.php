@@ -13,8 +13,6 @@ use App\Models\Assignment;
 use App\Models\StudentAssignment;
 use App\Models\Grade;
 use App\Models\Attendance;
-use App\Models\Book;
-use App\Models\BookLoan;
 use App\Models\Event;
 use Illuminate\Support\Facades\DB;
 
@@ -74,8 +72,8 @@ class MasterSeeder extends Seeder
                'tanggal_upload' => '2023-10-20'
            ]);
 
-           // Schedule for X-A
-           Schedule::create(['subject_id' => $subject->id, 'kelas' => 'X-A', 'hari' => 'Senin', 'jam_mulai' => '07:00', 'jam_selesai' => '08:30']);
+           // Schedule for 7-A
+           Schedule::create(['subject_id' => $subject->id, 'kelas' => '7-A', 'hari' => 'Senin', 'jam_mulai' => '07:00', 'jam_selesai' => '08:30']);
 
            // Assignment
            $assignment = Assignment::create([
@@ -115,11 +113,11 @@ class MasterSeeder extends Seeder
             ['judul' => 'Filosofi Teras', 'penulis' => 'Henry Manampiring', 'kategori' => 'Self Improvement', 'stok' => 8]
         ];
         foreach ($books as $b) {
-            $book = Book::create($b);
+            $bookId = DB::table('books')->insertGetId($b);
             foreach ($students->take(2) as $s) {
-                BookLoan::create([
+                DB::table('book_loans')->insert([
                     'student_id' => $s->id,
-                    'book_id' => $book->id,
+                    'book_id' => $bookId,
                     'tanggal_pinjam' => '2023-10-01',
                     'tanggal_kembali' => '2023-10-08',
                     'status' => 'Dipinjam',

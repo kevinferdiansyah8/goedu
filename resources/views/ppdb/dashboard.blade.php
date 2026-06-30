@@ -17,6 +17,17 @@
     </div>
     @endif
 
+    @if ($errors->any())
+    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-2xl font-bold text-sm shadow-sm">
+        <p class="font-bold mb-1">Terjadi kesalahan:</p>
+        <ul class="list-disc pl-5 space-y-0.5">
+            @foreach ($errors->all() as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
+    @endif
+
     {{-- Header --}}
     <div class="flex items-center justify-between flex-wrap gap-4">
       <div class="flex items-center gap-4">
@@ -126,7 +137,7 @@
               <form action="{{ route('ppdb.upload-payment') }}" method="POST" enctype="multipart/form-data" class="space-y-3">
                 @csrf
                 <div>
-                  <label class="block text-xs font-bold text-gray-700 mb-1">Upload Bukti Transfer (JPG, PNG, atau PDF max 2MB)</label>
+                  <label class="block text-xs font-bold text-gray-700 mb-1">Upload Bukti Transfer (JPG, PNG, atau PDF max 20MB)</label>
                   <input type="file" name="file" accept="image/*,application/pdf" class="w-full px-4 py-2 border rounded-xl text-xs" required>
                 </div>
                 <div>
@@ -161,7 +172,7 @@
             <i data-lucide="paperclip" class="w-4 h-4 text-violet-500"></i>
             <span class="text-sm font-bold text-gray-800">Unggah Dokumen Persyaratan</span>
           </div>
-          <div class="px-5 py-4 space-y-4">
+          <div class="px-5 py-4">
             @php
               $docs = [
                 'kk' => 'Kartu Keluarga (KK)',
@@ -170,67 +181,87 @@
                 'foto' => 'Pas Foto 3x4 Latar Merah',
                 'ijazah' => 'Ijazah / SKL SD'
               ];
+              $showUploadButton = false;
+              foreach($docs as $key => $label) {
+                if (in_array($applicant->{'status_' . $key}, ['Belum Upload', 'Perbaikan', 'Tidak Valid'])) {
+                  $showUploadButton = true;
+                }
+              }
             @endphp
-            @foreach($docs as $key => $label)
-              <div class="border border-gray-100 rounded-xl p-4 bg-gray-50/50 space-y-3">
-                <div class="flex items-center justify-between">
-                  <div class="flex items-center gap-2">
-                    @php
-                      $status = $applicant->{'status_' . $key};
-                      $docFile = $applicant->{'berkas_' . $key};
-                      $icon = match($status) {
-                          'Valid' => 'check-circle-2',
-                          'Perbaikan' => 'alert-triangle',
-                          'Tidak Valid' => 'x-circle',
-                          'Sudah Upload' => 'clock',
-                          default => 'file-text'
-                      };
-                      $color = match($status) {
-                          'Valid' => 'text-green-600',
-                          'Perbaikan' => 'text-amber-500',
-                          'Tidak Valid' => 'text-red-500',
-                          'Sudah Upload' => 'text-blue-500',
-                          default => 'text-gray-400'
-                      };
-                    @endphp
-                    <i data-lucide="{{ $icon }}" class="w-4 h-4 {{ $color }}"></i>
-                    <span class="text-xs font-bold text-gray-800">{{ $label }}</span>
+
+            @if($showUploadButton)
+            <form action="{{ route('ppdb.upload-document') }}" method="POST" enctype="multipart/form-data" class="space-y-4">
+              @csrf
+            @else
+            <div class="space-y-4">
+            @endif
+
+              @foreach($docs as $key => $label)
+                <div class="border border-gray-100 rounded-xl p-4 bg-gray-50/50 space-y-3">
+                  <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                      @php
+                        $status = $applicant->{'status_' . $key};
+                        $docFile = $applicant->{'berkas_' . $key};
+                        $icon = match($status) {
+                            'Valid' => 'check-circle-2',
+                            'Perbaikan' => 'alert-triangle',
+                            'Tidak Valid' => 'x-circle',
+                            'Sudah Upload' => 'clock',
+                            default => 'file-text'
+                        };
+                        $color = match($status) {
+                            'Valid' => 'text-green-600',
+                            'Perbaikan' => 'text-amber-500',
+                            'Tidak Valid' => 'text-red-500',
+                            'Sudah Upload' => 'text-blue-500',
+                            default => 'text-gray-400'
+                        };
+                      @endphp
+                      <i data-lucide="{{ $icon }}" class="w-4 h-4 {{ $color }}"></i>
+                      <span class="text-xs font-bold text-gray-800">{{ $label }}</span>
+                    </div>
+                    <span class="text-[10px] font-bold uppercase tracking-wider {{ $color }}">
+                      {{ $status }}
+                    </span>
                   </div>
-                  <span class="text-[10px] font-bold uppercase tracking-wider {{ $color }}">
-                    {{ $status }}
-                  </span>
-                </div>
 
-                @if($applicant->{'catatan_' . $key})
-                <p class="text-[11px] text-amber-700 bg-amber-50 border border-amber-100 rounded-lg p-2">
-                  Catatan: {{ $applicant->{'catatan_' . $key} }}
-                </p>
-                @endif
+                  @if($applicant->{'catatan_' . $key})
+                  <p class="text-[11px] text-amber-700 bg-amber-50 border border-amber-100 rounded-lg p-2">
+                    Catatan: {{ $applicant->{'catatan_' . $key} }}
+                  </p>
+                  @endif
 
-                <div class="flex items-center justify-between gap-4 flex-wrap">
-                  <div>
-                    @if($docFile)
-                      <a href="{{ asset('storage/' . $docFile) }}" target="_blank" class="text-xs text-blue-600 font-bold hover:underline inline-flex items-center gap-1">
-                        <i data-lucide="eye" class="w-3.5 h-3.5"></i> Lihat Dokumen Anda
-                      </a>
-                    @else
-                      <span class="text-[10px] text-gray-400 italic">Belum ada berkas</span>
+                  <div class="flex items-center justify-between gap-4 flex-wrap">
+                    <div>
+                      @if($docFile)
+                        <a href="{{ asset('storage/' . $docFile) }}" target="_blank" class="text-xs text-blue-600 font-bold hover:underline inline-flex items-center gap-1">
+                          <i data-lucide="eye" class="w-3.5 h-3.5"></i> Lihat Dokumen Anda
+                        </a>
+                      @else
+                        <span class="text-[10px] text-gray-400 italic">Belum ada berkas</span>
+                      @endif
+                    </div>
+
+                    @if($status === 'Belum Upload' || $status === 'Perbaikan' || $status === 'Tidak Valid')
+                      <div class="flex items-center gap-2">
+                        <input type="file" name="file_{{ $key }}" accept="image/*,application/pdf" class="text-xs px-2 py-1 border rounded-lg max-w-[200px]">
+                      </div>
                     @endif
                   </div>
-
-                  @if($status === 'Belum Upload' || $status === 'Perbaikan' || $status === 'Tidak Valid')
-                    <form action="{{ route('ppdb.upload-document') }}" method="POST" enctype="multipart/form-data" class="flex items-center gap-2">
-                      @csrf
-                      <input type="hidden" name="document_type" value="{{ $key }}">
-                      <input type="file" name="file" accept="image/*,application/pdf" class="text-xs px-2 py-1 border rounded-lg max-w-[180px]" required>
-                      <button type="submit" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-[10px] rounded-lg transition cursor-pointer">
-                        Upload
-                      </button>
-                    </form>
-                  @endif
                 </div>
+              @endforeach
+
+              @if($showUploadButton)
+                <div class="pt-2 flex justify-end">
+                  <button type="submit" class="w-full sm:w-auto px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-md transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer">
+                    <i data-lucide="upload-cloud" class="w-4 h-4"></i> Upload Semua Dokumen Terpilih
+                  </button>
+                </div>
+              </form>
+              @else
               </div>
-            @endforeach
+              @endif
           </div>
         </div>
 
@@ -292,7 +323,8 @@
 
             {{-- Step 2 --}}
             @php
-              $isUploadDone = $uploadedCount === 5;
+              $hasPassedVerification = $applicant->berkas_status === 'Terverifikasi' || in_array($applicant->status, ['Diverifikasi', 'Lulus', 'Tidak Lulus']);
+              $isUploadDone = $uploadedCount === 5 || $hasPassedVerification;
               $step2Bg = $isUploadDone ? 'bg-green-500' : ($uploadedCount > 0 ? 'bg-amber-400 animate-pulse' : 'bg-gray-200');
               $step2Icon = $isUploadDone ? 'check' : ($uploadedCount > 0 ? 'loader-2' : 'circle');
             @endphp
@@ -302,13 +334,13 @@
               </div>
               <div>
                 <p class="text-xs font-bold text-gray-800">Dokumen Di-upload</p>
-                <p class="text-[10px] text-gray-400">Terunggah: {{ $uploadedCount }}/5 berkas</p>
+                <p class="text-[10px] text-gray-400">Terunggah: {{ $hasPassedVerification ? '5' : $uploadedCount }}/5 berkas</p>
               </div>
             </div>
 
             {{-- Step 3 --}}
             @php
-              $isVerified = $applicant->berkas_status === 'Terverifikasi';
+              $isVerified = $hasPassedVerification;
               $isPerbaikan = $applicant->berkas_status === 'Perlu Perbaikan';
               $step3Bg = $isVerified ? 'bg-green-500' : ($isPerbaikan ? 'bg-red-500' : ($applicant->berkas_status === 'Sudah Upload' ? 'bg-amber-400 animate-pulse' : 'bg-gray-200'));
               $step3Icon = $isVerified ? 'check' : ($isPerbaikan ? 'alert-triangle' : ($applicant->berkas_status === 'Sudah Upload' ? 'loader-2' : 'circle'));
@@ -319,7 +351,7 @@
               </div>
               <div>
                 <p class="text-xs font-bold text-gray-800">Verifikasi Data</p>
-                <p class="text-[10px] text-gray-400">Status: {{ $applicant->berkas_status }}</p>
+                <p class="text-[10px] text-gray-400">Status: {{ $isVerified ? 'Terverifikasi' : $applicant->berkas_status }}</p>
               </div>
             </div>
 

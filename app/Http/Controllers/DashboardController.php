@@ -137,7 +137,7 @@ class DashboardController extends Controller
                 'type' => 'warning',
                 'icon' => 'alert-triangle',
                 'title' => 'Kehadiran Rendah',
-                'desc' => 'Kelas ' . $c->nama_kelas . ' memiliki tingkat kehadiran di bawah 75% hari ini.'
+                'desc' => 'Kelas ' . $c->tingkat . ' ' . $c->nama_kelas . ' memiliki tingkat kehadiran di bawah 75% hari ini.'
             ];
         }
 

@@ -21,7 +21,7 @@
                     <select id="kelasSelect" name="kelas_id" class="w-full border border-blue-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-200">
                         <option value="">Semua Kelas</option>
                         @foreach($kelasList as $kelas)
-                            <option value="{{ $kelas->id }}" {{ $kelasId == $kelas->id ? 'selected' : '' }}>{{ $kelas->nama_kelas }}</option>
+                            <option value="{{ $kelas->id }}" {{ $kelasId == $kelas->id ? 'selected' : '' }}>{{ $kelas->tingkat }} {{ $kelas->nama_kelas }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -95,7 +95,7 @@
                                 </span>
                                 <span>{{ $siswa->nama }}</span>
                             </td>
-                            <td class="px-5 py-3 text-gray-600">{{ $siswa->schoolClass->nama_kelas ?? '-' }}</td>
+                            <td class="px-5 py-3 text-gray-600">{{ $siswa->schoolClass ? ($siswa->schoolClass->tingkat . ' ' . $siswa->schoolClass->nama_kelas) : '-' }}</td>
                             <td class="px-5 py-3 text-center">
                                 @if($status === 'Hadir')
                                     <span class="px-3 py-1 rounded-full bg-green-100 text-green-700 text-xs font-semibold">✅ Hadir</span>

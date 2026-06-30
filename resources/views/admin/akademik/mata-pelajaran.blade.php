@@ -130,12 +130,6 @@
 				</div>
 				<input type="text" name="search" value="{{ request('search') }}" placeholder="Cari nama / kode mapel..." class="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 focus:bg-white transition-all">
 			</div>
-			<select name="jurusan" class="px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-all min-w-[180px]">
-				<option value="">Semua Jurusan</option>
-				@foreach($daftarJurusan as $j)
-					<option value="{{ $j }}" {{ request('jurusan') == $j ? 'selected' : '' }}>{{ $j }}</option>
-				@endforeach
-			</select>
 			<select name="tingkat" class="px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-all min-w-[140px]">
 				<option value="">Semua Tingkat</option>
 				@foreach($daftarTingkat as $t)
@@ -171,7 +165,6 @@
 					<tr class="bg-gray-50/80">
 						<th class="px-5 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider">Kode</th>
 						<th class="px-5 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider">Mata Pelajaran</th>
-						<th class="px-5 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider">Jurusan</th>
 						<th class="px-5 py-3 text-center text-[10px] font-bold text-gray-400 uppercase tracking-wider">Tingkat</th>
 						<th class="px-5 py-3 text-center text-[10px] font-bold text-gray-400 uppercase tracking-wider">Jam</th>
 						<th class="px-5 py-3 text-center text-[10px] font-bold text-gray-400 uppercase tracking-wider">Status</th>
@@ -189,9 +182,6 @@
 								<p class="font-semibold text-gray-800">{{ $mp->nama }}</p>
 								<p class="text-[11px] text-gray-400">Pengajar: {{ $mp->teacher ? $mp->teacher->nama : '-' }}</p>
 							</div>
-						</td>
-						<td class="px-5 py-3.5">
-							<span class="text-xs text-gray-600">{{ $mp->jurusan ?: '-' }}</span>
 						</td>
 						<td class="px-5 py-3.5 text-center">
 							<span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-gray-100 text-gray-700 text-xs font-bold">{{ $mp->tingkat }}</span>
@@ -228,7 +218,7 @@
 					</tr>
 					@empty
 					<tr>
-						<td colspan="7" class="px-5 py-10 text-center text-gray-500 text-sm">Tidak ada data mata pelajaran</td>
+						<td colspan="6" class="px-5 py-10 text-center text-gray-500 text-sm">Tidak ada data mata pelajaran</td>
 					</tr>
 					@endforelse
 				</tbody>
@@ -240,16 +230,35 @@
 		</div>
 	</div>
 
-	<!-- Form Tambah/Edit (Slide down) -->
-	<div x-show="showForm" style="display: none;" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 -translate-y-4" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0 -translate-y-4" class="max-w-2xl mx-auto mb-10">
-		<div class="bg-white border border-gray-100 rounded-2xl shadow-lg overflow-hidden">
-			<div class="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4">
+	<!-- Form Tambah/Edit Modal (Fixed Overlay) -->
+	<div x-show="showForm" style="display: none;" 
+		class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm"
+		x-transition:enter="transition ease-out duration-300"
+		x-transition:enter-start="opacity-0"
+		x-transition:enter-end="opacity-100"
+		x-transition:leave="transition ease-in duration-200"
+		x-transition:leave-start="opacity-100"
+		x-transition:leave-end="opacity-0">
+		
+		<!-- Modal Content Box -->
+		<div @click.away="resetForm()" 
+			class="bg-white border border-gray-100 rounded-[24px] shadow-2xl overflow-hidden w-full max-w-2xl transform transition-all"
+			x-transition:enter="transition ease-out duration-300"
+			x-transition:enter-start="opacity-0 scale-95 translate-y-4"
+			x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+			x-transition:leave="transition ease-in duration-200"
+			x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+			x-transition:leave-end="opacity-0 scale-95 translate-y-4">
+			
+			<div class="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4 flex items-center justify-between">
 				<div class="flex items-center gap-2">
 					<i data-lucide="plus-square" class="w-5 h-5 text-blue-200" x-show="!isEdit"></i>
 					<i data-lucide="edit" class="w-5 h-5 text-blue-200" x-show="isEdit" style="display: none;"></i>
 					<span class="text-white text-sm font-bold uppercase tracking-wider" x-text="isEdit ? 'Edit Mata Pelajaran' : 'Tambah Mata Pelajaran'"></span>
 				</div>
-				<p class="text-blue-200 text-xs mt-1">Isi data mata pelajaran dengan benar</p>
+				<button type="button" @click="resetForm()" class="text-blue-100 hover:text-white transition-colors cursor-pointer" aria-label="Close modal">
+					<i data-lucide="x" class="w-5 h-5"></i>
+				</button>
 			</div>
 			<form :action="formAction" method="POST" class="p-6">
 				@csrf
@@ -265,10 +274,7 @@
 						<label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Nama Mapel <span class="text-red-400">*</span></label>
 						<input name="nama" required x-model="mapel.nama" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 focus:bg-white transition-all" placeholder="Nama mata pelajaran">
 					</div>
-					<div>
-						<label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Jurusan</label>
-						<input name="jurusan" x-model="mapel.jurusan" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 focus:bg-white transition-all" placeholder="Kosongkan jika semua jurusan">
-					</div>
+					<input type="hidden" name="jurusan" value="">
 					<div>
 						<label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Tingkat <span class="text-red-400">*</span></label>
 						<input name="tingkat" required x-model="mapel.tingkat" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 focus:bg-white transition-all" placeholder="Contoh: X, XI, atau 10, 11">
@@ -297,8 +303,8 @@
 					</div>
 				</div>
 				<div class="flex justify-end gap-2.5 mt-6 pt-5 border-t border-gray-100">
-					<button type="button" @click="resetForm()" class="px-5 py-2.5 border border-gray-200 rounded-xl bg-white hover:bg-gray-50 text-gray-600 font-semibold text-sm transition-all">Batal</button>
-					<button type="submit" class="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl font-bold text-sm shadow-lg shadow-blue-200 transition-all active:scale-95">
+					<button type="button" @click="resetForm()" class="px-5 py-2.5 border border-gray-200 rounded-xl bg-white hover:bg-gray-50 text-gray-600 font-semibold text-sm transition-all cursor-pointer">Batal</button>
+					<button type="submit" class="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl font-bold text-sm shadow-lg shadow-blue-200 transition-all active:scale-95 cursor-pointer">
 						<i data-lucide="save" class="w-4 h-4"></i>
 						Simpan Data
 					</button>

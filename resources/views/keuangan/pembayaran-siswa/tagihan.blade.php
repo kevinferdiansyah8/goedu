@@ -28,12 +28,12 @@
         <div class="relative">
             <select class="border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-medium text-foreground bg-white focus:border-primary focus:ring-1 focus:ring-primary transition">
                 <option>Semua Kelas</option>
-                <option>X-A</option>
-                <option>X-B</option>
-                <option>XI-A</option>
-                <option>XI-B</option>
-                <option>XII-A</option>
-                <option>XII-B</option>
+                <option>7-A</option>
+                <option>7-B</option>
+                <option>8-A</option>
+                <option>8-B</option>
+                <option>9-A</option>
+                <option>9-B</option>
             </select>
         </div>
         <div class="relative">

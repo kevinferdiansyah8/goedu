@@ -7,6 +7,7 @@
 <meta name="description" content="Penerimaan Peserta Didik Baru (PPDB) FDUGO - Pendaftaran online untuk SD, SMP, SMA, dan SMK.">
 <link href="https://fonts.googleapis.com/css2?family=Lexend+Deca:wght@100..900&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 <style type="text/tailwindcss">
   :root {
@@ -30,13 +31,7 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
       {{-- Logo --}}
       <a href="{{ url('/ppdb') }}" class="flex items-center gap-2 shrink-0">
-        <div class="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center">
-          <span class="text-white font-extrabold text-base leading-none">EG</span>
-        </div>
-        <div class="leading-tight">
-          <div class="text-blue-600 font-extrabold text-base">EDUGO</div>
-          <div class="text-gray-400 text-[10px] font-medium tracking-wide">online</div>
-        </div>
+        <img src="{{ asset('images/goedu_logo.png') }}" alt="GoEdu Logo" class="h-10 w-auto object-contain">
       </a>
 
       {{-- Search --}}
@@ -71,13 +66,8 @@
       {{-- Kolom 1: Brand --}}
       <div>
         <div class="flex items-center gap-2.5 mb-4">
-          <div class="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center">
-            <span class="text-white font-extrabold text-sm">EG</span>
-          </div>
-          <div>
-            <div class="text-white font-extrabold text-base">EDUGO</div>
-            <div class="text-gray-500 text-[10px] font-medium tracking-wider uppercase">PPDB Online</div>
-          </div>
+          <img src="{{ asset('images/goedu_logo.png') }}" alt="GoEdu Logo" class="h-10 w-auto object-contain">
+          <span class="text-gray-500 text-[10px] font-medium tracking-wider uppercase">PPDB Online</span>
         </div>
         <p class="text-xs text-gray-500 leading-relaxed mb-4">Sistem Penerimaan Peserta Didik Baru online untuk jenjang SD, SMP, SMA, dan SMK. Gratis tanpa dipungut biaya.</p>
         <div class="flex gap-2">

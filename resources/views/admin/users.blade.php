@@ -165,15 +165,37 @@
 		</div>
 	</div>
 
-	<!-- Form Tambah/Edit (Slide down) -->
-	<div x-show="showForm" style="display: none;" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 -translate-y-4" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0 -translate-y-4" class="max-w-2xl mx-auto mb-10">
-		<div class="bg-white border border-gray-100 rounded-2xl shadow-lg overflow-hidden">
-			<div class="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4">
+	<!-- Modal Form Tambah/Edit (Centered Overlay) -->
+	<div x-show="showForm" 
+		 class="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4" 
+		 style="display: none;"
+		 x-transition:enter="transition ease-out duration-300"
+		 x-transition:enter-start="opacity-0"
+		 x-transition:enter-end="opacity-100"
+		 x-transition:leave="transition ease-in duration-200"
+		 x-transition:leave-start="opacity-100"
+		 x-transition:leave-end="opacity-0">
+		 
+		<!-- Backdrop -->
+		<div class="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity" @click="resetForm()"></div>
+
+		<!-- Modal content -->
+		<div class="bg-white border border-gray-100 rounded-2xl shadow-2xl overflow-hidden w-full max-w-2xl transform transition-all z-10"
+			 x-transition:enter="transition ease-out duration-300"
+			 x-transition:enter-start="opacity-0 scale-95"
+			 x-transition:enter-end="opacity-100 scale-100"
+			 x-transition:leave="transition ease-in duration-200"
+			 x-transition:leave-start="opacity-100 scale-100"
+			 x-transition:leave-end="opacity-0 scale-95">
+			<div class="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4 flex items-center justify-between">
 				<div class="flex items-center gap-2">
 					<i data-lucide="user-plus" class="w-5 h-5 text-indigo-200" x-show="!isEdit"></i>
 					<i data-lucide="edit" class="w-5 h-5 text-indigo-200" x-show="isEdit" style="display: none;"></i>
 					<span class="text-white text-sm font-bold uppercase tracking-wider" x-text="isEdit ? 'Edit Data Siswa' : 'Tambah Data Siswa'"></span>
 				</div>
+				<button type="button" @click="resetForm()" class="text-white/80 hover:text-white transition-colors">
+					<i data-lucide="x" class="w-5 h-5"></i>
+				</button>
 			</div>
 			<form :action="formAction" method="POST" class="p-6">
 				@csrf

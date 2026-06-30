@@ -144,7 +144,7 @@
                   
                   <div class="flex items-start gap-3">
                     <div class="w-6 h-6 rounded-full flex items-center justify-center shrink-0 mt-0.5" 
-                         :class="applicant && (applicant.berkas_status === 'Sudah Upload' || applicant.berkas_status === 'Terverifikasi') ? 'bg-green-500' : 'bg-gray-200'">
+                         :class="applicant && (applicant.berkas_status === 'Sudah Upload' || applicant.berkas_status === 'Terverifikasi' || ['Diverifikasi', 'Lulus', 'Tidak Lulus'].includes(applicant.status)) ? 'bg-green-500' : 'bg-gray-200'">
                       <i data-lucide="check" class="w-3.5 h-3.5 text-white"></i>
                     </div>
                     <div>
@@ -154,11 +154,11 @@
 
                   <div class="flex items-start gap-3">
                     <div class="w-6 h-6 rounded-full flex items-center justify-center shrink-0 mt-0.5" 
-                         :class="applicant && applicant.berkas_status === 'Terverifikasi' ? 'bg-green-500' : (applicant && applicant.berkas_status === 'Sudah Upload' ? 'bg-amber-400 animate-pulse' : 'bg-gray-200')">
+                         :class="applicant && (applicant.berkas_status === 'Terverifikasi' || ['Diverifikasi', 'Lulus', 'Tidak Lulus'].includes(applicant.status)) ? 'bg-green-500' : (applicant && applicant.berkas_status === 'Sudah Upload' ? 'bg-amber-400 animate-pulse' : 'bg-gray-200')">
                       <i data-lucide="circle" class="w-3.5 h-3.5 text-white"></i>
                     </div>
                     <div>
-                      <p class="text-xs font-semibold text-gray-800" x-text="'Verifikasi Berkas: ' + (applicant ? applicant.berkas_status : '-')"></p>
+                      <p class="text-xs font-semibold text-gray-800" x-text="'Verifikasi Berkas: ' + (applicant ? (['Diverifikasi', 'Lulus', 'Tidak Lulus'].includes(applicant.status) || applicant.berkas_status === 'Terverifikasi' ? 'Terverifikasi' : applicant.berkas_status) : '-')"></p>
                     </div>
                   </div>
 

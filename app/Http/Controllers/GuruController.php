@@ -109,7 +109,7 @@ class GuruController extends Controller
                 'time' => $tugas->created_at->diffForHumans(),
                 'desc' => 'Tugas "' . ($tugas->assignment->judul ?? '') . '" dari ' . ($tugas->student->nama ?? 'Siswa') . ' belum dinilai.',
                 'action_text' => 'Nilai Sekarang',
-                'action_url' => route('guru.materi-tugas.komentar-feedback')
+                'action_url' => route('guru.tugas.penilaian')
             ];
         }
 
@@ -130,7 +130,7 @@ class GuruController extends Controller
                 'time' => $izin->created_at->format('H:i'),
                 'desc' => '<span class="font-semibold text-gray-800">' . ($izin->student->nama ?? 'Unknown') . '</span> (' . ($izin->student->schoolClass->nama_kelas ?? '') . ') izin ' . strtolower($izin->status) . '.',
                 'action_text' => 'Lihat Data',
-                'action_url' => route('guru.absensi.izin-sakit-alpha')
+                'action_url' => route('guru.absensi.izin')
             ];
         }
 

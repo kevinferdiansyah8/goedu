@@ -183,7 +183,7 @@
                 <h3 class="font-bold text-gray-800 mb-3"><i class="fa fa-plus-circle"></i> Tambah Riwayat Jabatan</h3>
                 <div class="flex gap-4 items-end">
                     <div class="flex-1">
-                        <label class="block text-sm font-semibold mb-1">Jabatan (Contoh: Wali Kelas X RPL)</label>
+                        <label class="block text-sm font-semibold mb-1">Jabatan (Contoh: Wali Kelas 7 A)</label>
                         <input type="text" name="jabatan" class="input w-full" required>
                     </div>
                     <div class="flex-1">

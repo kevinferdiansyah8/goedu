@@ -23,10 +23,7 @@
     <nav class="w-full py-6 px-6 relative z-10">
         <div class="max-w-6xl mx-auto flex justify-between items-center bg-white/70 backdrop-blur-md rounded-3xl px-6 py-4 shadow-sm border border-white">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-200">
-                    <i data-lucide="graduation-cap" class="w-6 h-6 text-white"></i>
-                </div>
-                <span class="text-xl font-black text-gray-900 tracking-tight">GOEDU</span>
+                <img src="{{ asset('images/goedu_logo.png') }}" alt="GoEdu Logo" class="h-10 w-auto object-contain">
             </div>
             <div>
                 <a href="{{ url('/') }}" class="text-sm font-bold text-gray-500 hover:text-indigo-600 transition-colors">Kembali ke Beranda</a>

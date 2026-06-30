@@ -16,7 +16,9 @@ class AdminAkademikController extends Controller
     // ─────────────────────────────────────────────
     public function penilaian(Request $request)
     {
-        $kelasList = SchoolClass::orderBy('nama_kelas')->pluck('nama_kelas');
+        $kelasList = SchoolClass::orderBy('tingkat')->orderBy('nama_kelas')->get()->map(function($c) {
+            return $c->tingkat . ' ' . $c->nama_kelas;
+        });
         $mapelList = Subject::orderBy('nama')->pluck('nama');
 
         // Query dengan eager load
@@ -24,9 +26,12 @@ class AdminAkademikController extends Controller
 
         // Filter kelas
         if ($request->filled('kelas')) {
-            $query->whereHas('student.schoolClass', fn($q) =>
-                $q->where('nama_kelas', $request->kelas)
-            );
+            $query->whereHas('student.schoolClass', function($q) use ($request) {
+                $parts = explode(' ', $request->kelas, 2);
+                $tingkat = $parts[0] ?? '';
+                $namaKelas = $parts[1] ?? '';
+                $q->where('tingkat', $tingkat)->where('nama_kelas', $namaKelas);
+            });
         }
 
         // Filter mapel
@@ -45,7 +50,7 @@ class AdminAkademikController extends Controller
                 'id'     => $g->id,
                 'nama'   => $g->student->nama ?? '-',
                 'nisn'   => $g->student->nisn ?? '-',
-                'kelas'  => $g->student->schoolClass->nama_kelas ?? '-',
+                'kelas'  => $g->student->schoolClass ? ($g->student->schoolClass->tingkat . ' ' . $g->student->schoolClass->nama_kelas) : '-',
                 'mapel'  => $g->subject->nama ?? '-',
                 'tugas'  => $tugas,
                 'uts'    => $uts,
@@ -70,7 +75,9 @@ class AdminAkademikController extends Controller
     // ─────────────────────────────────────────────
     public function rapor(Request $request)
     {
-        $kelasList = SchoolClass::orderBy('nama_kelas')->pluck('nama_kelas');
+        $kelasList = SchoolClass::orderBy('tingkat')->orderBy('nama_kelas')->get()->map(function($c) {
+            return $c->tingkat . ' ' . $c->nama_kelas;
+        });
 
         // Ambil semua siswa yang punya grades, grouped by kelas
         $students = Student::with(['schoolClass', 'grades.subject'])
@@ -97,7 +104,7 @@ class AdminAkademikController extends Controller
             return [
                 'nama'  => $s->nama,
                 'nisn'  => $s->nisn ?? '-',
-                'kelas' => $s->schoolClass->nama_kelas ?? '-',
+                'kelas' => $s->schoolClass ? ($s->schoolClass->tingkat . ' ' . $s->schoolClass->nama_kelas) : '-',
                 'nilai' => $nilaiList,
             ];
         })->values();

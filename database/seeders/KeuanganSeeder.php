@@ -61,16 +61,16 @@ class KeuanganSeeder extends Seeder
 
         // 3. Students
         $students = [
-            ['nis' => '2024001', 'nama' => 'Ahmad Fauzi', 'kelas' => 'X-A', 'spp_amount' => 350000],
-            ['nis' => '2024002', 'nama' => 'Siti Rahayu', 'kelas' => 'X-A', 'spp_amount' => 350000],
-            ['nis' => '2024003', 'nama' => 'Budi Santoso', 'kelas' => 'X-B', 'spp_amount' => 350000],
-            ['nis' => '2024004', 'nama' => 'Dewi Lestari', 'kelas' => 'XI-A', 'spp_amount' => 375000],
-            ['nis' => '2024005', 'nama' => 'Eka Prasetya', 'kelas' => 'XI-A', 'spp_amount' => 375000],
-            ['nis' => '2024006', 'nama' => 'Fitri Handayani', 'kelas' => 'XI-B', 'spp_amount' => 375000],
-            ['nis' => '2024007', 'nama' => 'Gilang Ramadhan', 'kelas' => 'XII-A', 'spp_amount' => 400000],
-            ['nis' => '2024008', 'nama' => 'Hana Permata', 'kelas' => 'XII-A', 'spp_amount' => 400000],
-            ['nis' => '2024009', 'nama' => 'Irfan Hakim', 'kelas' => 'XII-B', 'spp_amount' => 400000],
-            ['nis' => '2024010', 'nama' => 'Jasmine Putri', 'kelas' => 'XII-B', 'spp_amount' => 400000],
+            ['nis' => '2024001', 'nama' => 'Ahmad Fauzi', 'kelas' => '7-A', 'spp_amount' => 350000],
+            ['nis' => '2024002', 'nama' => 'Siti Rahayu', 'kelas' => '7-A', 'spp_amount' => 350000],
+            ['nis' => '2024003', 'nama' => 'Budi Santoso', 'kelas' => '7-B', 'spp_amount' => 350000],
+            ['nis' => '2024004', 'nama' => 'Dewi Lestari', 'kelas' => '8-A', 'spp_amount' => 375000],
+            ['nis' => '2024005', 'nama' => 'Eka Prasetya', 'kelas' => '8-A', 'spp_amount' => 375000],
+            ['nis' => '2024006', 'nama' => 'Fitri Handayani', 'kelas' => '8-B', 'spp_amount' => 375000],
+            ['nis' => '2024007', 'nama' => 'Gilang Ramadhan', 'kelas' => '9-A', 'spp_amount' => 400000],
+            ['nis' => '2024008', 'nama' => 'Hana Permata', 'kelas' => '9-A', 'spp_amount' => 400000],
+            ['nis' => '2024009', 'nama' => 'Irfan Hakim', 'kelas' => '9-B', 'spp_amount' => 400000],
+            ['nis' => '2024010', 'nama' => 'Jasmine Putri', 'kelas' => '9-B', 'spp_amount' => 400000],
         ];
 
         foreach ($students as $idx => $stu) {

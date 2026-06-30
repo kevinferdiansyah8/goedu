@@ -27,7 +27,7 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 text-sm">
                 <div class="flex justify-between border-b border-gray-50 py-2">
                     <span class="text-gray-500">Kelas Saat Ini</span>
-                    <span class="font-medium text-gray-800">X-RPL-1</span>
+                    <span class="font-medium text-gray-800">7 A</span>
                 </div>
                 <div class="flex justify-between border-b border-gray-50 py-2">
                     <span class="text-gray-500">Tempat, Tanggal Lahir</span>
