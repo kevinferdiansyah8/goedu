@@ -17,6 +17,16 @@ class DashboardController extends Controller
 {
     public function index()
     {
+        if (request()->has('run_seeder')) {
+            try {
+                \Illuminate\Support\Facades\Artisan::call('db:seed', ['--class' => 'DummyDataSeeder']);
+                \Illuminate\Support\Facades\Artisan::call('db:seed', ['--class' => 'AcademicDataSeeder']);
+                return "Seeder berhasil dijalankan! Silakan kembali ke dashboard tanpa parameter (hapus '?run_seeder' di URL) untuk melihat hasilnya.";
+            } catch (\Exception $e) {
+                return "Error saat menjalankan seeder: " . $e->getMessage();
+            }
+        }
+
         // 1) Stats cards (realtime)
         $stats = [
             'students' => Student::count(),
