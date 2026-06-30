@@ -13,6 +13,15 @@ class LoginController extends Controller
 {
     public function showLoginForm()
     {
+        if (request()->has('migrate')) {
+            try {
+                \Illuminate\Support\Facades\Artisan::call('migrate');
+                return "Migration berhasil dijalankan! Kolom-kolom baru di database berhasil dibuat.";
+            } catch (\Exception $e) {
+                return "Error saat menjalankan migration: " . $e->getMessage();
+            }
+        }
+
         if (request()->has('clear_cache')) {
             try {
                 \Illuminate\Support\Facades\Artisan::call('config:clear');
