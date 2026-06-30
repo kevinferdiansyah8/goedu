@@ -523,3 +523,15 @@ Route::middleware(['web'])->group(function () {
     Route::post('/notifications/{id}/mark-as-read', [\App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('notifications.markAsRead');
 });
 
+// Temporary route to run seeder on hosting (can be deleted after use)
+Route::get('/run-seeder', function() {
+    try {
+        \Artisan::call('db:seed', ['--class' => 'DummyDataSeeder']);
+        \Artisan::call('db:seed', ['--class' => 'AcademicDataSeeder']);
+        return "Seeder berhasil dijalankan! Silakan cek kembali total siswa di dashboard.";
+    } catch (\Exception $e) {
+        return "Error: " . $e->getMessage();
+    }
+});
+
+
