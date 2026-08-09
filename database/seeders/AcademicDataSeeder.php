@@ -32,7 +32,7 @@ class AcademicDataSeeder extends Seeder
         $this->command->info('Seeding academic data for all classes...');
 
         foreach ($classes as $class) {
-            $className = $class->tingkat . '-' . $class->nama_kelas;
+            $className = $class->tingkat === $class->nama_kelas ? $class->tingkat : $class->tingkat . '-' . $class->nama_kelas;
             $students = Student::where('school_class_id', $class->id)->get();
             $subjects = Subject::where('tingkat', $class->tingkat)->get();
 
@@ -42,24 +42,6 @@ class AcademicDataSeeder extends Seeder
             }
 
             $this->command->info("Processing {$students->count()} students in class {$className}...");
-
-            // 1. Seed schedules (distribute 10 subjects over 5 days)
-            foreach ($subjects as $idx => $subject) {
-                $dayIndex = floor($idx / 2);
-                $day = $days[$dayIndex] ?? 'Senin';
-                $slot = $idx % 2;
-                $jamMulai = $slot == 0 ? '07:00' : '08:45';
-                $jamSelesai = $slot == 0 ? '08:30' : '10:15';
-
-                Schedule::create([
-                    'subject_id' => $subject->id,
-                    'school_class_id' => $class->id,
-                    'kelas' => $className,
-                    'hari' => $day,
-                    'jam_mulai' => $jamMulai,
-                    'jam_selesai' => $jamSelesai,
-                ]);
-            }
 
             // 2. Seed learning materials and assignments for each subject
             foreach ($subjects as $subject) {

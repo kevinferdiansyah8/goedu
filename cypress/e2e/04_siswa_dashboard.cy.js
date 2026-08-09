@@ -41,36 +41,11 @@ describe('Siswa Portal - E2E Test Suite', () => {
   })
 
   // ==========================================
-  // Kehadiran (Riwayat & Pengajuan Izin)
+  // Kehadiran (Riwayat)
   // ==========================================
   it('melihat riwayat kehadiran', () => {
     cy.visit('/siswa/kehadiran/riwayat')
     cy.url().should('include', '/kehadiran/riwayat')
-  })
-
-  it('mengisi form pengajuan izin sakit', () => {
-    cy.visit('/siswa/kehadiran/izin')
-    cy.contains('Pengajuan Izin').should('be.visible')
-
-    // Isi form izin
-    cy.get('select[name="jenis"]').select('Sakit')
-
-    // Tanggal mulai = besok
-    const tomorrow = new Date()
-    tomorrow.setDate(tomorrow.getDate() + 1)
-    const tomorrowStr = tomorrow.toISOString().split('T')[0]
-
-    const dayAfter = new Date()
-    dayAfter.setDate(dayAfter.getDate() + 2)
-    const dayAfterStr = dayAfter.toISOString().split('T')[0]
-
-    cy.get('input[name="tanggal_mulai"]').type(tomorrowStr)
-    cy.get('input[name="tanggal_selesai"]').type(dayAfterStr)
-    cy.get('textarea[name="keterangan"]').type('Sakit demam tinggi, perlu istirahat di rumah. (Test Cypress)')
-
-    // Submit form
-    cy.contains('Kirim Pengajuan').click()
-    cy.contains('berhasil').should('be.visible')
   })
 
   it('melihat rekap bulanan kehadiran', () => {

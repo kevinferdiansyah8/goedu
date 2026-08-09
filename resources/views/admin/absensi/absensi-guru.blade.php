@@ -61,7 +61,8 @@
                         <th class="px-5 py-3 text-left font-bold">NIP</th>
                         <th class="px-5 py-3 text-center font-bold">Tanggal</th>
                         <th class="px-5 py-3 text-center font-bold">Jam</th>
-                        <th class="px-5 py-3 text-center font-bold rounded-tr-xl">Status</th>
+                        <th class="px-5 py-3 text-center font-bold">Status</th>
+                        <th class="px-5 py-3 text-left font-bold rounded-tr-xl">Keterangan</th>
                     </tr>
                 </thead>
                 <tbody id="tableAbsensi">
@@ -88,11 +89,12 @@
                                 <span class="px-3 py-1 rounded-full bg-gray-100 text-gray-700 text-xs font-semibold flex items-center gap-1 justify-center"><i class='fa fa-info-circle'></i> {{ $a['status'] }}</span>
                             @endif
                         </td>
+                        <td class="px-5 py-3 text-sm text-gray-600 max-w-xs truncate" title="{{ $a['keterangan'] }}">{{ $a['keterangan'] }}</td>
                     </tr>
                     @endif
                     @empty
                     <tr>
-                        <td colspan="5" class="px-5 py-10 text-center text-gray-400">
+                        <td colspan="6" class="px-5 py-10 text-center text-gray-400">
                             <i class="fa fa-chalkboard-teacher text-3xl mb-2"></i>
                             <p>Belum ada data guru terdaftar.</p>
                         </td>

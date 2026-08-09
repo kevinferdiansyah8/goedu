@@ -76,29 +76,16 @@
                             <i data-lucide="book-open" class="w-5 h-5 text-gray-400 absolute left-4 top-3.5 group-focus-within:text-indigo-600 transition-colors pointer-events-none"></i>
                             <select name="jurusan" required class="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-transparent rounded-2xl text-sm font-medium focus:bg-white focus:ring-4 focus:ring-indigo-50 focus:border-indigo-500 outline-none transition-all appearance-none cursor-pointer">
                                 <option value="" disabled {{ old('jurusan') ? '' : 'selected' }}>Pilih Kelas</option>
-                                <option value="Kelas 7" {{ old('jurusan') == 'Kelas 7' ? 'selected' : '' }}>Kelas 7</option>
-                                <option value="Kelas 8" {{ old('jurusan') == 'Kelas 8' ? 'selected' : '' }}>Kelas 8</option>
-                                <option value="Kelas 9" {{ old('jurusan') == 'Kelas 9' ? 'selected' : '' }}>Kelas 9</option>
+                                <option value="Kelas 10" {{ old('jurusan') == 'Kelas 10' ? 'selected' : '' }}>Kelas 10</option>
+                                <option value="Kelas 11" {{ old('jurusan') == 'Kelas 11' ? 'selected' : '' }}>Kelas 11</option>
+                                <option value="Kelas 12" {{ old('jurusan') == 'Kelas 12' ? 'selected' : '' }}>Kelas 12</option>
                             </select>
                             <i data-lucide="chevron-down" class="w-4 h-4 text-gray-400 absolute right-4 top-4 pointer-events-none"></i>
                         </div>
                     </div>
 
-                    {{-- Jalur --}}
-                    <div>
-                        <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 ml-1">Jalur Pendaftaran <span class="text-rose-500">*</span></label>
-                        <div class="relative group">
-                            <i data-lucide="map-pin" class="w-5 h-5 text-gray-400 absolute left-4 top-3.5 group-focus-within:text-indigo-600 transition-colors pointer-events-none"></i>
-                            <select name="jalur" required class="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-transparent rounded-2xl text-sm font-medium focus:bg-white focus:ring-4 focus:ring-indigo-50 focus:border-indigo-500 outline-none transition-all appearance-none cursor-pointer">
-                                <option value="" disabled {{ old('jalur') ? '' : 'selected' }}>Pilih Jalur</option>
-                                <option value="Reguler" {{ old('jalur') == 'Reguler' ? 'selected' : '' }}>Reguler</option>
-                                <option value="Prestasi" {{ old('jalur') == 'Prestasi' ? 'selected' : '' }}>Prestasi</option>
-                                <option value="Zonasi" {{ old('jalur') == 'Zonasi' ? 'selected' : '' }}>Zonasi</option>
-                                <option value="Afirmasi" {{ old('jalur') == 'Afirmasi' ? 'selected' : '' }}>Afirmasi</option>
-                            </select>
-                            <i data-lucide="chevron-down" class="w-4 h-4 text-gray-400 absolute right-4 top-4 pointer-events-none"></i>
-                        </div>
-                    </div>
+                    {{-- Hidden Jalur Pendaftaran (Default: Reguler) --}}
+                    <input type="hidden" name="jalur" value="Reguler">
 
                     {{-- Asal Sekolah --}}
                     <div>

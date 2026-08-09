@@ -26,61 +26,68 @@
                     </select>
                 </div>
                  <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Tanggal Transfer</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Metode Pembayaran</label>
+                    <select name="metode" class="w-full border-gray-300 rounded-lg text-sm focus:ring-blue-500 focus:border-blue-500 p-2.5 border" required>
+                        <option value="Transfer Bank Mandiri">Transfer Bank MANDIRI (123456789)</option>
+                        <option value="Pembayaran Langsung (Tunai)">Pembayaran Langsung (Tunai di Kasir)</option>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Tanggal Pembayaran / Transfer</label>
                     <input type="date" name="tanggal_transfer" value="{{ date('Y-m-d') }}" class="w-full border-gray-300 rounded-lg text-sm focus:ring-blue-500 focus:border-blue-500 p-2.5 border" required>
                 </div>
                  <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Nominal Transfer</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Nominal Pembayaran</label>
                     <div class="relative">
                         <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500 text-sm">Rp</span>
-                        <input type="number" name="nominal" class="w-full border-gray-300 rounded-lg text-sm focus:ring-blue-500 focus:border-blue-500 pl-10 p-2.5 border" placeholder="375000" required>
+                        <input type="number" name="nominal" class="w-full border-gray-300 rounded-lg text-sm focus:ring-blue-500 focus:border-blue-500 pl-10 p-2.5 border" placeholder="350000" required>
                     </div>
                 </div>
                 <div class="mb-6">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Bukti Transfer (Foto/Struk)</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Bukti Transfer / Kwitansi (Foto/PDF)</label>
                     <input type="file" name="file" class="w-full text-sm text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" required>
                 </div>
                 <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 rounded-lg transition-colors shadow-md shadow-blue-600/20">
-                    Kirim Konfirmasi
+                    Kirim Konfirmasi Pembayaran
                 </button>
             </form>
         </div>
 
-        <!-- Info Rekening -->
+        <!-- Info Rekening & Metode Pembayaran -->
         <div class="space-y-6">
             <div class="bg-blue-50 p-6 rounded-xl border border-blue-100">
-                <h3 class="font-semibold text-blue-900 mb-2">Informasi Penting</h3>
+                <h3 class="font-semibold text-blue-900 mb-2">Informasi Pembayaran</h3>
                 <ul class="text-sm text-blue-800 space-y-2 list-disc list-inside">
-                    <li>Pastikan nominal transfer sesuai dengan tagihan.</li>
-                    <li>Sertakan nama siswa di berita acara transfer jika memungkinkan.</li>
+                    <li>Pembayaran dapat dilakukan melalui **Transfer Mandiri** atau **Pembayaran Langsung (Tunai)**.</li>
+                    <li>Sertakan nama siswa & kelas di berita acara transfer.</li>
                     <li>Verifikasi pembayaran manual membutuhkan waktu 1x24 jam kerja.</li>
                 </ul>
             </div>
 
-            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                <h3 class="font-semibold text-gray-800 mb-4">Rekening Tujuan</h3>
-                <div class="space-y-4">
-                    <div class="flex items-center gap-4 p-3 border border-gray-200 rounded-lg">
-                        <div class="w-12 h-12 bg-blue-600 text-white rounded-lg flex items-center justify-center font-bold text-xs">BCA</div>
-                        <div>
-                            <p class="text-xs text-gray-500">Bank Central Asia</p>
-                            <p class="font-mono font-bold text-gray-800 text-lg">123 456 7890</p>
-                            <p class="text-xs text-gray-600">a.n Yayasan Pendidikan GoEdu</p>
-                        </div>
-                        <button class="ml-auto text-blue-600 hover:bg-blue-50 p-2 rounded-lg" title="Salin">
-                            <i data-lucide="copy" class="w-4 h-4"></i>
-                        </button>
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-4">
+                <h3 class="font-semibold text-gray-800 border-b pb-2">Pilihan Metode Pembayaran</h3>
+                
+                {{-- Transfer Bank Mandiri --}}
+                <div class="flex items-center gap-4 p-4 border border-blue-200 bg-blue-50/40 rounded-xl">
+                    <div class="w-12 h-12 bg-amber-500 text-white rounded-xl flex items-center justify-center font-bold text-xs shadow-sm">
+                        MANDIRI
                     </div>
-                     <div class="flex items-center gap-4 p-3 border border-gray-200 rounded-lg">
-                        <div class="w-12 h-12 bg-blue-800 text-white rounded-lg flex items-center justify-center font-bold text-xs">BRI</div>
-                        <div>
-                            <p class="text-xs text-gray-500">Bank Rakyat Indonesia</p>
-                            <p class="font-mono font-bold text-gray-800 text-lg">0000 01 00000 50 0</p>
-                            <p class="text-xs text-gray-600">a.n Yayasan Pendidikan GoEdu</p>
-                        </div>
-                         <button class="ml-auto text-blue-600 hover:bg-blue-50 p-2 rounded-lg" title="Salin">
-                            <i data-lucide="copy" class="w-4 h-4"></i>
-                        </button>
+                    <div class="flex-1">
+                        <p class="text-xs text-blue-600 font-bold uppercase tracking-wider">Transfer Bank Mandiri</p>
+                        <p class="font-mono font-extrabold text-gray-900 text-xl tracking-wider">123 456 789</p>
+                        <p class="text-xs text-gray-600 font-medium">a.n MA Baitul Ahsin</p>
+                    </div>
+                </div>
+
+                {{-- Pembayaran Langsung --}}
+                <div class="flex items-center gap-4 p-4 border border-emerald-200 bg-emerald-50/40 rounded-xl">
+                    <div class="w-12 h-12 bg-emerald-600 text-white rounded-xl flex items-center justify-center font-bold text-xs shadow-sm">
+                        TUNAI
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-xs text-emerald-700 font-bold uppercase tracking-wider">Pembayaran Langsung</p>
+                        <p class="font-bold text-gray-900 text-sm">Kasir / Bendahara Sekolah</p>
+                        <p class="text-xs text-gray-600">MA Baitul Ahsin (Jam Operasional: 07.30 - 14.00 WIB)</p>
                     </div>
                 </div>
             </div>

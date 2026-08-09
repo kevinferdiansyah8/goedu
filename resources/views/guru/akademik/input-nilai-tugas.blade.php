@@ -91,7 +91,7 @@
                 {{-- Kelas --}}
                 <select name="class_id" onchange="this.form.submit()" class="px-4 py-2 rounded-xl border border-gray-200 text-sm focus:ring-blue-500 focus:border-blue-500 bg-gray-50">
                     @foreach($classes as $c)
-                        <option value="{{ $c->id }}" {{ $selectedClassId == $c->id ? 'selected' : '' }}>{{ $c->tingkat }} - {{ $c->nama_kelas }}</option>
+                        <option value="{{ $c->id }}" {{ $selectedClassId == $c->id ? 'selected' : '' }}>{{ $c->nama_lengkap }}</option>
                     @endforeach
                 </select>
                 {{-- Mapel --}}

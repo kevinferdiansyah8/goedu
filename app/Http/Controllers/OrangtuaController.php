@@ -38,56 +38,106 @@ class OrangtuaController extends Controller
             'sakit' => $sakit,
             'izin'  => $izin,
             'alpha' => $alpha,
+            'total' => $total,
+            'count_hadir' => $hadir
         ];
-        return view('orangtua.monitoring.presensi', compact('kehadiran'));
+
+        $riwayat = Attendance::where('student_id', $student->id)->orderByDesc('tanggal')->get();
+
+        return view('orangtua.monitoring.presensi', compact('kehadiran', 'riwayat', 'student'));
     }
 
     public function monitoringNilai()
     {
         $student = $this->getStudent();
         $nilai = Grade::where('student_id', $student->id)->with('subject')->get();
-        return view('orangtua.monitoring.nilai', compact('nilai'));
+        return view('orangtua.monitoring.nilai', compact('nilai', 'student'));
     }
 
     public function monitoringSpp()
     {
         $student = $this->getStudent();
-        $tagihan = SppBill::where('student_id', $student->id)->get();
-        return view('orangtua.monitoring.spp', compact('tagihan'));
+        $tagihan = SppBill::where('student_id', $student->id)->orderByDesc('id')->get();
+        $activeMonthBill = $tagihan->first();
+        return view('orangtua.monitoring.spp', compact('tagihan', 'activeMonthBill', 'student'));
     }
 
     // Monitoring Akademik
     public function akademikTugas()
     {
         $student = $this->getStudent();
-        
-        $tugas = Assignment::where('school_class_id', $student->school_class_id)->with('subject')->get()->map(function($t) use($student) {
-                $sa = StudentAssignment::where('student_id', $student->id)->where('assignment_id', $t->id)->first();
-                return [
-                    'mapel' => $t->subject->nama_pelajaran ?? $t->subject->nama ?? 'Unknown',
-                    'judul' => $t->judul,
-                    'deadline' => $t->deadline,
-                    'status' => $sa ? $sa->status : 'Belum',
-                    'deskripsi' => $t->deskripsi,
-                    'nilai' => $sa ? $sa->nilai : '-',
-                    'feedback' => $sa ? $sa->feedback : '-'
-                ];
+        $classId = $student->school_class_id;
+        $tingkat = $student->schoolClass->tingkat ?? ($student->kelas ? (preg_match('/\d+/', $student->kelas, $m) ? $m[0] : null) : null);
+
+        $query = Assignment::with('subject');
+        if ($classId) {
+            $query->where(function($q) use ($classId, $tingkat) {
+                $q->where('school_class_id', $classId);
+                if ($tingkat) {
+                    $q->orWhereHas('subject', function($sq) use ($tingkat) {
+                        $sq->where('tingkat', $tingkat);
+                    });
+                }
             });
-        return view('orangtua.akademik.tugas', compact('tugas'));
+        } elseif ($tingkat) {
+            $query->whereHas('subject', function($sq) use ($tingkat) {
+                $sq->where('tingkat', $tingkat);
+            });
+        }
+
+        $tugas = $query->orderByDesc('created_at')->get()->map(function($t) use($student) {
+            $sa = StudentAssignment::where('student_id', $student->id)->where('assignment_id', $t->id)->first();
+            $status = 'Belum';
+            if ($sa) {
+                if ($sa->nilai !== null) {
+                    $status = 'Selesai';
+                } else {
+                    $status = $sa->status ?? 'Terkumpul';
+                }
+            }
+            return [
+                'mapel' => $t->subject->nama_pelajaran ?? $t->subject->nama ?? 'Mata Pelajaran',
+                'judul' => $t->judul,
+                'deadline' => $t->deadline,
+                'status' => $status,
+                'deskripsi' => $t->deskripsi,
+                'nilai' => ($sa && $sa->nilai !== null) ? $sa->nilai : '-',
+                'feedback' => ($sa && $sa->catatan_guru) ? $sa->catatan_guru : (($sa && $sa->nilai !== null) ? 'Tugas diperiksa dengan baik. Pertahankan!' : '-')
+            ];
+        });
+
+        return view('orangtua.akademik.tugas', compact('tugas', 'student'));
     }
 
     public function akademikRapor()
     {
         $student = $this->getStudent();
         $rapor = Grade::where('student_id', $student->id)->with('subject')->get();
-        return view('orangtua.akademik.rapor', compact('rapor'));
+        return view('orangtua.akademik.rapor', compact('rapor', 'student'));
     }
 
-    public function akademikJadwal()
+    public function akademikJadwal(Request $request)
     {
         $student = $this->getStudent();
-        $jadwal = Schedule::where('school_class_id', $student->school_class_id)->with('subject.teacher')->get();
-        return view('orangtua.akademik.jadwal', compact('jadwal'));
+        $classId = $student->school_class_id ?? null;
+        $className = $student->kelas ?? '';
+
+        $query = Schedule::with('subject.teacher');
+        if ($classId && $className) {
+            $query->where(function($q) use ($classId, $className) {
+                $q->where('school_class_id', $classId)->orWhere('kelas', 'like', "%{$className}%");
+            });
+        } elseif ($classId) {
+            $query->where('school_class_id', $classId);
+        } elseif ($className) {
+            $query->where('kelas', 'like', "%{$className}%");
+        }
+
+        $allJadwal = $query->get();
+        $selectedHari = $request->input('hari', 'Senin');
+        $jadwalHariIni = $allJadwal->filter(fn($j) => strtolower($j->hari) === strtolower($selectedHari));
+
+        return view('orangtua.akademik.jadwal', compact('allJadwal', 'jadwalHariIni', 'selectedHari', 'student'));
     }
 
     // Absensi Anak
@@ -95,7 +145,26 @@ class OrangtuaController extends Controller
     {
         $student = $this->getStudent();
         $riwayat = Attendance::where('student_id', $student->id)->orderByDesc('tanggal')->get();
-        return view('orangtua.absensi.riwayat', compact('riwayat'));
+        return view('orangtua.absensi.riwayat', compact('riwayat', 'student'));
+    }
+
+    public function storeAbsensiComment(Request $request)
+    {
+        $request->validate([
+            'attendance_id' => 'required|exists:attendances,id',
+            'catatan_orangtua' => 'required|string|max:1000'
+        ]);
+
+        $student = $this->getStudent();
+        $attendance = Attendance::where('id', $request->attendance_id)
+            ->where('student_id', $student->id)
+            ->firstOrFail();
+
+        $attendance->update([
+            'catatan_orangtua' => $request->catatan_orangtua
+        ]);
+
+        return redirect()->back()->with('success', 'Catatan / Alasan orang tua berhasil disimpan!');
     }
 
     public function absensiIzin()
@@ -240,7 +309,7 @@ class OrangtuaController extends Controller
             
         // Mock removed for real dynamic data
         $class = $student->schoolClass;
-        $className = $class ? ($class->tingkat . ' ' . $class->nama_kelas) : $student->kelas;
+        $className = $class ? ($class->nama_display ?? $class->nama_lengkap) : ($student->kelas ?? 'Unknown');
 
         $anak = [
             'nama' => $student->nama, 
@@ -280,6 +349,7 @@ class OrangtuaController extends Controller
             'spp_bill_id' => 'required|exists:spp_bills,id',
             'tanggal_transfer' => 'required|date',
             'nominal' => 'required|numeric|min:1',
+            'metode' => 'nullable|string',
             'file' => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048',
         ]);
         
@@ -291,10 +361,10 @@ class OrangtuaController extends Controller
         
         Transaction::create([
             'tanggal' => $request->tanggal_transfer,
-            'keterangan' => 'Pembayaran SPP ' . $bill->bulan . ': ' . $bill->student->nama,
+            'keterangan' => 'Pembayaran SPP ' . $bill->bulan . ' - ' . optional($bill->student)->nama,
             'jenis' => 'Masuk',
             'nominal' => $request->nominal,
-            'metode' => 'Transfer Bank',
+            'metode' => $request->input('metode', 'Transfer Bank Mandiri'),
             'bukti' => $filePath,
             'status' => 'Pending',
             'transactionable_type' => SppBill::class,
@@ -326,19 +396,91 @@ class OrangtuaController extends Controller
     // Profil Orang Tua
     public function profilDataDiri()
     {
+        $user = Auth::user();
         $student = $this->getStudent();
-        $profil = $student->parentProfile;
-        return view('orangtua.profil.datadiri', compact('profil'));
+        $profil = ParentProfile::where('user_id', $user->id)->first();
+        if (!$profil && $student) {
+            $profil = ParentProfile::where('student_id', $student->id)->first();
+        }
+
+        return view('orangtua.profil.datadiri', compact('user', 'profil', 'student'));
+    }
+
+    public function updateDataDiri(Request $request)
+    {
+        $user = Auth::user();
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255|unique:users,email,' . $user->id,
+            'nama_ayah' => 'nullable|string|max:255',
+            'pekerjaan_ayah' => 'nullable|string|max:255',
+            'telepon_ayah' => 'nullable|string|max:255',
+            'nama_ibu' => 'nullable|string|max:255',
+            'pekerjaan_ibu' => 'nullable|string|max:255',
+            'telepon_ibu' => 'nullable|string|max:255',
+            'alamat' => 'nullable|string|max:500',
+        ]);
+
+        $user->update([
+            'name' => $request->name,
+            'email' => $request->email,
+        ]);
+
+        $student = $this->getStudent();
+        ParentProfile::updateOrCreate(
+            ['user_id' => $user->id],
+            [
+                'student_id' => $student->id ?? null,
+                'nama_ayah' => $request->nama_ayah,
+                'pekerjaan_ayah' => $request->pekerjaan_ayah,
+                'telepon_ayah' => $request->telepon_ayah,
+                'nama_ibu' => $request->nama_ibu,
+                'pekerjaan_ibu' => $request->pekerjaan_ibu,
+                'telepon_ibu' => $request->telepon_ibu,
+                'alamat' => $request->alamat,
+            ]
+        );
+
+        return redirect()->back()->with('success', 'Data diri orang tua berhasil diperbarui!');
     }
 
     public function profilDataAnak()
     {
-        $student = $this->getStudent();
-        return view('orangtua.profil.dataanak', compact('student'));
+        $user = Auth::user();
+        $students = collect();
+        if ($user && $user->role === 'orangtua') {
+            $parentProfiles = ParentProfile::where('user_id', $user->id)->with('student.schoolClass.teacher')->get();
+            $students = $parentProfiles->map(fn($pp) => $pp->student)->filter();
+        }
+        
+        if ($students->isEmpty()) {
+            $students = Student::with('schoolClass.teacher')->take(1)->get();
+        }
+
+        return view('orangtua.profil.dataanak', compact('students'));
     }
 
     public function profilPassword()
     {
         return view('orangtua.profil.password');
+    }
+
+    public function updatePassword(Request $request)
+    {
+        $request->validate([
+            'current_password' => 'required',
+            'password' => 'required|min:6|confirmed',
+        ]);
+
+        $user = Auth::user();
+        if (!\Illuminate\Support\Facades\Hash::check($request->current_password, $user->password)) {
+            return redirect()->back()->withErrors(['current_password' => 'Password lama tidak sesuai.']);
+        }
+
+        $user->update([
+            'password' => \Illuminate\Support\Facades\Hash::make($request->password),
+        ]);
+
+        return redirect()->back()->with('success', 'Password berhasil diperbarui!');
     }
 }

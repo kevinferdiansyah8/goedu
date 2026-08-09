@@ -52,15 +52,15 @@ class AuthSeeder extends Seeder
             // Seed histories
             \App\Models\TeacherHistory::updateOrCreate(
                 ['teacher_id' => $teacher->id, 'tahun' => '2025/2026'],
-                ['jabatan' => 'Guru Matematika 7 A']
+                ['jabatan' => 'Guru Matematika Kelas 10']
             );
             \App\Models\TeacherHistory::updateOrCreate(
                 ['teacher_id' => $teacher->id, 'tahun' => '2024/2025'],
-                ['jabatan' => 'Guru Matematika 8 A']
+                ['jabatan' => 'Guru Matematika Kelas 11']
             );
             \App\Models\TeacherHistory::updateOrCreate(
                 ['teacher_id' => $teacher->id, 'tahun' => '2023/2024'],
-                ['jabatan' => 'Guru Matematika 9 A']
+                ['jabatan' => 'Guru Matematika Kelas 12']
             );
 
             // Seed certifications
@@ -81,9 +81,9 @@ class AuthSeeder extends Seeder
             ]);
             \App\Models\TeacherDocument::create([
                 'teacher_id' => $teacher->id,
-                'nama_dokumen' => 'SK Wali Kelas 7 A',
+                'nama_dokumen' => 'SK Wali Kelas 10',
                 'kategori' => 'Surat Keputusan',
-                'file_path' => 'bukti_spp/SK_WaliKelas_7A.pdf',
+                'file_path' => 'bukti_spp/SK_WaliKelas_10.pdf',
             ]);
             \App\Models\TeacherDocument::create([
                 'teacher_id' => $teacher->id,

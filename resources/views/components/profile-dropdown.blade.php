@@ -10,21 +10,21 @@
 
 <div class="relative" id="profileDropdownWrapper">
     <button onclick="toggleProfileDropdown()" id="profileDropdownBtn"
-        class="hidden md:flex items-center gap-3 pl-3 border-l border-border cursor-pointer hover:opacity-80 transition-all duration-300 group">
-        <div class="text-right">
-            <p class="font-semibold text-foreground text-sm group-hover:text-primary transition-colors duration-300">{{ $userName }}</p>
-            <p class="text-secondary text-xs">{{ $userRole }}</p>
+        class="flex items-center gap-2 md:gap-3 pl-2 md:pl-3 border-l border-border cursor-pointer hover:opacity-80 transition-all duration-300 group">
+        <div class="hidden sm:block text-right">
+            <p class="font-semibold text-foreground text-xs md:text-sm group-hover:text-primary transition-colors duration-300">{{ $userName }}</p>
+            <p class="text-secondary text-[10px] md:text-xs">{{ $userRole }}</p>
         </div>
-        <div class="relative">
-            <img src="{{ $userPhoto }}" alt="Profile" class="size-11 rounded-full object-cover ring-2 ring-border group-hover:ring-primary transition-all duration-300">
-            <span class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></span>
+        <div class="relative flex-shrink-0">
+            <img src="{{ $userPhoto }}" alt="Profile" class="size-9 md:size-11 rounded-full object-cover ring-2 ring-border group-hover:ring-primary transition-all duration-300">
+            <span class="absolute bottom-0 right-0 w-2.5 h-2.5 md:w-3 md:h-3 bg-green-500 rounded-full border-2 border-white"></span>
         </div>
-        <i data-lucide="chevron-down" id="profileDropdownArrow" class="w-4 h-4 text-secondary transition-transform duration-300"></i>
+        <i data-lucide="chevron-down" id="profileDropdownArrow" class="w-3.5 h-3.5 md:w-4 md:h-4 text-secondary transition-transform duration-300"></i>
     </button>
 
     {{-- Dropdown Panel --}}
     <div id="profileDropdownPanel" 
-         class="hidden absolute right-0 top-[calc(100%+12px)] w-[360px] bg-white rounded-2xl shadow-2xl border border-gray-100 z-[100] overflow-hidden"
+         class="hidden absolute right-0 top-[calc(100%+12px)] w-[300px] sm:w-[360px] max-w-[calc(100vw-24px)] bg-white rounded-2xl shadow-2xl border border-gray-100 z-[100] overflow-hidden"
          style="animation: slideDown 0.25s ease-out;">
         
         {{-- Profile Card Header --}}
@@ -214,7 +214,7 @@
                     </div>
                     <div class="flex-1 min-w-0">
                         <p class="text-xs text-secondary uppercase tracking-wider font-medium">Alamat</p>
-                        <p class="text-sm font-semibold text-foreground">Jl. Pendidikan No. 1, Jakarta</p>
+                        <p class="text-sm font-semibold text-foreground">Kp. Kandawati, RT 06 / RW 02, Kec. Gunung Kaler, Kab. Tangerang - Banten 15620</p>
                     </div>
                 </div>
                 <div class="flex items-center gap-4 p-3 rounded-xl bg-gray-50 hover:bg-cyan-50 transition-colors">
@@ -407,15 +407,164 @@
         box-shadow: 0 2px 6px rgba(99, 102, 241, 0.4);
         border: none;
     }
-    .dark-mode { --foreground: #F3F4F6 !important; --secondary: #9CA3AF !important; --muted: #1F2937 !important; --border: #374151 !important; }
-    .dark-mode body, .dark-mode main { background: #111827 !important; color: #F3F4F6 !important; }
-    .dark-mode aside { background: #1F2937 !important; border-color: #374151 !important; }
-    .dark-mode .bg-white { background: #1F2937 !important; }
-    .dark-mode .text-foreground, .dark-mode .text-gray-900 { color: #F3F4F6 !important; }
-    .dark-mode .text-secondary, .dark-mode .text-gray-600 { color: #9CA3AF !important; }
-    .dark-mode .bg-muted { background: #111827 !important; }
-    .dark-mode .border-border { border-color: #374151 !important; }
-    .dark-mode .ring-border { --tw-ring-color: #374151 !important; }
+    /* ==========================================
+       MODERN UNIFIED DARK MODE DESIGN SYSTEM
+       ========================================== */
+    .dark-mode { 
+        --foreground: #F8FAFC !important; 
+        --secondary: #94A3B8 !important; 
+        --muted: #0F172A !important; 
+        --border: #1E293B !important; 
+        --card-grey: #1E293B !important;
+        color-scheme: dark;
+    }
+    
+    /* Global Backgrounds & Containers */
+    .dark-mode,
+    .dark-mode body, 
+    .dark-mode main,
+    .dark-mode div.bg-gray-50\/50,
+    .dark-mode div.bg-gray-50,
+    .dark-mode div.bg-slate-50,
+    .dark-mode div.bg-slate-100,
+    .dark-mode div.bg-gray-100,
+    .dark-mode div.bg-muted,
+    .dark-mode .bg-muted,
+    .dark-mode .bg-gray-50,
+    .dark-mode .bg-gray-50\/50,
+    .dark-mode .bg-slate-50,
+    .dark-mode .bg-slate-100,
+    .dark-mode .bg-gray-100\/50,
+    .dark-mode .bg-[#F1F3F6],
+    .dark-mode .bg-[#f1f3f6],
+    .dark-mode .bg-[#f8fafc] { 
+        background-color: #0b0f19 !important; 
+        color: #F8FAFC !important; 
+    }
+
+    /* Sidebar Navigation & Header Bar */
+    .dark-mode aside,
+    .dark-mode header,
+    .dark-mode div.h-\[90px\],
+    .dark-mode div.h-\[120px\] { 
+        background-color: #111827 !important; 
+        border-color: #1f293d !important; 
+    }
+
+    /* Sidebar Submenus & Active Items */
+    .dark-mode aside .bg-white {
+        background-color: #111827 !important;
+    }
+
+    .dark-mode aside .group-\[\.active\]\:bg-muted,
+    .dark-mode aside .group-hover\:bg-muted:hover,
+    .dark-mode aside .hover\:bg-muted:hover {
+        background-color: #1e293b !important;
+    }
+
+    /* Standard Cards, Modals & Menus */
+    .dark-mode .bg-white,
+    .dark-mode div.bg-white,
+    .dark-mode #profileDropdownPanel,
+    .dark-mode #notificationDropdownPanel,
+    .dark-mode #profileModal > div > div,
+    .dark-mode #settingsModal > div > div { 
+        background-color: #1e293b !important; 
+        border-color: #334155 !important;
+    }
+
+    /* Inner Cards & Sub-containers (Empty state boxes, nested cards) */
+    .dark-mode div.border-dashed.bg-gray-50,
+    .dark-mode div.bg-gray-50,
+    .dark-mode .bg-gray-50\/80,
+    .dark-mode .bg-slate-50\/80,
+    .dark-mode .p-4.rounded-xl.border {
+        background-color: #111827 !important;
+        border-color: #334155 !important;
+    }
+
+    /* Text Color Mappings */
+    .dark-mode .text-foreground, 
+    .dark-mode .text-gray-900,
+    .dark-mode .text-gray-800,
+    .dark-mode .text-slate-900,
+    .dark-mode .text-slate-800,
+    .dark-mode h1, .dark-mode h2, .dark-mode h3, .dark-mode h4, .dark-mode h5, .dark-mode h6 { 
+        color: #F8FAFC !important; 
+    }
+    
+    .dark-mode .text-secondary, 
+    .dark-mode .text-gray-600,
+    .dark-mode .text-gray-500,
+    .dark-mode .text-slate-600,
+    .dark-mode .text-slate-500,
+    .dark-mode p.text-gray-500,
+    .dark-mode span.text-gray-500 { 
+        color: #94A3B8 !important; 
+    }
+
+    .dark-mode .text-gray-400,
+    .dark-mode .text-slate-400,
+    .dark-mode .text-gray-300 {
+        color: #64748B !important;
+    }
+
+    /* Borders & Rings */
+    .dark-mode .border-border,
+    .dark-mode .border-gray-100,
+    .dark-mode .border-gray-200,
+    .dark-mode .border-gray-300,
+    .dark-mode .border-slate-100,
+    .dark-mode .border-slate-200,
+    .dark-mode .border-slate-300,
+    .dark-mode .divide-gray-100 > * + *,
+    .dark-mode .divide-gray-200 > * + * { 
+        border-color: #334155 !important; 
+    }
+
+    .dark-mode .ring-border,
+    .dark-mode .ring-gray-100,
+    .dark-mode .ring-gray-200 { 
+        --tw-ring-color: #334155 !important; 
+    }
+
+    /* Form Inputs, Selects & Tables */
+    .dark-mode input[type="text"],
+    .dark-mode input[type="email"],
+    .dark-mode input[type="password"],
+    .dark-mode input[type="number"],
+    .dark-mode input[type="date"],
+    .dark-mode select,
+    .dark-mode textarea {
+        background-color: #0f172a !important;
+        color: #f8fafc !important;
+        border-color: #334155 !important;
+    }
+    
+    .dark-mode select {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394A3B8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") !important;
+    }
+
+    .dark-mode table thead th {
+        background-color: #0f172a !important;
+        color: #cbd5e1 !important;
+        border-color: #334155 !important;
+    }
+    
+    .dark-mode table tbody td,
+    .dark-mode table tbody tr {
+        border-color: #1e293b !important;
+    }
+
+    /* Soft Color Badges & Tinted Highlights in Dark Mode */
+    .dark-mode .bg-blue-50 { background-color: rgba(30, 58, 138, 0.4) !important; color: #60a5fa !important; border-color: rgba(59, 130, 246, 0.3) !important; }
+    .dark-mode .bg-green-50 { background-color: rgba(20, 83, 45, 0.4) !important; color: #4ade80 !important; border-color: rgba(34, 197, 94, 0.3) !important; }
+    .dark-mode .bg-orange-50 { background-color: rgba(124, 45, 18, 0.4) !important; color: #fb923c !important; border-color: rgba(249, 115, 22, 0.3) !important; }
+    .dark-mode .bg-purple-50 { background-color: rgba(88, 28, 135, 0.4) !important; color: #c084fc !important; border-color: rgba(168, 85, 247, 0.3) !important; }
+    .dark-mode .bg-red-50 { background-color: rgba(127, 29, 29, 0.4) !important; color: #f87171 !important; border-color: rgba(239, 68, 68, 0.3) !important; }
+    .dark-mode .bg-amber-50 { background-color: rgba(120, 53, 15, 0.4) !important; color: #fbbf24 !important; border-color: rgba(245, 158, 11, 0.3) !important; }
+    .dark-mode .bg-indigo-50 { background-color: rgba(49, 46, 129, 0.4) !important; color: #818cf8 !important; border-color: rgba(99, 102, 241, 0.3) !important; }
+    .dark-mode .bg-teal-50 { background-color: rgba(19, 78, 74, 0.4) !important; color: #2dd4bf !important; border-color: rgba(20, 184, 166, 0.3) !important; }
 </style>
 
 <script>

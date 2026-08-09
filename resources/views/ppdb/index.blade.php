@@ -23,7 +23,10 @@
     <nav class="w-full py-6 px-6 relative z-10">
         <div class="max-w-6xl mx-auto flex justify-between items-center bg-white/70 backdrop-blur-md rounded-3xl px-6 py-4 shadow-sm border border-white">
             <div class="flex items-center gap-3">
-                <img src="{{ asset('images/goedu_logo.png') }}" alt="GoEdu Logo" class="h-10 w-auto object-contain">
+                <div class="flex flex-col items-start justify-center">
+                    <img src="{{ asset('images/goedu_logo.png') }}" alt="GoEdu Logo" class="h-9 w-auto object-contain">
+                    <span class="text-[9px] font-black text-[#053E6B] tracking-wider uppercase -mt-0.5">MA BAITUL AHSIN</span>
+                </div>
             </div>
             <div>
                 <a href="{{ url('/') }}" class="text-sm font-bold text-gray-500 hover:text-indigo-600 transition-colors">Kembali ke Beranda</a>
@@ -44,7 +47,7 @@
             </h1>
             
             <p class="text-lg text-gray-500 font-medium max-w-2xl mx-auto mb-12">
-                Bergabunglah bersama kami di GOEDU. Dapatkan pendidikan terbaik dengan fasilitas modern dan kurikulum terpadu untuk masa depan yang gemilang.
+                Bergabunglah bersama kami di MA BAITUL AHSIN. Dapatkan pendidikan terbaik dengan fasilitas modern dan kurikulum terpadu untuk masa depan yang gemilang.
             </p>
 
             <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">

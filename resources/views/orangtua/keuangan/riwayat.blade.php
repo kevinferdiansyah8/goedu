@@ -11,14 +11,15 @@
 
     <!-- Filter -->
     <div class="flex gap-4 mb-6">
-        <select class="border-gray-300 rounded-lg text-sm focus:ring-blue-500 focus:border-blue-500 p-2.5 border bg-white shadow-sm">
+        <select class="border-gray-300 rounded-xl text-sm focus:ring-primary focus:border-primary p-2.5 border bg-white shadow-sm font-medium">
             <option>Semua Status</option>
             <option>Lunas</option>
             <option>Menunggu Konfirmasi</option>
         </select>
-         <select class="border-gray-300 rounded-lg text-sm focus:ring-blue-500 focus:border-blue-500 p-2.5 border bg-white shadow-sm">
-            <option>Tahun Ajaran 2023/2024</option>
-             <option>Tahun Ajaran 2022/2023</option>
+        <select class="border-gray-300 rounded-xl text-sm focus:ring-primary focus:border-primary p-2.5 border bg-white shadow-sm font-medium">
+            <option>Tahun Ajaran {{ date('Y') }}/{{ date('Y') + 1 }}</option>
+            <option>Tahun Ajaran {{ date('Y') - 1 }}/{{ date('Y') }}</option>
+            <option>Tahun Ajaran {{ date('Y') - 2 }}/{{ date('Y') - 1 }}</option>
         </select>
     </div>
 

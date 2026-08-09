@@ -130,6 +130,13 @@ class DashboardController extends Controller
             ->take(5)
             ->get();
 
+        if ($jadwalSekolah->isEmpty()) {
+            $jadwalSekolah = \App\Models\Schedule::with(['subject.teacher', 'schoolClass'])
+                ->orderBy('jam_mulai')
+                ->take(5)
+                ->get();
+        }
+
         // 8) Notifikasi Sistem
         $notifikasiSistem = [];
         
@@ -203,7 +210,7 @@ class DashboardController extends Controller
             $sppBill = $student->bills()->latest()->first();
             $sppStatus = $sppBill ? $sppBill->status : 'Lunas';
             
-            $className = $student->schoolClass ? ($student->schoolClass->tingkat . ' ' . $student->schoolClass->nama_kelas) : ($student->kelas ?? 'Unknown');
+            $className = $student->schoolClass ? ($student->schoolClass->nama_lengkap ?? $student->schoolClass->nama_display) : ('Kelas ' . ($student->kelas ?? 'Unknown'));
             
             $initials = collect(explode(' ', $student->nama))
                 ->map(fn($n) => strtoupper(substr($n, 0, 1)))

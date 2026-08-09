@@ -189,7 +189,7 @@
 						</td>
 						<td class="px-5 py-3.5 text-center">
 							<span class="inline-flex items-center justify-center px-3 py-1 rounded-full bg-gray-50 border border-gray-200 text-xs font-semibold text-gray-600">
-								0 Siswa
+								{{ $k->students_count ?? 0 }} Siswa
 							</span>
 						</td>
 						<td class="px-5 py-3.5 text-center">

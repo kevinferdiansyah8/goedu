@@ -64,4 +64,9 @@ class ElearningSession extends Model
     {
         return $this->hasMany(ElearningStudentAnswer::class, 'session_id');
     }
+
+    public function attendances()
+    {
+        return $this->hasMany(Attendance::class, 'elearning_session_id');
+    }
 }

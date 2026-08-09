@@ -18,11 +18,13 @@ class TeacherController extends Controller
 
     public function index(Request $request)
     {
-        $query = Teacher::query();
+        $query = Teacher::with('user');
 
         if ($request->filled('search')) {
             $query->where('nama', 'like', '%' . $request->search . '%')
-                  ->orWhere('nip', 'like', '%' . $request->search . '%');
+                  ->orWhere('nip', 'like', '%' . $request->search . '%')
+                  ->orWhere('nik', 'like', '%' . $request->search . '%')
+                  ->orWhere('nuptk', 'like', '%' . $request->search . '%');
         }
 
         $guru = $query->latest()->paginate(10);
@@ -35,39 +37,51 @@ class TeacherController extends Controller
     {
         $validated = $request->validate([
             'nip' => 'nullable|unique:teachers,nip',
+            'nik' => 'nullable',
+            'nuptk' => 'nullable',
             'nama' => 'required',
             'telepon' => 'nullable',
+            'status_kepegawaian' => 'nullable',
+            'jenis_kelamin' => 'nullable',
+            'tempat_lahir' => 'nullable',
+            'tanggal_lahir' => 'nullable',
         ]);
 
         $emailBase = $request->nip ? $request->nip : strtolower(str_replace(' ', '', $request->nama));
-        $email = $emailBase . '@guru.goedu.sch.id';
+        $email = $emailBase . '@goedu.sch.id';
 
         if (User::where('email', $email)->exists()) {
-            $email = $emailBase . rand(10, 99) . '@guru.goedu.sch.id';
+            $email = strtolower(str_replace(' ', '.', $request->nama)) . '@goedu.sch.id';
         }
 
         $user = User::create([
             'name' => $request->nama,
             'email' => $email,
-            'password' => Hash::make('password123'),
+            'password' => Hash::make($request->password ?: 'guru123'),
             'role' => 'guru',
         ]);
 
         $validated['user_id'] = $user->id;
+        $validated['status'] = 'Aktif';
 
         Teacher::create($validated);
-        return redirect()->back()->with('success', 'Data Guru dan Akun berhasil ditambahkan. Email: ' . $email . ' | Pass: password123');
+        return redirect()->back()->with('success', 'Data Guru dan Akun berhasil ditambahkan. Email: ' . $email . ' | Pass: ' . ($request->password ?: 'guru123'));
     }
 
     public function update(Request $request, $id)
     {
         $teacher = Teacher::findOrFail($id);
         
-        $validated = $request->request->all(); // Or manually extract if strictly needed
         $validated = $request->validate([
             'nip' => 'nullable|unique:teachers,nip,' . $id,
+            'nik' => 'nullable',
+            'nuptk' => 'nullable',
             'nama' => 'required',
             'telepon' => 'nullable',
+            'status_kepegawaian' => 'nullable',
+            'jenis_kelamin' => 'nullable',
+            'tempat_lahir' => 'nullable',
+            'tanggal_lahir' => 'nullable',
         ]);
 
         $teacher->update($validated);

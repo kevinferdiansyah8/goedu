@@ -161,6 +161,24 @@
               <a href="{{ route('ppdb.cetak-bukti') }}" target="_blank" class="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white font-bold px-4 py-2.5 rounded-xl text-xs shadow-md transition">
                 <i data-lucide="printer" class="w-4 h-4"></i> Cetak Bukti Pendaftaran & Lunas
               </a>
+
+              @php
+                $createdStudent = \App\Models\Student::with('user')->where('nisn', $applicant->nisn)->first();
+              @endphp
+              @if($createdStudent && $createdStudent->user)
+              <div class="mt-4 bg-indigo-50 border border-indigo-200 rounded-xl p-4 text-xs space-y-2">
+                <div class="flex items-center gap-2 font-bold text-indigo-900">
+                  <i data-lucide="key" class="w-4 h-4 text-indigo-600"></i>
+                  <span>Akun Portal Siswa Aktif Anda</span>
+                </div>
+                <p class="text-indigo-700">Akun login Anda untuk portal utama sekolah sudah diaktifkan oleh Admin:</p>
+                <div class="bg-white p-3 rounded-lg border border-indigo-100 font-mono space-y-1 text-gray-800">
+                  <div><strong>Email:</strong> {{ $createdStudent->user->email }}</div>
+                  <div><strong>Password:</strong> Sesuai yang diberikan Admin (Default: <span class="text-indigo-600 font-bold">siswa123</span>)</div>
+                  <div><strong>Portal Login:</strong> <a href="{{ route('login') }}" target="_blank" class="text-indigo-600 underline font-semibold">{{ route('login') }}</a></div>
+                </div>
+              </div>
+              @endif
             @endif
           </div>
         </div>

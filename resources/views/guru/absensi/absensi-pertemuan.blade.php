@@ -55,7 +55,7 @@
                         <select id="kelasSelect" class="block w-full pl-3 pr-10 py-2 text-base border-gray-200 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md transition-colors cursor-pointer hover:bg-gray-50 bg-transparent">
                             <option value="">Pilih Kelas...</option>
                             @foreach($classes as $kelas)
-                                <option value="{{ $kelas->id }}">{{ $kelas->tingkat }} - {{ $kelas->nama_kelas }}</option>
+                                <option value="{{ $kelas->id }}">{{ $kelas->nama_lengkap }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -130,7 +130,7 @@
                     <select name="school_class_id" required class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl text-sm focus:ring-2 focus:ring-indigo-100 focus:border-indigo-400">
                         <option value="">-- Pilih Kelas --</option>
                         @foreach($classes as $c)
-                            <option value="{{ $c->id }}">{{ $c->tingkat }} - {{ $c->nama_kelas }}</option>
+                            <option value="{{ $c->id }}">{{ $c->nama_lengkap }}</option>
                         @endforeach
                     </select>
                 </div>

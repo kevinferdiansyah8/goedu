@@ -279,7 +279,7 @@
                 <select name="school_class_id" id="school_class_id" required class="w-full border border-border rounded-xl px-4 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-primary">
                     <option value="">-- Pilih Kelas --</option>
                     @foreach($classes as $class)
-                        <option value="{{ $class->id }}">{{ $class->tingkat }} {{ $class->nama_kelas }}</option>
+                        <option value="{{ $class->id }}">{{ $class->nama_lengkap }}</option>
                     @endforeach
                 </select>
             </div>

@@ -25,7 +25,7 @@ class SchoolClassController extends Controller
             $query->where('tahun_ajaran', $request->tahun_ajaran);
         }
 
-        $kelas = $query->latest()->paginate(10);
+        $kelas = $query->withCount('students')->latest()->paginate(10);
         $teachers = Teacher::all();
 
         $daftarTingkat = SchoolClass::whereNotNull('tingkat')->distinct()->pluck('tingkat');

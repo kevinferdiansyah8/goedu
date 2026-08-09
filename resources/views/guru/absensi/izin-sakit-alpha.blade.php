@@ -90,7 +90,7 @@
                     <select name="kelas" class="block w-full sm:w-auto pl-3 pr-10 py-2.5 text-sm border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 sm:text-sm rounded-xl bg-gray-50 hover:bg-white transition-all cursor-pointer">
                         <option value="">Semua Kelas</option>
                         @foreach($classes as $kls)
-                            <option value="{{ $kls->id }}" {{ request('kelas') == $kls->id ? 'selected' : '' }}>{{ $kls->tingkat }} {{ $kls->nama_kelas }}</option>
+                            <option value="{{ $kls->id }}" {{ request('kelas') == $kls->id ? 'selected' : '' }}>{{ $kls->nama_lengkap }}</option>
                         @endforeach
                     </select>
 
@@ -118,7 +118,8 @@
                         <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Tanggal</th>
                         <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
                         <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Mata Pelajaran</th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Keterangan</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Keterangan Sekolah</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Catatan / Alasan Orang Tua</th>
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
@@ -166,8 +167,20 @@
                         </td>
 
                         {{-- Keterangan --}}
-                        <td class="px-6 py-4 text-sm text-gray-500 max-w-[200px] truncate">
+                        <td class="px-6 py-4 text-sm text-gray-500 max-w-[180px] truncate">
                             {{ $record->keterangan ?? '-' }}
+                        </td>
+
+                        {{-- Catatan / Alasan Orang Tua --}}
+                        <td class="px-6 py-4 text-sm">
+                            @if($record->catatan_orangtua)
+                                <div class="p-2.5 bg-amber-50 border border-amber-200/70 rounded-xl text-xs text-amber-900 font-medium flex items-start gap-2 max-w-[240px]">
+                                    <svg class="w-4 h-4 text-amber-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/></svg>
+                                    <span>{{ $record->catatan_orangtua }}</span>
+                                </div>
+                            @else
+                                <span class="text-xs text-gray-400 italic">-</span>
+                            @endif
                         </td>
                     </tr>
                     @empty

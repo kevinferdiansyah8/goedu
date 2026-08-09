@@ -11,8 +11,14 @@
 	formMethod: 'POST',
 	guru: {
 		nip: '',
+		nik: '',
+		nuptk: '',
 		nama: '',
-		telepon: ''
+		telepon: '',
+		status_kepegawaian: 'Non PNS',
+		jenis_kelamin: 'Laki-laki',
+		tempat_lahir: '',
+		tanggal_lahir: ''
 	},
 	edit(g) {
 		this.isEdit = true;
@@ -20,9 +26,15 @@
 		this.formAction = '/admin/kepegawaian/data-guru/' + g.id;
 		this.formMethod = 'PUT';
 		this.guru = {
-			nip: g.nip,
-			nama: g.nama,
-			telepon: g.telepon
+			nip: g.nip || '',
+			nik: g.nik || '',
+			nuptk: g.nuptk || '',
+			nama: g.nama || '',
+			telepon: g.telepon || '',
+			status_kepegawaian: g.status_kepegawaian || 'Non PNS',
+			jenis_kelamin: g.jenis_kelamin || 'Laki-laki',
+			tempat_lahir: g.tempat_lahir || '',
+			tanggal_lahir: g.tanggal_lahir || ''
 		};
 	},
 	resetForm() {
@@ -30,7 +42,7 @@
 		this.showForm = false;
 		this.formAction = '{{ route('admin.kepegawaian.data-guru.store') }}';
 		this.formMethod = 'POST';
-		this.guru = {nip: '', nama: '', telepon: ''};
+		this.guru = {nip: '', nik: '', nuptk: '', nama: '', telepon: '', status_kepegawaian: 'Non PNS', jenis_kelamin: 'Laki-laki', tempat_lahir: '', tanggal_lahir: ''};
 	}
 }">
 
@@ -43,11 +55,11 @@
 				</div>
 				<div>
 					<h1 class="text-2xl font-extrabold text-gray-900">Data Guru</h1>
-					<p class="text-gray-400 text-xs">Kelola data informasi guru sekolah</p>
+					<p class="text-gray-400 text-xs">Kelola data informasi guru dan akun pengajar</p>
 				</div>
 			</div>
 		</div>
-		<button @click="resetForm(); showForm = true" class="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl font-bold text-sm shadow-lg shadow-blue-200 transition-all active:scale-95">
+		<button @click="resetForm(); showForm = true" class="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl font-bold text-sm shadow-lg shadow-blue-200 transition-all active:scale-95 cursor-pointer">
 			<i data-lucide="user-plus" class="w-4 h-4"></i>
 			Tambah Guru
 		</button>
@@ -80,10 +92,10 @@
 				<div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
 					<i data-lucide="search" class="w-4 h-4 text-gray-400"></i>
 				</div>
-				<input type="text" name="search" value="{{ request('search') }}" placeholder="Cari nama atau NIP..." class="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 focus:bg-white transition-all">
+				<input type="text" name="search" value="{{ request('search') }}" placeholder="Cari nama, NIK, NIP, atau NUPTK..." class="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 focus:bg-white transition-all">
 			</div>
 			
-			<button type="submit" class="px-4 py-2.5 bg-blue-50 text-blue-600 font-bold text-sm rounded-xl hover:bg-blue-100 transition-all border border-blue-100">
+			<button type="submit" class="px-4 py-2.5 bg-blue-50 text-blue-600 font-bold text-sm rounded-xl hover:bg-blue-100 transition-all border border-blue-100 cursor-pointer">
 				Cari
 			</button>
 			<a href="{{ route('admin.kepegawaian.data-guru') }}" class="px-4 py-2.5 bg-gray-50 text-gray-600 font-bold text-sm rounded-xl hover:bg-gray-100 transition-all border border-gray-200">
@@ -104,27 +116,54 @@
 			<table class="min-w-full text-sm">
 				<thead>
 					<tr class="bg-gray-50/80">
-						<th class="px-5 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider">NIP</th>
-						<th class="px-5 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider">Nama Guru</th>
-						<th class="px-5 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider">No. Telepon</th>
+						<th class="px-5 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider">NIK / NIP</th>
+						<th class="px-5 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider">Nama & Akun Email</th>
+						<th class="px-5 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider">Status Pegawai</th>
+						<th class="px-5 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider">Jenis Kelamin</th>
+						<th class="px-5 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider">Tempat, Tgl Lahir</th>
 						<th class="px-5 py-3 text-center text-[10px] font-bold text-gray-400 uppercase tracking-wider">Aksi</th>
 					</tr>
 				</thead>
 				<tbody class="divide-y divide-gray-50">
 					@forelse($guru as $g)
 					<tr class="hover:bg-blue-50/30 transition-colors">
-						<td class="px-5 py-3.5 text-xs text-gray-600">{{ $g->nip ?: '-' }}</td>
-						<td class="px-5 py-3.5 font-semibold text-gray-800">{{ $g->nama }}</td>
-						<td class="px-5 py-3.5 text-xs text-gray-600">{{ $g->telepon ?: '-' }}</td>
+						<td class="px-5 py-3.5 text-xs">
+							<div class="font-mono text-gray-800 font-medium">NIK: {{ $g->nik ?: '-' }}</div>
+							@if($g->nip)
+								<div class="text-[11px] text-gray-400">NIP: {{ $g->nip }}</div>
+							@endif
+							@if($g->nuptk)
+								<div class="text-[11px] text-gray-400">NUPTK: {{ $g->nuptk }}</div>
+							@endif
+						</td>
+						<td class="px-5 py-3.5">
+							<div class="font-bold text-gray-900">{{ $g->nama }}</div>
+							<div class="text-xs text-blue-600 flex items-center gap-1 mt-0.5">
+								<i data-lucide="mail" class="w-3 h-3"></i>
+								{{ $g->user ? $g->user->email : '-' }}
+							</div>
+						</td>
+						<td class="px-5 py-3.5 text-xs">
+							<span class="inline-flex items-center px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 font-bold text-[11px]">
+								{{ $g->status_kepegawaian ?: ($g->golongan ?: 'Non PNS') }}
+							</span>
+						</td>
+						<td class="px-5 py-3.5 text-xs text-gray-700">
+							{{ $g->jenis_kelamin ?: '-' }}
+						</td>
+						<td class="px-5 py-3.5 text-xs text-gray-600">
+							<div>{{ $g->tempat_lahir ?: '-' }}</div>
+							<div class="text-[11px] text-gray-400">{{ $g->tanggal_lahir ?: '-' }}</div>
+						</td>
 						<td class="px-5 py-3.5 text-center">
 							<div class="flex items-center justify-center gap-1.5">
-								<button @click="edit({{ json_encode($g) }})" class="w-8 h-8 rounded-lg bg-blue-50 hover:bg-blue-100 flex items-center justify-center transition-colors group" title="Edit">
+								<button @click="edit({{ json_encode($g) }})" class="w-8 h-8 rounded-lg bg-blue-50 hover:bg-blue-100 flex items-center justify-center transition-colors group cursor-pointer" title="Edit">
 									<i data-lucide="pencil" class="w-3.5 h-3.5 text-blue-500 group-hover:text-blue-700"></i>
 								</button>
 								<form action="{{ route('admin.kepegawaian.data-guru.destroy', $g->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus data ini?')">
 									@csrf
 									@method('DELETE')
-									<button type="submit" class="w-8 h-8 rounded-lg bg-red-50 hover:bg-red-100 flex items-center justify-center transition-colors group" title="Hapus">
+									<button type="submit" class="w-8 h-8 rounded-lg bg-red-50 hover:bg-red-100 flex items-center justify-center transition-colors group cursor-pointer" title="Hapus">
 										<i data-lucide="trash-2" class="w-3.5 h-3.5 text-red-500 group-hover:text-red-700"></i>
 									</button>
 								</form>
@@ -133,7 +172,7 @@
 					</tr>
 					@empty
 					<tr>
-						<td colspan="4" class="px-5 py-10 text-center text-gray-500 text-sm">Tidak ada data guru</td>
+						<td colspan="6" class="px-5 py-10 text-center text-gray-500 text-sm">Tidak ada data guru</td>
 					</tr>
 					@endforelse
 				</tbody>
@@ -146,35 +185,71 @@
 	</div>
 
 	<!-- Form Tambah/Edit (Slide down) -->
-	<div x-show="showForm" style="display: none;" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 -translate-y-4" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0 -translate-y-4" class="max-w-xl mx-auto mb-10">
-		<div class="bg-white border border-gray-100 rounded-2xl shadow-lg overflow-hidden">
-			<div class="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4">
+	<div x-show="showForm" style="display: none;" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 -translate-y-4" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0 -translate-y-4" class="max-w-2xl mx-auto mb-10">
+		<div class="bg-white border border-gray-100 rounded-2xl shadow-xl overflow-hidden">
+			<div class="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4 flex items-center justify-between">
 				<div class="flex items-center gap-2">
 					<i data-lucide="user-plus" class="w-5 h-5 text-blue-200" x-show="!isEdit"></i>
 					<i data-lucide="edit" class="w-5 h-5 text-blue-200" x-show="isEdit" style="display: none;"></i>
 					<span class="text-white text-sm font-bold uppercase tracking-wider" x-text="isEdit ? 'Edit Data Guru' : 'Tambah Data Guru'"></span>
 				</div>
+				<button type="button" @click="resetForm()" class="text-blue-100 hover:text-white transition-colors cursor-pointer">
+					<i data-lucide="x" class="w-5 h-5"></i>
+				</button>
 			</div>
 			<form :action="formAction" method="POST" class="p-6">
 				@csrf
 				<template x-if="isEdit"><input type="hidden" name="_method" value="PUT"></template>
-				<div class="space-y-4">
+				<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+					<div class="md:col-span-2">
+						<label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Nama Lengkap <span class="text-red-400">*</span></label>
+						<input name="nama" x-model="guru.nama" required class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-all" placeholder="Nama Lengkap dengan Gelar">
+					</div>
+					<div>
+						<label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">NIK</label>
+						<input name="nik" x-model="guru.nik" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-all" placeholder="16 Digit NIK">
+					</div>
+					<div>
+						<label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Status Kepegawaian</label>
+						<select name="status_kepegawaian" x-model="guru.status_kepegawaian" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-all">
+							<option value="Non PNS">Non PNS</option>
+							<option value="PNS">PNS</option>
+							<option value="PPPK">PPPK</option>
+							<option value="GTY">GTY</option>
+							<option value="GTT">GTT</option>
+						</select>
+					</div>
 					<div>
 						<label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">NIP</label>
 						<input name="nip" x-model="guru.nip" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-all" placeholder="Nomor Induk Pegawai">
 					</div>
 					<div>
-						<label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Nama Guru <span class="text-red-400">*</span></label>
-						<input name="nama" x-model="guru.nama" required class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-all" placeholder="Nama Lengkap dengan Gelar">
+						<label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">NUPTK</label>
+						<input name="nuptk" x-model="guru.nuptk" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-all" placeholder="Nomor NUPTK">
+					</div>
+					<div>
+						<label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Jenis Kelamin</label>
+						<select name="jenis_kelamin" x-model="guru.jenis_kelamin" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-all">
+							<option value="Laki-laki">Laki-laki</option>
+							<option value="Perempuan">Perempuan</option>
+						</select>
 					</div>
 					<div>
 						<label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">No. Telepon</label>
 						<input name="telepon" x-model="guru.telepon" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-all" placeholder="08xxx">
 					</div>
+					<div>
+						<label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Tempat Lahir</label>
+						<input name="tempat_lahir" x-model="guru.tempat_lahir" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-all" placeholder="Kota/Kabupaten">
+					</div>
+					<div>
+						<label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Tanggal Lahir</label>
+						<input type="date" name="tanggal_lahir" x-model="guru.tanggal_lahir" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-all">
+					</div>
 				</div>
 				<div class="flex justify-end gap-2.5 mt-6 pt-5 border-t border-gray-100">
-					<button type="button" @click="resetForm()" class="px-5 py-2.5 border border-gray-200 rounded-xl bg-white hover:bg-gray-50 text-gray-600 font-semibold text-sm transition-all">Batal</button>
-					<button type="submit" class="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl font-bold text-sm shadow-lg shadow-blue-200 transition-all active:scale-95">
+					<button type="button" @click="resetForm()" class="px-5 py-2.5 border border-gray-200 rounded-xl bg-white hover:bg-gray-50 text-gray-600 font-semibold text-sm transition-all cursor-pointer">Batal</button>
+					<button type="submit" class="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl font-bold text-sm shadow-lg shadow-blue-200 transition-all active:scale-95 cursor-pointer">
 						<i data-lucide="save" class="w-4 h-4"></i>
 						Simpan Data
 					</button>

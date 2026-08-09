@@ -21,7 +21,7 @@
                     <select id="kelasSelect" name="kelas_id" class="w-full border border-blue-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-200">
                         <option value="">Semua Kelas</option>
                         @foreach($kelasList as $kelas)
-                            <option value="{{ $kelas->id }}" {{ $kelasId == $kelas->id ? 'selected' : '' }}>{{ $kelas->tingkat }} {{ $kelas->nama_kelas }}</option>
+                            <option value="{{ $kelas->id }}" {{ $kelasId == $kelas->id ? 'selected' : '' }}>{{ $kelas->nama_lengkap }}</option>
                         @endforeach
                     </select>
                 </div>

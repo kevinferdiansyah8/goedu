@@ -126,7 +126,224 @@ class ElearningGuruController extends Controller
                 ->get()
             : collect();
 
-        return view('guru.elearning.show', compact('session', 'students', 'nilaiPretest', 'nilaiPosttest', 'submissions'));
+        // Rekap absensi siswa E-Learning
+        $elearningAttendances = \App\Models\Attendance::where('elearning_session_id', $session->id)
+            ->get()
+            ->keyBy('student_id');
+
+        // Rekap Track Record Aktivitas & Progress Siswa
+        $hasPretest = $session->pretestQuestions->count() > 0;
+        $hasPosttest = $session->posttestQuestions->count() > 0;
+        $hasAssignment = (bool) $session->assignment;
+
+        $studentTrackRecords = [];
+        $activityLogs = collect();
+
+        foreach ($students as $student) {
+            // Pretest
+            $preAnswers = ElearningStudentAnswer::where('session_id', $session->id)
+                ->where('student_id', $student->id)
+                ->where('tipe', 'pretest')
+                ->get();
+            $preCount = $preAnswers->count();
+            $preDone = $hasPretest ? ($preCount >= $session->pretestQuestions->count()) : true;
+            $preLastTime = $preAnswers->max('created_at');
+
+            // Assignment submission
+            $sub = $session->assignment
+                ? ElearningAssignmentSubmission::where('assignment_id', $session->assignment->id)
+                    ->where('student_id', $student->id)
+                    ->first()
+                : null;
+            $assignmentDone = $hasAssignment ? ((bool) $sub) : true;
+            $assignmentTime = $sub ? $sub->created_at : null;
+
+            // Forum discussions
+            $discussionCount = 0;
+            $lastDiscussionTime = null;
+            if ($student->user_id) {
+                $discussions = ElearningDiscussion::where('session_id', $session->id)
+                    ->where('user_id', $student->user_id)
+                    ->get();
+                $discussionCount = $discussions->count();
+                $lastDiscussionTime = $discussions->max('created_at');
+            }
+            $forumDone = $discussionCount > 0;
+
+            // Posttest
+            $postAnswers = ElearningStudentAnswer::where('session_id', $session->id)
+                ->where('student_id', $student->id)
+                ->where('tipe', 'posttest')
+                ->get();
+            $postCount = $postAnswers->count();
+            $postDone = $hasPosttest ? ($postCount >= $session->posttestQuestions->count()) : true;
+            $postLastTime = $postAnswers->max('created_at');
+
+            // Attendance
+            $att = $elearningAttendances->get($student->id);
+            $attendanceDone = $att && $att->status === 'Hadir';
+            $attendanceTime = $att ? $att->created_at : null;
+
+            // Progress Step Counting
+            $totalSteps = 0;
+            $completedSteps = 0;
+            if ($hasPretest) { $totalSteps++; if ($preDone) $completedSteps++; }
+            if ($hasAssignment) { $totalSteps++; if ($assignmentDone) $completedSteps++; }
+            $totalSteps++; if ($forumDone) $completedSteps++;
+            if ($hasPosttest) { $totalSteps++; if ($postDone) $completedSteps++; }
+            $totalSteps++; if ($attendanceDone) $completedSteps++;
+
+            $progressPercent = $totalSteps > 0 ? round(($completedSteps / $totalSteps) * 100) : 0;
+
+            // Determine latest stage position text and badge styling
+            $currentStage = 'Belum Memulai';
+            $badgeColor = 'bg-slate-100 text-slate-600 border-slate-200';
+
+            if ($attendanceDone && $postDone) {
+                $currentStage = 'Selesai Sesi (100%)';
+                $badgeColor = 'bg-emerald-100 text-emerald-800 border-emerald-300';
+            } elseif ($postAnswers->count() > 0) {
+                $currentStage = $postDone ? 'Selesai Posttest' : 'Sedang Mengerjakan Posttest';
+                $badgeColor = 'bg-indigo-100 text-indigo-800 border-indigo-300';
+            } elseif ($discussionCount > 0) {
+                $currentStage = 'Aktif Diskusi Forum (' . $discussionCount . ' komentar)';
+                $badgeColor = 'bg-purple-100 text-purple-800 border-purple-300';
+            } elseif ($sub) {
+                $currentStage = 'Sudah Mengumpulkan Tugas';
+                $badgeColor = 'bg-blue-100 text-blue-800 border-blue-300';
+            } elseif ($preAnswers->count() > 0) {
+                $currentStage = $preDone ? 'Baru Mengerjakan Pretest' : 'Sedang Mengerjakan Pretest';
+                $badgeColor = 'bg-amber-100 text-amber-800 border-amber-300';
+            }
+
+            // Latest activity timestamp
+            $timestamps = array_filter([$preLastTime, $assignmentTime, $lastDiscussionTime, $postLastTime, $attendanceTime]);
+            $lastActive = !empty($timestamps) ? max($timestamps) : null;
+
+            $studentTrackRecords[$student->id] = [
+                'student'            => $student,
+                'has_pretest'        => $hasPretest,
+                'pretest_done'       => $preDone,
+                'pretest_count'      => $preCount,
+                'pretest_score'      => $preAnswers->sum('nilai'),
+                'has_assignment'     => $hasAssignment,
+                'assignment_done'    => (bool) $sub,
+                'submission'         => $sub,
+                'discussion_count'   => $discussionCount,
+                'forum_done'         => $forumDone,
+                'has_posttest'       => $hasPosttest,
+                'posttest_done'      => $postDone,
+                'posttest_count'     => $postCount,
+                'posttest_score'     => $postAnswers->sum('nilai'),
+                'attendance_done'    => $attendanceDone,
+                'attendance'         => $att,
+                'progress_percent'   => $progressPercent,
+                'current_stage'      => $currentStage,
+                'badge_color'        => $badgeColor,
+                'last_active'        => $lastActive,
+            ];
+
+            // Add activity logs to timeline list
+            if ($preLastTime) {
+                $activityLogs->push([
+                    'student_name' => $student->nama,
+                    'type'         => 'pretest',
+                    'title'        => $preDone ? 'Menyelesaikan Pretest' : 'Mengisi Pretest',
+                    'detail'       => 'Mengerjakan ' . $preCount . ' soal (Skor: ' . $preAnswers->sum('nilai') . ')',
+                    'timestamp'    => \Carbon\Carbon::parse($preLastTime),
+                    'icon'         => 'help-circle',
+                    'badge'        => 'Pretest',
+                    'color_bg'     => 'bg-amber-500',
+                    'color_text'   => 'text-amber-700 bg-amber-50 border-amber-200',
+                ]);
+            }
+            if ($sub) {
+                $activityLogs->push([
+                    'student_name' => $student->nama,
+                    'type'         => 'assignment',
+                    'title'        => 'Mengumpulkan Penugasan',
+                    'detail'       => 'File: ' . ($sub->file_name ?? 'Jawaban Tugas'),
+                    'timestamp'    => \Carbon\Carbon::parse($sub->created_at),
+                    'icon'         => 'file-text',
+                    'badge'        => 'Penugasan',
+                    'color_bg'     => 'bg-blue-500',
+                    'color_text'   => 'text-blue-700 bg-blue-50 border-blue-200',
+                ]);
+            }
+            if ($lastDiscussionTime) {
+                $activityLogs->push([
+                    'student_name' => $student->nama,
+                    'type'         => 'forum',
+                    'title'        => 'Mengirimkan Komentar / Diskusi',
+                    'detail'       => 'Total ' . $discussionCount . ' komentar dikirim pada forum',
+                    'timestamp'    => \Carbon\Carbon::parse($lastDiscussionTime),
+                    'icon'         => 'message-square',
+                    'badge'        => 'Forum Diskusi',
+                    'color_bg'     => 'bg-purple-500',
+                    'color_text'   => 'text-purple-700 bg-purple-50 border-purple-200',
+                ]);
+            }
+            if ($postLastTime) {
+                $activityLogs->push([
+                    'student_name' => $student->nama,
+                    'type'         => 'posttest',
+                    'title'        => $postDone ? 'Menyelesaikan Posttest' : 'Mengisi Posttest',
+                    'detail'       => 'Mengerjakan ' . $postCount . ' soal (Skor: ' . $postAnswers->sum('nilai') . ')',
+                    'timestamp'    => \Carbon\Carbon::parse($postLastTime),
+                    'icon'         => 'check-square',
+                    'badge'        => 'Posttest',
+                    'color_bg'     => 'bg-indigo-500',
+                    'color_text'   => 'text-indigo-700 bg-indigo-50 border-indigo-200',
+                ]);
+            }
+            if ($attendanceTime) {
+                $activityLogs->push([
+                    'student_name' => $student->nama,
+                    'type'         => 'attendance',
+                    'title'        => 'Presensi Kehadiran',
+                    'detail'       => 'Status kehadiran: Hadir pada sesi ' . $session->judul,
+                    'timestamp'    => \Carbon\Carbon::parse($attendanceTime),
+                    'icon'         => 'user-check',
+                    'badge'        => 'Absensi',
+                    'color_bg'     => 'bg-emerald-500',
+                    'color_text'   => 'text-emerald-700 bg-emerald-50 border-emerald-200',
+                ]);
+            }
+        }
+
+        $sortedActivityLogs = $activityLogs->sortByDesc('timestamp')->take(25)->values();
+
+        return view('guru.elearning.show', compact('session', 'students', 'nilaiPretest', 'nilaiPosttest', 'submissions', 'elearningAttendances', 'studentTrackRecords', 'sortedActivityLogs'));
+    }
+
+    // Manual Attendance Override oleh Guru
+    public function updateStudentAttendance(Request $request, $sessionId, $studentId)
+    {
+        $teacher = $this->getTeacher();
+        $session = ElearningSession::where('teacher_id', $teacher->id)->findOrFail($sessionId);
+        $student = Student::findOrFail($studentId);
+
+        $request->validate(['status' => 'required|in:Hadir,Izin,Sakit,Alpha']);
+
+        $schedule = \App\Models\Schedule::where('subject_id', $session->subject_id)
+            ->where('school_class_id', $session->school_class_id)
+            ->first();
+
+        \App\Models\Attendance::updateOrCreate(
+            [
+                'student_id'           => $student->id,
+                'elearning_session_id' => $session->id,
+            ],
+            [
+                'schedule_id' => $schedule ? $schedule->id : null,
+                'tanggal'     => now()->toDateString(),
+                'jam_masuk'   => now()->format('H:i:s'),
+                'status'      => $request->status,
+                'keterangan'  => 'Diatur oleh Guru via E-Learning: ' . $session->judul,
+            ]
+        );
+
+        return back()->with('success', 'Status absensi ' . $student->nama . ' berhasil diubah menjadi ' . $request->status . '!');
     }
 
     // ─────────────────────────────────────────────

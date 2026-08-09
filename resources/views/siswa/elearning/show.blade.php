@@ -35,6 +35,36 @@
                     </span>
                     <h1 class="text-2xl font-extrabold text-gray-900 mt-2">{{ $session->judul }}</h1>
                 </div>
+
+                {{-- Status Absensi E-Learning (Lampu Indikator Hijau/Merah) --}}
+                <div class="flex items-center gap-3 bg-white p-3.5 rounded-2xl border border-gray-100 shadow-sm">
+                    @if($isAttended)
+                    <div class="flex items-center gap-3">
+                        <div class="relative flex h-4 w-4">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-4 w-4 bg-emerald-500 shadow-lg shadow-emerald-500/50"></span>
+                        </div>
+                        <div>
+                            <span class="text-[10px] font-extrabold text-emerald-600 uppercase block tracking-wider">Status Kehadiran</span>
+                            <span class="text-xs font-bold text-emerald-800 flex items-center gap-1">
+                                <i data-lucide="check-circle" class="w-3.5 h-3.5 text-emerald-600"></i> HADIR (Otomatis E-Learning)
+                            </span>
+                        </div>
+                    </div>
+                    @else
+                    <div class="flex items-center gap-3">
+                        <div class="relative flex h-4 w-4">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-4 w-4 bg-rose-500 shadow-lg shadow-rose-500/50"></span>
+                        </div>
+                        <div>
+                            <span class="text-[10px] font-extrabold text-rose-500 uppercase block tracking-wider">Status Kehadiran</span>
+                            <span class="text-xs font-bold text-rose-700 block">BELUM ABSEN</span>
+                            <span class="text-[10px] text-gray-400 block font-medium">Lengkapi seluruh modul s.d. Posttest</span>
+                        </div>
+                    </div>
+                    @endif
+                </div>
             </div>
         </div>
 
@@ -77,12 +107,12 @@
             </button>
 
             {{-- Forum Diskusi --}}
-            <button @click="tab = 'forum'; localStorage.setItem('elearning_forum_' + {{ $session->id }} + '_' + {{ Auth::id() }}, 'true'); forumDone = true"
+            <button @click="tab = 'forum'"
                 :class="tab === 'forum' ? 'bg-orange-500 text-white shadow-md shadow-orange-100' : 'text-gray-600 hover:bg-gray-50'"
                 class="flex-1 min-w-[120px] text-center py-2.5 px-4 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-2 relative">
                 <i x-show="!forumDone" data-lucide="message-square" class="w-4 h-4"></i>
                 <i x-show="forumDone" data-lucide="check-circle-2" class="w-4 h-4" :class="tab === 'forum' ? 'text-white' : 'text-emerald-500'"></i>
-                <span>4. Forum Diskusi</span>
+                <span>4. Forum Diskusi ({{ $discussionCount }}/2)</span>
             </button>
 
             {{-- Posttest --}}
@@ -316,9 +346,15 @@
             </div>
             @else
             <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-                <h2 class="text-lg font-bold text-gray-900 border-b pb-4 mb-4 flex items-center gap-2">
-                    <i data-lucide="message-square" class="text-orange-500"></i> Forum Diskusi Modul
-                </h2>
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b pb-4 mb-4">
+                    <h2 class="text-lg font-bold text-gray-900 flex items-center gap-2">
+                        <i data-lucide="message-square" class="text-orange-500"></i> Forum Diskusi Modul
+                    </h2>
+                    <div class="flex items-center gap-2 bg-orange-50 px-3.5 py-1.5 rounded-xl border border-orange-100">
+                        <i data-lucide="info" class="w-4 h-4 text-orange-600"></i>
+                        <span class="text-xs font-bold text-orange-800">Partisipasi Diskusi: {{ $discussionCount }} / 2 (Wajib min. 2 untuk Posttest)</span>
+                    </div>
+                </div>
 
                 {{-- Post Message Form --}}
                 <form action="{{ route('siswa.elearning.diskusi.store', $session->id) }}" method="POST" enctype="multipart/form-data" class="bg-slate-50 rounded-xl p-4 mb-6 border border-slate-100">
@@ -431,6 +467,17 @@
                 <i data-lucide="lock" class="w-10 h-10 mx-auto mb-2 opacity-70"></i>
                 <h3 class="font-bold">Posttest Terkunci!</h3>
                 <p class="text-xs mt-1">Selesaikan **Pretest** terlebih dahulu untuk mengaktifkan posttest.</p>
+            </div>
+            @elseif(!$forumDone)
+            <div class="bg-amber-50 border border-amber-200 rounded-2xl p-6 text-center text-amber-700">
+                <i data-lucide="lock" class="w-10 h-10 mx-auto mb-2 opacity-70"></i>
+                <h3 class="font-bold text-lg">Posttest Terkunci!</h3>
+                <p class="text-xs mt-1.5 max-w-md mx-auto leading-relaxed">
+                    Anda wajib berpartisipasi aktif di <strong>Forum Diskusi minimal 2 kali</strong> (membuat pertanyaan baru atau membalas pertanyaan guru/teman) sebelum dapat mengerjakan Posttest.
+                </p>
+                <div class="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-100 border border-amber-200 text-amber-900 font-extrabold text-xs">
+                    <i data-lucide="message-square" class="w-4 h-4 text-amber-700"></i> Progres Diskusi Anda: {{ $discussionCount }} / 2 Kiriman
+                </div>
             </div>
             @else
             <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">

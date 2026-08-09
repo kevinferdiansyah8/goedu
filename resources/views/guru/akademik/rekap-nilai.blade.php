@@ -28,7 +28,7 @@
                 <div class="relative">
                     <select name="class_id" onchange="this.form.submit()" class="appearance-none bg-gray-50 border border-transparent text-gray-700 py-2.5 pl-4 pr-10 rounded-xl focus:ring-4 focus:ring-indigo-100 font-bold transition-all cursor-pointer hover:bg-gray-100 outline-none">
                         @foreach($classes as $c)
-                            <option value="{{ $c->id }}" {{ $selectedClassId == $c->id ? 'selected' : '' }}>Kelas {{ $c->tingkat }} - {{ $c->nama_kelas }}</option>
+                            <option value="{{ $c->id }}" {{ $selectedClassId == $c->id ? 'selected' : '' }}>{{ $c->nama_lengkap }}</option>
                         @endforeach
                     </select>
                     <i data-lucide="chevron-down" class="w-4 h-4 text-gray-400 absolute right-3 top-3.5 pointer-events-none"></i>

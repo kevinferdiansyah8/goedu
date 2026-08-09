@@ -109,7 +109,10 @@
   <aside id="sidebar" class="flex flex-col w-[280px] shrink-0 h-screen fixed inset-y-0 left-0 z-50 bg-white border-r border-border transform -translate-x-full lg:translate-x-0 transition-transform duration-300 overflow-hidden">
     <!-- Top Bar with logo and title -->
     <div class="flex items-center justify-center border-b border-border h-[120px] px-5 gap-3 relative">
-      <img src="{{ asset('images/goedu_logo.png') }}" alt="GoEdu Logo" class="h-24 w-auto object-contain">
+      <div class="flex flex-col items-center justify-center">
+        <img src="{{ asset('images/goedu_logo.png') }}" alt="GoEdu Logo" class="h-16 w-auto object-contain">
+        <span class="text-[11px] font-extrabold text-[#053E6B] tracking-wider uppercase mt-1">MA BAITUL AHSIN</span>
+      </div>
       <div class="flex gap-2 absolute right-5 top-1/2 -translate-y-1/2">
         <button class="size-11 flex shrink-0 bg-white rounded-xl p-[10px] items-center justify-center ring-1 ring-border hover:ring-primary transition-all duration-300 cursor-pointer" aria-label="Search">
           <i data-lucide="search" class="size-6 text-secondary"></i>
@@ -484,21 +487,7 @@
         
         </div>
       </div>
-
-        
-    <!-- Bottom Help Card -->
-    <div class="absolute bottom-0 left-0 w-[280px]">
-      <div class="flex items-center justify-between border-t bg-white border-border p-5 gap-3">
-        <div class="min-w-0">
-          <p class="font-semibold text-foreground">Need help?</p>
-          <a href="#" class="cursor-pointer"><span class="text-sm text-secondary hover:text-primary hover:underline transition-all duration-300">Contact support</span></a>
-        </div>
-        <div class="size-11 bg-primary/10 rounded-xl flex items-center justify-center flex-shrink-0">
-          <i data-lucide="message-circle-question" class="size-6 text-primary"></i>
-        </div>
-      </div>
     </div>
-    
   </aside>
 
   <!-- MAIN CONTENT -->
@@ -514,7 +503,7 @@
       <!-- Right actions -->
       <div class="flex items-center gap-3 ml-auto">
         @include('components.notification-dropdown')
-        <div class="hidden md:flex items-center gap-3 pl-3 border-l border-border">
+        <div class="flex items-center gap-2 md:gap-3 pl-2 md:pl-3 border-l border-border">
           @include('components.profile-dropdown', [
               'userName' => Auth::user()->name,
               'userRole' => ucfirst(Auth::user()->role),

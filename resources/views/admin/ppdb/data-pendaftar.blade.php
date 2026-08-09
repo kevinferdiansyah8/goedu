@@ -201,14 +201,7 @@
                             <option value="Kelas 9">Kelas 9</option>
                         </select>
                     </div>
-                    <div>
-                        <label class="block text-sm font-semibold mb-1">Jalur <span class="text-red-500">*</span></label>
-                        <select name="jalur" class="w-full px-4 py-2 border rounded-xl" required>
-                            <option value="Reguler">Reguler</option>
-                            <option value="Prestasi">Prestasi</option>
-                            <option value="Zonasi">Zonasi</option>
-                        </select>
-                    </div>
+                    <input type="hidden" name="jalur" value="Reguler">
                     <div>
                         <label class="block text-sm font-semibold mb-1">Asal Sekolah</label>
                         <input type="text" name="asal_sekolah" class="w-full px-4 py-2 border rounded-xl">

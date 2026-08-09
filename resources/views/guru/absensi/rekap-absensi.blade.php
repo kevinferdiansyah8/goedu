@@ -18,7 +18,7 @@
                 <label class="block text-xs font-medium text-gray-500 mb-1">Kelas</label>
                 <select name="class_id" onchange="this.form.submit()" class="text-sm border-gray-200 rounded-xl focus:ring-blue-500 focus:border-blue-500 bg-white px-4 py-2.5">
                     @foreach($classes as $kls)
-                        <option value="{{ $kls->id }}" {{ $selectedClassId == $kls->id ? 'selected' : '' }}>{{ $kls->tingkat }} {{ $kls->nama_kelas }}</option>
+                        <option value="{{ $kls->id }}" {{ $selectedClassId == $kls->id ? 'selected' : '' }}>{{ $kls->nama_lengkap }}</option>
                     @endforeach
                 </select>
             </div>

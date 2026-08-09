@@ -126,7 +126,24 @@
                                     <tr class="hover:bg-gray-50/50 transition-colors">
                                         <td class="px-6 py-4 text-gray-500">{{ $index + 1 }}</td>
                                         <td class="px-6 py-4">
-                                            <div class="font-semibold text-gray-900">{{ $student->nama }}</div>
+                                            <div class="font-semibold text-gray-900 flex items-center gap-2">
+                                                <span>{{ $student->nama }}</span>
+                                                @if($existingAbsen && $existingAbsen->elearning_session_id)
+                                                <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-700 border border-emerald-200 shadow-sm" title="Presensi Otomatis Terhubung Dari E-Learning">
+                                                    <span class="relative flex h-2 w-2">
+                                                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                                        <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                                                    </span>
+                                                    E-Learning
+                                                </span>
+                                                @endif
+                                            </div>
+                                            @if($existingAbsen && $existingAbsen->catatan_orangtua)
+                                            <div class="mt-1.5 p-2 bg-amber-50 border border-amber-200/70 rounded-xl text-xs text-amber-900 font-medium flex items-start gap-1.5 max-w-md">
+                                                <i data-lucide="message-square" class="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5"></i>
+                                                <span><strong>Catatan Orang Tua:</strong> "{{ $existingAbsen->catatan_orangtua }}"</span>
+                                            </div>
+                                            @endif
                                         </td>
                                         <td class="px-6 py-4 text-gray-500 font-mono">{{ $student->nis }}</td>
                                         <td class="px-6 py-4">

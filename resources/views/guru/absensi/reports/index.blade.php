@@ -90,7 +90,7 @@
                         <select name="school_class_id" x-model="report.school_class_id" required class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-100 focus:border-indigo-400">
                             <option value="">-- Pilih Kelas --</option>
                             @foreach($classes as $c)
-                                <option value="{{ $c->id }}">{{ $c->tingkat }} - {{ $c->nama_kelas }}</option>
+                                <option value="{{ $c->id }}">{{ $c->nama_lengkap }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -139,7 +139,7 @@
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             <div class="text-sm font-bold text-gray-800">{{ $r->subject->nama }}</div>
-                            <div class="text-xs text-gray-500">{{ $r->schoolClass->tingkat }} - {{ $r->schoolClass->nama_kelas }}</div>
+                            <div class="text-xs text-gray-500">{{ $r->schoolClass ? $r->schoolClass->nama_lengkap : '-' }}</div>
                         </td>
                         <td class="px-6 py-4 max-w-xs">
                             <p class="text-sm text-gray-600 line-clamp-2" title="{{ $r->materi }}">{{ $r->materi }}</p>

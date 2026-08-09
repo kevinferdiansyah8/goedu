@@ -7,7 +7,8 @@
     <div class="max-w-md w-full">
         {{-- Logo & Header --}}
         <div class="text-center mb-10 flex flex-col items-center justify-center">
-            <img src="{{ asset('images/goedu_logo.png') }}" alt="GoEdu Logo" class="h-28 w-auto object-contain mb-4">
+            <img src="{{ asset('images/goedu_logo.png') }}" alt="GoEdu Logo" class="h-24 w-auto object-contain mb-1">
+            <span class="text-xs font-black text-[#053E6B] tracking-widest uppercase mb-1">MA BAITUL AHSIN</span>
             <p class="text-gray-500 mt-2 font-medium">Sistem Informasi Akademik Terintegrasi</p>
         </div>
 

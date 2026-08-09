@@ -21,6 +21,80 @@ class ElearningSiswaController extends Controller
         return Auth::user()->student ?? Student::first();
     }
 
+    private function recordAttendance($session, $student)
+    {
+        if (!$student || !$session) return null;
+
+        $schedule = \App\Models\Schedule::where('subject_id', $session->subject_id)
+            ->where('school_class_id', $session->school_class_id)
+            ->first();
+
+        return \App\Models\Attendance::updateOrCreate(
+            [
+                'student_id'           => $student->id,
+                'elearning_session_id' => $session->id,
+            ],
+            [
+                'schedule_id' => $schedule ? $schedule->id : null,
+                'tanggal'     => now()->toDateString(),
+                'jam_masuk'   => now()->format('H:i:s'),
+                'status'      => 'Hadir',
+                'keterangan'  => 'Hadir via E-Learning: ' . $session->judul,
+            ]
+        );
+    }
+
+    private function checkAndRecordAttendance($session, $student): bool
+    {
+        if (!$student || !$session) return false;
+
+        $session->loadMissing(['pretestQuestions', 'posttestQuestions', 'assignment']);
+
+        // 1. Cek Pretest (jika ada soal pretest)
+        $hasPretest = $session->pretestQuestions && $session->pretestQuestions->count() > 0;
+        $pretestDone = !$hasPretest || $this->hasCompletedPretest($session->id, $student->id);
+
+        // 2. Cek Penugasan (jika ada tugas)
+        $hasAssignment = (bool) $session->assignment;
+        $assignmentDone = !$hasAssignment || ElearningAssignmentSubmission::where('assignment_id', $session->assignment->id)
+            ->where('student_id', $student->id)
+            ->exists();
+
+        // 3. Cek Keaktifan Forum Diskusi (minimal 2 postingan/balasan)
+        $discussionCount = ElearningDiscussion::where('session_id', $session->id)
+            ->where('user_id', Auth::id())
+            ->count();
+        $forumDone = $discussionCount >= 2;
+
+        // 4. Cek Posttest (jika ada soal posttest)
+        $hasPosttest = $session->posttestQuestions && $session->posttestQuestions->count() > 0;
+        $posttestDone = !$hasPosttest || $this->hasCompletedPosttest($session->id, $student->id);
+
+        // Hanya jika seluruh tahapan wajib diselesaikan (termasuk Diskusi >= 2 dan Posttest), absensi tercatat Hadir
+        if ($pretestDone && $assignmentDone && $forumDone && $posttestDone) {
+            $this->recordAttendance($session, $student);
+            return true;
+        }
+
+        return false;
+    }
+
+    public function recordPresensi($id)
+    {
+        $student = $this->getStudent();
+        $session = ElearningSession::where('school_class_id', $student->school_class_id)
+            ->where('is_published', true)
+            ->findOrFail($id);
+
+        $attended = $this->checkAndRecordAttendance($session, $student);
+
+        if ($attended) {
+            return back()->with('success', 'Status presensi kehadiran E-Learning berhasil dicatat (Hadir)!');
+        }
+
+        return back()->with('error', 'Presensi tidak dapat dilakukan manual. Harap selesaikan seluruh tahapan E-Learning hingga Posttest terlebih dahulu.');
+    }
+
     // Cek apakah siswa sudah menyelesaikan pretest
     private function hasCompletedPretest($sessionId, $studentId): bool
     {
@@ -62,7 +136,7 @@ class ElearningSiswaController extends Controller
             ->orderBy('urutan')
             ->get();
 
-        // Tambahkan status progress tiap pertemuan
+        // Tambahkan status progress & absensi tiap pertemuan
         $sessionsWithProgress = $sessions->map(function ($session) use ($student) {
             $pretestDone  = $this->hasCompletedPretest($session->id, $student->id);
             $posttestDone = $this->hasCompletedPosttest($session->id, $student->id);
@@ -76,9 +150,27 @@ class ElearningSiswaController extends Controller
                     ->exists();
             }
 
-            $session->pretest_done  = $pretestDone;
-            $session->posttest_done = $posttestDone;
-            $session->tugas_done    = $submitted;
+            // Cek keaktifan di forum (minimal 2 kiriman)
+            $discussionCount = ElearningDiscussion::where('session_id', $session->id)
+                ->where('user_id', Auth::id())
+                ->count();
+            $forumDone = $discussionCount >= 2;
+
+            // Cek dan sync absensi jika SEMUA tahapan telah lengkap
+            $this->checkAndRecordAttendance($session, $student);
+
+            // Cek status absensi
+            $isAttended = \App\Models\Attendance::where('student_id', $student->id)
+                ->where('elearning_session_id', $session->id)
+                ->where('status', 'Hadir')
+                ->exists();
+
+            $session->pretest_done     = $pretestDone;
+            $session->posttest_done    = $posttestDone;
+            $session->tugas_done       = $submitted;
+            $session->discussion_count = $discussionCount;
+            $session->forum_done       = $forumDone;
+            $session->is_attended      = $isAttended;
 
             return $session;
         });
@@ -131,8 +223,18 @@ class ElearningSiswaController extends Controller
             ->latest()
             ->get();
 
-        $forumDone = ElearningDiscussion::where('session_id', $session->id)
+        $discussionCount = ElearningDiscussion::where('session_id', $session->id)
             ->where('user_id', Auth::id())
+            ->count();
+
+        $forumDone = $discussionCount >= 2;
+
+        // Sync absensi hanya jika seluruh tahapan lengkap
+        $this->checkAndRecordAttendance($session, $student);
+
+        $isAttended = \App\Models\Attendance::where('student_id', $student->id)
+            ->where('elearning_session_id', $session->id)
+            ->where('status', 'Hadir')
             ->exists();
 
         return view('siswa.elearning.show', compact(
@@ -140,7 +242,7 @@ class ElearningSiswaController extends Controller
             'nilaiPretest', 'nilaiPosttest',
             'pretestAnswers', 'posttestAnswers',
             'mySubmission', 'discussions', 'student',
-            'forumDone'
+            'discussionCount', 'forumDone', 'isAttended'
         ));
     }
 
@@ -155,7 +257,6 @@ class ElearningSiswaController extends Controller
             ->with('pretestQuestions')
             ->findOrFail($id);
 
-        // Cek sudah pernah mengerjakan
         if ($this->hasCompletedPretest($id, $student->id)) {
             return redirect()->route('siswa.elearning.show', $id)->with('info', 'Anda sudah mengerjakan pretest ini.');
         }
@@ -191,7 +292,13 @@ class ElearningSiswaController extends Controller
             );
         }
 
-        return redirect()->route('siswa.elearning.hasil', [$id, 'pretest'])->with('success', 'Pretest berhasil dikumpulkan!');
+        // Otomatis cek & catat absensi Hadir jika seluruh tahapan sudah lengkap
+        $isAttended = $this->checkAndRecordAttendance($session, $student);
+        $msg = $isAttended 
+            ? 'Pretest berhasil dikumpulkan! Seluruh tahapan E-Learning selesai & Absensi Anda otomatis tercatat (Hadir).' 
+            : 'Pretest berhasil dikumpulkan! Selesaikan tahapan lainnya s.d. Posttest untuk mendapatkan absensi Hadir.';
+
+        return redirect()->route('siswa.elearning.hasil', [$id, 'pretest'])->with('success', $msg);
     }
 
     // ─────────────────────────────────────────────
@@ -204,6 +311,20 @@ class ElearningSiswaController extends Controller
             ->where('is_published', true)
             ->with('posttestQuestions')
             ->findOrFail($id);
+
+        if (!$this->hasCompletedPretest($id, $student->id)) {
+            return redirect()->route('siswa.elearning.show', $id)
+                ->with('error', 'Selesaikan Pretest terlebih dahulu sebelum mengerjakan Posttest.');
+        }
+
+        $discussionCount = ElearningDiscussion::where('session_id', $id)
+            ->where('user_id', Auth::id())
+            ->count();
+
+        if ($discussionCount < 2) {
+            return redirect()->route('siswa.elearning.show', $id)
+                ->with('error', 'Anda harus berpartisipasi di Forum Diskusi minimal 2 kali (membuat pertanyaan atau membalas diskusi) sebelum mengerjakan Posttest.');
+        }
 
         if ($this->hasCompletedPosttest($id, $student->id)) {
             return redirect()->route('siswa.elearning.hasil', [$id, 'posttest'])->with('info', 'Anda sudah mengerjakan posttest ini.');
@@ -224,7 +345,19 @@ class ElearningSiswaController extends Controller
             ->with('posttestQuestions')
             ->findOrFail($id);
 
+        if (!$this->hasCompletedPretest($id, $student->id)) {
+            return redirect()->route('siswa.elearning.show', $id)
+                ->with('error', 'Selesaikan Pretest terlebih dahulu.');
+        }
 
+        $discussionCount = ElearningDiscussion::where('session_id', $id)
+            ->where('user_id', Auth::id())
+            ->count();
+
+        if ($discussionCount < 2) {
+            return redirect()->route('siswa.elearning.show', $id)
+                ->with('error', 'Anda harus berpartisipasi di Forum Diskusi minimal 2 kali sebelum mengirimkan Posttest.');
+        }
 
         if ($this->hasCompletedPosttest($id, $student->id)) {
             return redirect()->route('siswa.elearning.hasil', [$id, 'posttest']);
@@ -242,7 +375,13 @@ class ElearningSiswaController extends Controller
             );
         }
 
-        return redirect()->route('siswa.elearning.hasil', [$id, 'posttest'])->with('success', 'Posttest berhasil dikumpulkan!');
+        // Otomatis cek & catat absensi Hadir jika seluruh tahapan sudah lengkap
+        $isAttended = $this->checkAndRecordAttendance($session, $student);
+        $msg = $isAttended 
+            ? 'Posttest berhasil dikumpulkan! Seluruh tahapan E-Learning telah selesai & Absensi Anda otomatis tercatat (Hadir).' 
+            : 'Posttest berhasil dikumpulkan!';
+
+        return redirect()->route('siswa.elearning.hasil', [$id, 'posttest'])->with('success', $msg);
     }
 
     // ─────────────────────────────────────────────
@@ -274,8 +413,6 @@ class ElearningSiswaController extends Controller
         $session = ElearningSession::where('school_class_id', $student->school_class_id)
             ->where('is_published', true)
             ->findOrFail($sessionId);
-
-
 
         $assignment = ElearningAssignment::where('session_id', $sessionId)->firstOrFail();
 
@@ -309,7 +446,13 @@ class ElearningSiswaController extends Controller
             ]
         );
 
-        return back()->with('success', 'Tugas berhasil dikumpulkan!');
+        // Otomatis cek & catat absensi Hadir jika seluruh tahapan sudah lengkap
+        $isAttended = $this->checkAndRecordAttendance($session, $student);
+        $msg = $isAttended 
+            ? 'Tugas berhasil dikumpulkan! Seluruh tahapan E-Learning telah selesai & Absensi Anda otomatis tercatat (Hadir).' 
+            : 'Tugas berhasil dikumpulkan! Lanjutkan pengerjaan modul hingga Posttest untuk mendapatkan absensi Hadir.';
+
+        return back()->with('success', $msg);
     }
 
     // ─────────────────────────────────────────────
@@ -321,8 +464,6 @@ class ElearningSiswaController extends Controller
         $session = ElearningSession::where('school_class_id', $student->school_class_id)
             ->where('is_published', true)
             ->findOrFail($sessionId);
-
-
 
         $request->validate(['pesan' => 'required|string', 'parent_id' => 'nullable|exists:elearning_discussions,id']);
 
@@ -346,6 +487,20 @@ class ElearningSiswaController extends Controller
             'tipe_file'  => $tipeFile,
         ]);
 
-        return back()->with('success', 'Pesan berhasil dikirim!');
+        // Otomatis cek & catat absensi Hadir jika seluruh tahapan sudah lengkap
+        $this->checkAndRecordAttendance($session, $student);
+
+        $newCount = ElearningDiscussion::where('session_id', $sessionId)
+            ->where('user_id', Auth::id())
+            ->count();
+
+        $msg = 'Pesan berhasil dikirim ke forum diskusi!';
+        if ($newCount >= 2) {
+            $msg .= ' Anda telah memenuhi kuota minimal 2 diskusi. Posttest kini dapat dibuka.';
+        } else {
+            $msg .= " Partisipasi diskusi Anda saat ini: {$newCount}/2. Kirim 1 pesan lagi untuk membuka Posttest.";
+        }
+
+        return back()->with('success', $msg);
     }
 }

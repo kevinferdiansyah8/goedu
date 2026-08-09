@@ -7,16 +7,6 @@
           <h1 class="text-foreground text-2xl md:text-3xl font-bold mb-1">EduGo Dashboard</h1>
           <p class="text-secondary text-sm md:text-base">Selamat datang! Berikut ringkasan aktivitas sekolah hari ini.</p>
         </div>
-        <div class="flex items-center gap-2 md:gap-3 ml-auto md:ml-0">
-          <button class="flex items-center gap-2 px-4 py-2.5 ring-1 ring-border hover:ring-primary rounded-button text-foreground font-medium transition-all duration-200 cursor-pointer">
-            <i data-lucide="download" class="w-4 h-4"></i>
-            <span>Export Report</span>
-          </button>
-          <button class="flex items-center gap-2 px-4 py-2.5 bg-primary text-white rounded-button font-medium hover:bg-primary-hover transition-all duration-200 cursor-pointer">
-            <i data-lucide="refresh-cw" class="w-4 h-4"></i>
-            <span>Refresh</span>
-          </button>
-        </div>
       </div>
 
       <!-- Stats Cards -->
@@ -139,10 +129,20 @@
         <div class="flex flex-col rounded-2xl border border-border p-6 gap-4 bg-white">
           <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
             <h3 class="font-bold text-lg text-foreground">Laporan Hari Ini</h3>
-            <a href="#" class="cursor-pointer"><span class="text-sm text-primary font-semibold hover:underline">View All</span></a>
+            <a href="{{ route('admin.ppdb.data-pendaftar') }}" class="cursor-pointer"><span class="text-sm text-primary font-semibold hover:underline">View All</span></a>
           </div>
           <div class="space-y-4">
             @forelse ($laporanHariIni as $laporan)
+            @php
+              $statusBadgeClass = match($laporan['status'] ?? '') {
+                'Menunggu' => 'bg-warning/15 text-warning-dark',
+                'Lulus' => 'bg-success/15 text-success',
+                'Diverifikasi' => 'bg-info/15 text-info',
+                'Tidak Lulus' => 'bg-danger/15 text-danger',
+                'Info' => 'bg-info/15 text-info',
+                default => 'bg-primary/15 text-primary'
+              };
+            @endphp
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 py-3 border-b border-gray-100 last:border-0">
               <div class="flex items-center gap-3 min-w-0 flex-1">
                 <div class="w-10 h-10 bg-primary/10 text-primary rounded-full flex items-center justify-center flex-shrink-0">
@@ -155,7 +155,7 @@
               </div>
               <div class="flex items-center gap-2 pl-13 sm:pl-0 sm:flex-shrink-0">
                 <span class="text-gray-500 text-xs whitespace-nowrap">{{ $laporan['time'] }}</span>
-                <span class="bg-success-light text-success-dark text-xs font-medium px-2 py-1 rounded-full whitespace-nowrap">{{ $laporan['status'] }}</span>
+                <span class="{{ $statusBadgeClass }} text-xs font-medium px-2.5 py-1 rounded-full whitespace-nowrap">{{ $laporan['status'] }}</span>
               </div>
             </div>
             @empty
@@ -170,7 +170,7 @@
         <div class="flex flex-col rounded-2xl border border-border p-6 gap-4 bg-white">
           <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
             <h3 class="font-bold text-lg text-foreground">Aktivitas Sekolah</h3>
-            <a href="#" class="cursor-pointer"><span class="text-sm text-primary font-semibold hover:underline">Lihat Semua</span></a>
+            <a href="{{ route('admin.akademik.jadwal-pelajaran') }}" class="cursor-pointer"><span class="text-sm text-primary font-semibold hover:underline">Lihat Semua</span></a>
           </div>
           <div class="space-y-4">
             @forelse ($jadwalSekolah as $jadwal)
@@ -186,7 +186,7 @@
               </div>
               <div class="text-right flex-shrink-0">
                 <p class="text-foreground text-sm font-semibold">{{ \Carbon\Carbon::parse($jadwal->jam_mulai)->format('H:i') }}</p>
-                <span class="bg-success-light text-success-dark text-xs font-medium px-2 py-1 rounded-full">Hari Ini</span>
+                <span class="bg-success/15 text-success text-xs font-medium px-2.5 py-1 rounded-full">{{ $jadwal->hari == \Carbon\Carbon::now()->locale('id')->isoFormat('dddd') ? 'Hari Ini' : $jadwal->hari }}</span>
               </div>
             </div>
             @empty

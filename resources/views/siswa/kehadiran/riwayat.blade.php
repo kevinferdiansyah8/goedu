@@ -9,17 +9,19 @@
         <p class="text-gray-600">Catatan kehadiran harian siswa.</p>
     </div>
 
-    <!-- Filter (Dummy) -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-6 flex flex-wrap gap-4 items-center">
+    <!-- Filter (Realtime Form) -->
+    <form method="GET" action="{{ route('siswa.kehadiran.riwayat') }}" class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-6 flex flex-wrap gap-4 items-center">
         <div class="flex items-center gap-2">
             <span class="text-sm font-medium text-gray-700">Bulan:</span>
-            <select class="border border-gray-300 rounded-md text-sm px-3 py-1.5 focus:ring-blue-500 focus:border-blue-500">
-                <option>Oktober 2023</option>
-                <option>September 2023</option>
+            <select name="bulan" class="border border-gray-300 rounded-md text-sm px-3 py-1.5 focus:ring-blue-500 focus:border-blue-500">
+                <option value="all" {{ ($selectedBulan ?? 'all') == 'all' ? 'selected' : '' }}>Semua Bulan</option>
+                @foreach(($dropdownOptions ?? []) as $val => $label)
+                    <option value="{{ $val }}" {{ ($selectedBulan ?? '') == $val ? 'selected' : '' }}>{{ $label }}</option>
+                @endforeach
             </select>
         </div>
-        <button class="px-4 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition">Tampilkan</button>
-    </div>
+        <button type="submit" class="px-4 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition">Tampilkan</button>
+    </form>
 
     <div class="bg-white rounded-xl shadow-md border border-gray-100 overflow-hidden">
         <div class="overflow-x-auto">
@@ -34,13 +36,27 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100">
-                    @foreach($riwayat as $log)
+                    @forelse($riwayat as $log)
                     <tr class="hover:bg-gray-50 transition-colors text-sm text-gray-700">
                         <td class="px-6 py-4 font-medium text-gray-900">
-                            {{ \Carbon\Carbon::parse($log->tanggal)->isoFormat('dddd, D MMMM Y') }}
+                            {{ \Carbon\Carbon::parse($log->tanggal)->locale('id')->isoFormat('dddd, D MMMM Y') }}
                         </td>
-                        <td class="px-6 py-4 text-center">{{ $log->status == 'Hadir' ? \Carbon\Carbon::parse($log->created_at)->format('H:i') : '-' }}</td>
-                        <td class="px-6 py-4 text-center">-</td>
+                        <td class="px-6 py-4 text-center">
+                            @if(!empty($log->jam_masuk))
+                                {{ substr($log->jam_masuk, 0, 5) }}
+                            @elseif(in_array($log->status, ['Hadir', 'Terlambat']) && $log->created_at)
+                                {{ \Carbon\Carbon::parse($log->created_at)->format('H:i') }}
+                            @else
+                                -
+                            @endif
+                        </td>
+                        <td class="px-6 py-4 text-center">
+                            @if(!empty($log->jam_pulang))
+                                {{ substr($log->jam_pulang, 0, 5) }}
+                            @else
+                                -
+                            @endif
+                        </td>
                         <td class="px-6 py-4 text-center">
                             @if($log->status == 'Hadir')
                                 <span class="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-semibold">Hadir</span>
@@ -56,10 +72,17 @@
                         </td>
                         <td class="px-6 py-4">{{ $log->keterangan ?? '-' }}</td>
                     </tr>
-                    @endforeach
+                    @empty
+                    <tr>
+                        <td colspan="5" class="px-6 py-8 text-center text-gray-500">
+                            Belum ada catatan absensi untuk periode ini.
+                        </td>
+                    </tr>
+                    @endforelse
                 </tbody>
             </table>
         </div>
     </div>
 </div>
 @endsection
+

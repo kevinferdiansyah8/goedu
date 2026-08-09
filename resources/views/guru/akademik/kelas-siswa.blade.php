@@ -107,7 +107,7 @@
                                 <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1 ml-1">Pilih Kelas</label>
                                 <select name="class_id" onchange="this.form.submit()" class="w-full pl-4 pr-10 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-indigo-100 focus:border-indigo-400 transition-all appearance-none cursor-pointer">
                                     @forelse($classes as $c)
-                                        <option value="{{ $c->id }}" {{ $selectedClassId == $c->id ? 'selected' : '' }}>{{ $c->tingkat }} - {{ $c->nama_kelas }}</option>
+                                        <option value="{{ $c->id }}" {{ $selectedClassId == $c->id ? 'selected' : '' }}>{{ $c->nama_lengkap }}</option>
                                     @empty
                                         <option value="">Belum ada jadwal kelas</option>
                                     @endforelse

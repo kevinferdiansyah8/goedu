@@ -6,8 +6,9 @@
   <div class="w-full max-w-md">
 
     {{-- Logo & Header --}}
-    <div class="text-center mb-8">
-      <img src="{{ asset('images/goedu_logo.png') }}" alt="GoEdu Logo" class="h-24 w-auto object-contain mx-auto mb-4">
+    <div class="text-center mb-8 flex flex-col items-center justify-center">
+      <img src="{{ asset('images/goedu_logo.png') }}" alt="GoEdu Logo" class="h-24 w-auto object-contain mx-auto mb-1">
+      <span class="text-xs font-black text-[#053E6B] tracking-widest uppercase mb-3">MA BAITUL AHSIN</span>
       <h1 class="text-2xl font-extrabold text-gray-900">Masuk Akun PPDB</h1>
       <p class="text-gray-500 text-sm mt-1.5">Pantau status pendaftaran dan kelola data Anda.</p>
     </div>

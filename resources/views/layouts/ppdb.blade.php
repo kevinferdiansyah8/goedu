@@ -30,8 +30,9 @@
   <header class="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
       {{-- Logo --}}
-      <a href="{{ url('/ppdb') }}" class="flex items-center gap-2 shrink-0">
-        <img src="{{ asset('images/goedu_logo.png') }}" alt="GoEdu Logo" class="h-10 w-auto object-contain">
+      <a href="{{ url('/ppdb') }}" class="flex flex-col items-start justify-center shrink-0">
+        <img src="{{ asset('images/goedu_logo.png') }}" alt="GoEdu Logo" class="h-9 w-auto object-contain">
+        <span class="text-[9px] font-black text-[#053E6B] tracking-wider uppercase -mt-0.5">MA BAITUL AHSIN</span>
       </a>
 
       {{-- Search --}}
@@ -61,12 +62,13 @@
 
   {{-- ============ FOOTER ============ --}}
   <footer class="bg-gray-900 text-gray-300 mt-12">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 grid grid-cols-1 md:grid-cols-4 gap-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 grid grid-cols-1 md:grid-cols-3 gap-8">
 
       {{-- Kolom 1: Brand --}}
       <div>
-        <div class="flex items-center gap-2.5 mb-4">
-          <img src="{{ asset('images/goedu_logo.png') }}" alt="GoEdu Logo" class="h-10 w-auto object-contain">
+        <div class="flex flex-col items-start gap-0.5 mb-4">
+          <img src="{{ asset('images/goedu_logo.png') }}" alt="GoEdu Logo" class="h-9 w-auto object-contain">
+          <span class="text-xs font-black text-[#1194B2] tracking-wider uppercase">MA BAITUL AHSIN</span>
           <span class="text-gray-500 text-[10px] font-medium tracking-wider uppercase">PPDB Online</span>
         </div>
         <p class="text-xs text-gray-500 leading-relaxed mb-4">Sistem Penerimaan Peserta Didik Baru online untuk jenjang SD, SMP, SMA, dan SMK. Gratis tanpa dipungut biaya.</p>
@@ -106,13 +108,7 @@
             <div class="w-7 h-7 rounded-lg bg-gray-800 flex items-center justify-center shrink-0 mt-0.5">
               <i data-lucide="map-pin" class="w-3.5 h-3.5 text-blue-400"></i>
             </div>
-            <p class="text-xs text-gray-400 leading-relaxed">Jl. Pendidikan No. 1, Kota Edugo, Provinsi Jawa Barat 16913</p>
-          </div>
-          <div class="flex items-center gap-2.5">
-            <div class="w-7 h-7 rounded-lg bg-gray-800 flex items-center justify-center shrink-0">
-              <i data-lucide="phone" class="w-3.5 h-3.5 text-emerald-400"></i>
-            </div>
-            <p class="text-xs text-gray-400">0812-3456-7890 (WhatsApp)</p>
+            <p class="text-xs text-gray-400 leading-relaxed">Kp. Kandawati, RT 06 / RW 02, Kec. Gunung Kaler, Kab. Tangerang - Banten 15620</p>
           </div>
           <div class="flex items-center gap-2.5">
             <div class="w-7 h-7 rounded-lg bg-gray-800 flex items-center justify-center shrink-0">
@@ -126,28 +122,6 @@
             </div>
             <p class="text-xs text-gray-400">Senin–Jumat, 08.00–15.00 WIB</p>
           </div>
-        </div>
-      </div>
-
-      {{-- Kolom 4: Aplikasi --}}
-      <div>
-        <h4 class="text-white font-bold text-xs mb-4 uppercase tracking-wider">Unduh Aplikasi</h4>
-        <p class="text-xs text-gray-500 mb-3">Pantau info dan hasil PPDB langsung dari smartphone Anda.</p>
-        <div class="flex flex-col gap-2">
-          <a href="#" class="inline-flex items-center gap-2.5 bg-gray-800 hover:bg-gray-700 text-white text-xs px-4 py-2.5 rounded-xl border border-gray-700 transition w-fit">
-            <i data-lucide="play" class="w-4 h-4 text-emerald-400"></i>
-            <div class="leading-tight">
-              <div class="text-[9px] text-gray-500 uppercase">Get it on</div>
-              <div class="font-bold text-xs">Google Play</div>
-            </div>
-          </a>
-          <a href="#" class="inline-flex items-center gap-2.5 bg-gray-800 hover:bg-gray-700 text-white text-xs px-4 py-2.5 rounded-xl border border-gray-700 transition w-fit">
-            <i data-lucide="apple" class="w-4 h-4 text-gray-300"></i>
-            <div class="leading-tight">
-              <div class="text-[9px] text-gray-500 uppercase">Download on</div>
-              <div class="font-bold text-xs">App Store</div>
-            </div>
-          </a>
         </div>
       </div>
 

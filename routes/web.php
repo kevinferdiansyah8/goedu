@@ -18,6 +18,23 @@ Route::get('/login', [\App\Http\Controllers\Auth\LoginController::class, 'showLo
 Route::post('/login', [\App\Http\Controllers\Auth\LoginController::class, 'login']);
 Route::post('/logout', [\App\Http\Controllers\Auth\LoginController::class, 'logout'])->name('logout');
 
+Route::get('/dev-login/{role}', function ($role) {
+    if (!app()->environment('local')) abort(403);
+    $user = \App\Models\User::where('role', $role)->first();
+    if ($user) {
+        \Illuminate\Support\Facades\Auth::login($user);
+        session(['role' => $user->role]);
+        switch($role) {
+            case 'admin': return redirect()->route('admin.dashboard');
+            case 'guru': return redirect()->route('guru.dashboard');
+            case 'siswa': return redirect()->route('siswa.dashboard');
+            case 'orangtua': return redirect()->route('orangtua.dashboard');
+            case 'keuangan': return redirect()->route('keuangan.dashboard');
+        }
+    }
+    return "User not found";
+});
+
 Route::get('/forgot-password', [\App\Http\Controllers\Auth\ForgotPasswordController::class, 'showForgotForm'])->name('password.request');
 Route::post('/forgot-password', [\App\Http\Controllers\Auth\ForgotPasswordController::class, 'checkEmail'])->name('password.email');
 Route::get('/reset-password/{email}', [\App\Http\Controllers\Auth\ForgotPasswordController::class, 'showResetForm'])->name('password.reset');
@@ -190,10 +207,7 @@ Route::delete('/users/{id}', [\App\Http\Controllers\Admin\StudentController::cla
             return view('admin.data-sekolah.visi-misi');
         })->name('admin.data-sekolah.visi-misi');
 
-        // Jurusan / Kelas / Ruang - redirect ke classes
-        Route::get('/jurusan', function () {
-             return view('admin.data-sekolah.jurusan');
-        })->name('admin.data-sekolah.jurusan');
+       
     });
 
     // ========================
@@ -287,7 +301,7 @@ Route::middleware(['auth', 'role:guru'])->prefix('guru')->name('guru.')->group(f
 
     // Absensi
     Route::prefix('absensi')->name('absensi.')->group(function () {
-        Route::get('/', function () { return view('guru.absensi.index'); })->name('index');
+        Route::get('/', [\App\Http\Controllers\GuruController::class, 'absensiPertemuan'])->name('index');
         Route::get('/absensi-pertemuan', [\App\Http\Controllers\GuruController::class, 'absensiPertemuan'])->name('pertemuan');
         Route::post('/absensi-pertemuan', [\App\Http\Controllers\GuruController::class, 'storeAbsensi'])->name('pertemuan.store');
         Route::get('/izin-sakit-alpha', [\App\Http\Controllers\GuruController::class, 'absensiIzinSakitAlpha'])->name('izin');
@@ -361,6 +375,9 @@ Route::middleware(['auth', 'role:guru'])->prefix('guru')->name('guru.')->group(f
         // Diskusi
         Route::post('/{sessionId}/diskusi', [\App\Http\Controllers\ElearningGuruController::class, 'storeDiscussion'])->name('diskusi.store');
         Route::delete('/{sessionId}/diskusi/{discussionId}', [\App\Http\Controllers\ElearningGuruController::class, 'destroyDiscussion'])->name('diskusi.destroy');
+
+        // Manual Attendance Override by Teacher
+        Route::post('/{sessionId}/attendance/{studentId}', [\App\Http\Controllers\ElearningGuruController::class, 'updateStudentAttendance'])->name('attendance.update');
     });
 });
 
@@ -390,6 +407,7 @@ Route::middleware(['auth', 'role:guru'])->prefix('guru')->name('guru.')->group(f
             Route::get('/izin', [\App\Http\Controllers\OrangtuaController::class, 'absensiIzin'])->name('orangtua.absensi.izin');
             Route::post('/izin', [\App\Http\Controllers\OrangtuaController::class, 'storeIzin'])->name('orangtua.absensi.izin.store');
             Route::get('/rekap', [\App\Http\Controllers\OrangtuaController::class, 'absensiRekap'])->name('orangtua.absensi.rekap');
+            Route::post('/catatan-ortu', [\App\Http\Controllers\OrangtuaController::class, 'storeAbsensiComment'])->name('orangtua.absensi.comment.store');
         });
 
         // Keuangan
@@ -410,8 +428,10 @@ Route::middleware(['auth', 'role:guru'])->prefix('guru')->name('guru.')->group(f
         // Profil Orang Tua
         Route::prefix('profil')->group(function () {
             Route::get('/data-diri', [\App\Http\Controllers\OrangtuaController::class, 'profilDataDiri'])->name('orangtua.profil.datadiri');
+            Route::post('/data-diri', [\App\Http\Controllers\OrangtuaController::class, 'updateDataDiri'])->name('orangtua.profil.datadiri.update');
             Route::get('/data-anak', [\App\Http\Controllers\OrangtuaController::class, 'profilDataAnak'])->name('orangtua.profil.dataanak');
             Route::get('/password', [\App\Http\Controllers\OrangtuaController::class, 'profilPassword'])->name('orangtua.profil.password');
+            Route::post('/password', [\App\Http\Controllers\OrangtuaController::class, 'updatePassword'])->name('orangtua.profil.password.update');
         });
     });
 
@@ -431,8 +451,6 @@ Route::middleware(['auth', 'role:guru'])->prefix('guru')->name('guru.')->group(f
         // Kehadiran
         Route::prefix('kehadiran')->group(function () {
             Route::get('/riwayat', [\App\Http\Controllers\SiswaController::class, 'kehadiranRiwayat'])->name('siswa.kehadiran.riwayat');
-            Route::get('/izin', [\App\Http\Controllers\SiswaController::class, 'kehadiranIzin'])->name('siswa.kehadiran.izin');
-            Route::post('/izin', [\App\Http\Controllers\SiswaController::class, 'storeIzin'])->name('siswa.kehadiran.izin.store');
             Route::get('/rekap', [\App\Http\Controllers\SiswaController::class, 'kehadiranRekap'])->name('siswa.kehadiran.rekap');
         });
 
@@ -483,6 +501,9 @@ Route::middleware(['auth', 'role:guru'])->prefix('guru')->name('guru.')->group(f
 
             // Forum Diskusi
             Route::post('/{sessionId}/diskusi', [\App\Http\Controllers\ElearningSiswaController::class, 'storeDiscussion'])->name('siswa.elearning.diskusi.store');
+
+            // Presensi E-Learning
+            Route::post('/{id}/presensi', [\App\Http\Controllers\ElearningSiswaController::class, 'recordPresensi'])->name('siswa.elearning.presensi');
         });
     });
 
@@ -497,6 +518,7 @@ Route::middleware(['auth', 'role:keuangan,admin'])->prefix('keuangan')->group(fu
     // Pembayaran Siswa
     Route::prefix('pembayaran-siswa')->group(function () {
         Route::get('/tagihan', [\App\Http\Controllers\KeuanganController::class, 'tagihanSpp'])->name('keuangan.pembayaran.tagihan');
+        Route::post('/tagihan/generate', [\App\Http\Controllers\KeuanganController::class, 'generateTagihanBulan'])->name('keuangan.pembayaran.tagihan.generate');
         Route::get('/riwayat', [\App\Http\Controllers\KeuanganController::class, 'riwayatPembayaran'])->name('keuangan.pembayaran.riwayat');
         Route::get('/verifikasi', [\App\Http\Controllers\KeuanganController::class, 'verifikasiPembayaran'])->name('keuangan.pembayaran.verifikasi');
     });
@@ -533,5 +555,64 @@ Route::get('/run-seeder', function() {
         return "Error: " . $e->getMessage();
     }
 });
+
+// Route to copy storage files to public/storage on hosting servers
+Route::get('/fix-storage', function() {
+    try {
+        $source = storage_path('app/public');
+        $destination = public_path('storage');
+
+        if (!file_exists($destination)) {
+            @mkdir($destination, 0755, true);
+        }
+
+        $count = 0;
+        if (file_exists($source)) {
+            $directory = new \RecursiveDirectoryIterator($source, \RecursiveDirectoryIterator::SKIP_DOTS);
+            $iterator = new \RecursiveIteratorIterator($directory, \RecursiveIteratorIterator::SELF_FIRST);
+
+            foreach ($iterator as $item) {
+                $subPath = $iterator->getSubPathName();
+                $target = $destination . DIRECTORY_SEPARATOR . $subPath;
+                if ($item->isDir()) {
+                    if (!file_exists($target)) {
+                        @mkdir($target, 0755, true);
+                    }
+                } else {
+                    @copy($item->getPathname(), $target);
+                    $count++;
+                }
+            }
+        }
+
+        return "Berhasil menyalin {$count} file dari storage/app/public ke public/storage! Sekarang semua berkas di hosting sudah dapat diakses langsung.";
+    } catch (\Exception $e) {
+        return "Error: " . $e->getMessage();
+    }
+});
+
+// Route to create storage link on hosting server
+Route::get('/run-storage-link', function() {
+    try {
+        \Artisan::call('storage:link');
+        return "storage:link berhasil dijalankan! Folder public/storage telah ditautkan.";
+    } catch (\Exception $e) {
+        return "Error artisan storage:link: " . $e->getMessage();
+    }
+});
+
+// Direct Fallback Route for public storage files on hosted environments
+Route::get('/storage/{path}', function ($path) {
+    $filePath = public_path('storage/' . $path);
+    if (!file_exists($filePath)) {
+        $filePath = storage_path('app/public/' . $path);
+    }
+    if (!file_exists($filePath)) {
+        abort(404);
+    }
+    return response()->file($filePath);
+})->where('path', '.*');
+
+
 
 

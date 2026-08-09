@@ -5,9 +5,9 @@ $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
 $kernel->bootstrap();
 
 $classes = [
-    ['7', 'A'], ['7', 'B'],
-    ['8', 'A'], ['8', 'B'],
-    ['9', 'A'], ['9', 'B']
+    ['10', '10'],
+    ['11', '11'],
+    ['12', '12']
 ];
 
 foreach ($classes as $c) {

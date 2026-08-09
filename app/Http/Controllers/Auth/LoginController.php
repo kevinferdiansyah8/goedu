@@ -38,9 +38,28 @@ class LoginController extends Controller
             try {
                 \Illuminate\Support\Facades\Artisan::call('db:seed', ['--class' => 'DummyDataSeeder']);
                 \Illuminate\Support\Facades\Artisan::call('db:seed', ['--class' => 'AcademicDataSeeder']);
+                \Illuminate\Support\Facades\Artisan::call('db:seed', ['--class' => 'WeeklyScheduleSeeder']);
                 return "Seeder berhasil dijalankan! Silakan coba login kembali.";
             } catch (\Exception $e) {
                 return "Error saat menjalankan seeder: " . $e->getMessage();
+            }
+        }
+
+        if (request()->has('seed_schedule')) {
+            try {
+                \Illuminate\Support\Facades\Artisan::call('db:seed', ['--class' => 'WeeklyScheduleSeeder']);
+                return "Jadwal Pelajaran Senin - Sabtu berhasil diperbarui untuk seluruh Admin, Guru & Siswa!";
+            } catch (\Exception $e) {
+                return "Error saat update jadwal: " . $e->getMessage();
+            }
+        }
+
+        if (request()->has('seed_elearning')) {
+            try {
+                \Illuminate\Support\Facades\Artisan::call('db:seed', ['--class' => 'ElearningSeeder']);
+                return "Data E-Learning (Pertemuan 13 Juli - 2 Agustus 2026) berhasil diisi untuk Guru dan Siswa!";
+            } catch (\Exception $e) {
+                return "Error saat update E-Learning: " . $e->getMessage();
             }
         }
 

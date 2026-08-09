@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Student;
 use App\Models\Teacher;
 use App\Models\Attendance;
+use App\Models\TeacherAttendance;
 use App\Models\SchoolClass;
 use Carbon\Carbon;
 
@@ -52,18 +53,21 @@ class AdminAbsensiController extends Controller
 
         $teachers = Teacher::orderBy('nama')->get();
 
-        // Karena belum ada tabel teacher_attendances, kita buat representasi dinamis
-        // berdasarkan data guru yang ada di DB — bukan hardcoded.
         $absensiGuru = $teachers->map(function ($t) use ($tanggal) {
+            $att = TeacherAttendance::where('teacher_id', $t->id)->where('tanggal', $tanggal)->first();
             return [
                 'nama'       => $t->nama,
                 'nip'        => $t->nip ?? '-',
                 'tanggal'    => $tanggal,
-                'jam'        => '-',
-                'status'     => 'Hadir',   // default (belum ada tabel khusus guru)
-                'keterangan' => '-',
+                'jam'        => $att && $att->status === 'Hadir' ? '07:15' : '-',
+                'status'     => $att ? $att->status : 'Hadir',
+                'keterangan' => $att && $att->keterangan ? $att->keterangan : '-',
             ];
         });
+
+        if (!empty($filterStatus)) {
+            $absensiGuru = $absensiGuru->where('status', $filterStatus);
+        }
 
         // Statistik
         $totalHadir = $absensiGuru->where('status', 'Hadir')->count();
@@ -116,24 +120,30 @@ class AdminAbsensiController extends Controller
         // ── GURU ──
         $teachers = Teacher::orderBy('nama')->get();
 
-        // Summary harian guru (data real dari teacher model, status default Hadir)
+        // Summary harian guru
         $rekapHarian = $teachers->map(function ($t) use ($tanggal) {
+            $att = TeacherAttendance::where('teacher_id', $t->id)->where('tanggal', $tanggal)->first();
             return [
                 'nama'  => $t->nama,
                 'role'  => 'Guru',
                 'kelas' => '-',
-                'status'=> 'Hadir',
-                'jam'   => '-',
+                'status'=> $att ? $att->status : 'Hadir',
+                'jam'   => $att && $att->status === 'Hadir' ? '07:15' : '-',
             ];
         });
 
-        $rekapBulanan = $teachers->map(function ($t) {
+        $rekapBulanan = $teachers->map(function ($t) use ($bulan) {
+            $atts  = TeacherAttendance::where('teacher_id', $t->id)->where('tanggal', 'like', $bulan . '%')->get();
+            $hadir = $atts->where('status', 'Hadir')->count();
+            $izin  = $atts->where('status', 'Izin')->count();
+            $sakit = $atts->where('status', 'Sakit')->count();
+            $alpha = $atts->where('status', 'Alpha')->count();
             return [
                 'nama'  => $t->nama,
-                'hadir' => 0,
-                'izin'  => 0,
-                'sakit' => 0,
-                'alpha' => 0,
+                'hadir' => $hadir,
+                'izin'  => $izin,
+                'sakit' => $sakit,
+                'alpha' => $alpha,
             ];
         });
 
@@ -147,12 +157,22 @@ class AdminAbsensiController extends Controller
 
         // Dropdown individu guru (realtime dari DB)
         $individuGuru = $teachers->map(function ($t) {
+            $atts = TeacherAttendance::where('teacher_id', $t->id)->orderByDesc('tanggal')->take(30)->get();
+            $hadir = $atts->where('status', 'Hadir')->count();
+            $izin  = $atts->where('status', 'Izin')->count();
+            $sakit = $atts->where('status', 'Sakit')->count();
+            $alpha = $atts->where('status', 'Alpha')->count();
+            $riwayat = $atts->map(fn($a) => [
+                'tanggal' => $a->tanggal,
+                'status'  => $a->status,
+                'jam'     => $a->status === 'Hadir' ? '07:15' : '-',
+            ])->values()->toArray();
             return [
                 'nama'  => $t->nama,
                 'kelas' => '-',
                 'role'  => 'Guru',
-                'rekap' => ['hadir' => 0, 'izin' => 0, 'sakit' => 0, 'alpha' => 0],
-                'riwayat' => [],
+                'rekap' => compact('hadir', 'izin', 'sakit', 'alpha'),
+                'riwayat' => $riwayat,
             ];
         })->values()->toArray();
 
@@ -210,8 +230,21 @@ class AdminAbsensiController extends Controller
                 ];
             });
 
-        // Data guru (karena belum ada tabel attendances guru, tampilkan list guru aktif)
-        $izinGuru = collect([]); // kosong sampai ada tabel teacher_attendances
+        // Data guru dari tabel teacher_attendances
+        $izinGuru = TeacherAttendance::with('teacher')
+            ->whereIn('status', ['Izin', 'Sakit', 'Alpha'])
+            ->where('tanggal', 'like', $bulan . '%')
+            ->orderByDesc('tanggal')
+            ->get()
+            ->map(function ($att) {
+                return [
+                    'nama'    => $att->teacher->nama ?? '-',
+                    'jenis'   => $att->status,
+                    'tanggal' => $att->tanggal,
+                    'alasan'  => $att->keterangan ?? '-',
+                    'status'  => 'Tercatat',
+                ];
+            });
 
         return view('admin.absensi.izin-sakit-alpha', compact('izinSiswa', 'izinGuru', 'bulan'));
     }

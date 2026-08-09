@@ -13,7 +13,7 @@
             <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div>
                     <span class="text-xs font-bold text-indigo-600 uppercase bg-indigo-50 px-2.5 py-1 rounded-full">
-                        Pertemuan {{ $session->urutan }} — {{ $session->subject->nama }} ({{ $session->schoolClass->tingkat }} {{ $session->schoolClass->nama_kelas }})
+                        Pertemuan {{ $session->urutan }} — {{ $session->subject->nama }} ({{ $session->schoolClass ? $session->schoolClass->nama_lengkap : '-' }})
                     </span>
                     <h1 class="text-2xl font-extrabold text-gray-900 mt-2">{{ $session->judul }}</h1>
                     @if($session->deskripsi)
@@ -68,9 +68,18 @@
                 class="flex-1 min-w-[120px] text-center py-2.5 px-4 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-2">
                 <i data-lucide="check-square" class="w-4 h-4"></i> 5. Posttest
             </button>
+            <button @click="tab = 'trackrecord'" :class="tab === 'trackrecord' ? 'bg-indigo-600 text-white shadow-md shadow-indigo-100' : 'text-gray-600 hover:bg-gray-50'"
+                class="flex-1 min-w-[130px] text-center py-2.5 px-4 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-2 relative">
+                <i data-lucide="activity" class="w-4 h-4"></i> Track Record Siswa
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            </button>
+            <button @click="tab = 'absensi'" :class="tab === 'absensi' ? 'bg-indigo-600 text-white' : 'text-gray-600 hover:bg-gray-50'"
+                class="flex-1 min-w-[120px] text-center py-2.5 px-4 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-2 relative">
+                <i data-lucide="user-check" class="w-4 h-4"></i> Status Absensi
+            </button>
             <button @click="tab = 'nilai'" :class="tab === 'nilai' ? 'bg-indigo-600 text-white' : 'text-gray-600 hover:bg-gray-50'"
                 class="flex-1 min-w-[120px] text-center py-2.5 px-4 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-2">
-                <i data-lucide="award" class="w-4 h-4"></i> Hasil Nilai Siswa
+                <i data-lucide="award" class="w-4 h-4"></i> Rekap Nilai
             </button>
         </div>
 
@@ -491,6 +500,126 @@
         </div>
 
         {{-- ───────────────────────────────────────────── --}}
+        {{-- TAB: STATUS ABSENSI SISWA --}}
+        {{-- ───────────────────────────────────────────── --}}
+        <div x-show="tab === 'absensi'" class="space-y-6">
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b pb-4 mb-6">
+                    <div>
+                        <h2 class="text-lg font-bold text-gray-900 flex items-center gap-2">
+                            <i data-lucide="user-check" class="text-indigo-600"></i> Status Kehadiran Siswa (E-Learning Sync)
+                        </h2>
+                        <p class="text-xs text-gray-500 mt-1">
+                            Siswa yang telah mengerjakan aktivitas E-Learning (Pretest/Posttest/Tugas/Diskusi) secara otomatis ditandai **Hadir** (Indikator Hijau).
+                        </p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                    <div class="bg-slate-50 border border-slate-100 p-4 rounded-xl flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold">
+                            <i data-lucide="users" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Total Siswa</span>
+                            <span class="text-xl font-extrabold text-gray-800">{{ $students->count() }} Siswa</span>
+                        </div>
+                    </div>
+                    
+                    @php
+                        $totalHadir = $students->filter(fn($s) => isset($elearningAttendances[$s->id]) && $elearningAttendances[$s->id]->status === 'Hadir')->count();
+                        $totalBelum = $students->count() - $totalHadir;
+                    @endphp
+
+                    <div class="bg-emerald-50 border border-emerald-100 p-4 rounded-xl flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-lg bg-emerald-500 text-white flex items-center justify-center font-bold shadow-sm">
+                            <i data-lucide="check-circle-2" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <span class="text-[10px] font-bold text-emerald-600 uppercase tracking-wider block">Sudah Absen (Hadir)</span>
+                            <span class="text-xl font-extrabold text-emerald-700">{{ $totalHadir }} Siswa</span>
+                        </div>
+                    </div>
+
+                    <div class="bg-rose-50 border border-rose-100 p-4 rounded-xl flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-lg bg-rose-500 text-white flex items-center justify-center font-bold shadow-sm">
+                            <i data-lucide="clock" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <span class="text-[10px] font-bold text-rose-600 uppercase tracking-wider block">Belum Absen</span>
+                            <span class="text-xl font-extrabold text-rose-700">{{ $totalBelum }} Siswa</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left">
+                        <thead>
+                            <tr class="bg-slate-50 text-xs font-bold text-gray-500 uppercase tracking-wider border-b">
+                                <th class="px-6 py-3">Nama Siswa</th>
+                                <th class="px-6 py-3 text-center">Indikator Kehadiran</th>
+                                <th class="px-6 py-3">Waktu Presensi</th>
+                                <th class="px-6 py-3">Keterangan</th>
+                                <th class="px-6 py-3 text-center">Ubah Status</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            @foreach($students as $student)
+                            @php
+                                $att = $elearningAttendances[$student->id] ?? null;
+                                $isHadir = $att && $att->status === 'Hadir';
+                            @endphp
+                            <tr class="hover:bg-slate-50/50 transition-colors">
+                                <td class="px-6 py-4 font-semibold text-gray-800">{{ $student->nama }}</td>
+                                <td class="px-6 py-4 text-center">
+                                    @if($isHadir)
+                                    <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-sm">
+                                        <span class="relative flex h-2.5 w-2.5">
+                                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                            <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                                        </span>
+                                        HADIR
+                                    </span>
+                                    @elseif($att)
+                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                                        {{ strtoupper($att->status) }}
+                                    </span>
+                                    @else
+                                    <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-extrabold bg-rose-50 text-rose-700 border border-rose-200 shadow-sm">
+                                        <span class="relative flex h-2.5 w-2.5">
+                                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                                            <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-rose-500"></span>
+                                        </span>
+                                        BELUM ABSEN
+                                    </span>
+                                    @endif
+                                </td>
+                                <td class="px-6 py-4 text-xs text-gray-500 font-medium">
+                                    {{ $att ? $att->jam_masuk : '-' }}
+                                </td>
+                                <td class="px-6 py-4 text-xs text-gray-500 italic">
+                                    {{ $att ? $att->keterangan : 'Belum ada aktivitas E-Learning' }}
+                                </td>
+                                <td class="px-6 py-4 text-center">
+                                    <form action="{{ route('guru.elearning.attendance.update', [$session->id, $student->id]) }}" method="POST" class="inline-flex items-center gap-1">
+                                        @csrf
+                                        <select name="status" onchange="this.form.submit()" class="text-xs border border-gray-200 bg-white rounded-lg px-2 py-1 focus:ring-1 focus:ring-indigo-300 outline-none font-bold text-gray-700">
+                                            <option value="Hadir" {{ ($att->status ?? '') === 'Hadir' ? 'selected' : '' }}>Hadir</option>
+                                            <option value="Izin" {{ ($att->status ?? '') === 'Izin' ? 'selected' : '' }}>Izin</option>
+                                            <option value="Sakit" {{ ($att->status ?? '') === 'Sakit' ? 'selected' : '' }}>Sakit</option>
+                                            <option value="Alpha" {{ ($att->status ?? '') === 'Alpha' ? 'selected' : '' }}>Alpha</option>
+                                        </select>
+                                    </form>
+                                </td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        {{-- ───────────────────────────────────────────── --}}
         {{-- TAB: REKAP NILAI SISWA --}}
         {{-- ───────────────────────────────────────────── --}}
         <div x-show="tab === 'nilai'" class="space-y-6">
@@ -552,6 +681,205 @@
                     </table>
                 </div>
             </div>
+        </div>
+
+        {{-- ───────────────────────────────────────────── --}}
+        {{-- TAB: TRACK RECORD & AKTIVITAS SISWA --}}
+        {{-- ───────────────────────────────────────────── --}}
+        <div x-show="tab === 'trackrecord'" class="space-y-6">
+            
+            {{-- Summary Cards --}}
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Total Siswa Kelas</p>
+                        <h3 class="text-2xl font-extrabold text-gray-900 mt-1">{{ count($students) }}</h3>
+                        <p class="text-[11px] text-gray-400 mt-0.5">Siswa terdaftar</p>
+                    </div>
+                    <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center">
+                        <i data-lucide="users" class="w-6 h-6"></i>
+                    </div>
+                </div>
+                <div class="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Sudah Mengerjakan Pretest</p>
+                        <h3 class="text-2xl font-extrabold text-amber-600 mt-1">
+                            {{ collect($studentTrackRecords)->where('pretest_count', '>', 0)->count() }} / {{ count($students) }}
+                        </h3>
+                        <p class="text-[11px] text-gray-400 mt-0.5">Sudah submit pretest</p>
+                    </div>
+                    <div class="w-12 h-12 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center">
+                        <i data-lucide="help-circle" class="w-6 h-6"></i>
+                    </div>
+                </div>
+                <div class="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Mengumpulkan Tugas</p>
+                        <h3 class="text-2xl font-extrabold text-blue-600 mt-1">
+                            {{ collect($studentTrackRecords)->where('assignment_done', true)->count() }} / {{ count($students) }}
+                        </h3>
+                        <p class="text-[11px] text-gray-400 mt-0.5">Berkas penugasan</p>
+                    </div>
+                    <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center">
+                        <i data-lucide="file-text" class="w-6 h-6"></i>
+                    </div>
+                </div>
+                <div class="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Selesai Pertemuan</p>
+                        <h3 class="text-2xl font-extrabold text-emerald-600 mt-1">
+                            {{ collect($studentTrackRecords)->where('posttest_done', true)->where('attendance_done', true)->count() }} / {{ count($students) }}
+                        </h3>
+                        <p class="text-[11px] text-gray-400 mt-0.5">Posttest & Absensi Hadir</p>
+                    </div>
+                    <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center">
+                        <i data-lucide="check-circle-2" class="w-6 h-6"></i>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Main Section: Track Record Progress Siswa --}}
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b pb-4 mb-6">
+                    <div>
+                        <h2 class="text-lg font-bold text-gray-900 flex items-center gap-2">
+                            <i data-lucide="activity" class="text-indigo-600"></i> Track Record & Posisi Aktivitas Siswa
+                        </h2>
+                        <p class="text-xs text-gray-500 mt-1">
+                            Pantau sejauh mana setiap siswa telah mengakses dan menyelesaikan setiap tahapan E-Learning.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left">
+                        <thead>
+                            <tr class="bg-slate-50 text-xs font-bold text-gray-500 uppercase tracking-wider border-b">
+                                <th class="px-5 py-3">Nama Siswa</th>
+                                <th class="px-5 py-3">Posisi / Status Aktivitas Terakhir</th>
+                                <th class="px-5 py-3 text-center">Tahapan E-Learning</th>
+                                <th class="px-5 py-3 text-center">Progress</th>
+                                <th class="px-5 py-3 text-right">Aktivitas Terakhir</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            @foreach($students as $student)
+                            @php
+                                $track = $studentTrackRecords[$student->id] ?? null;
+                            @endphp
+                            @if($track)
+                            <tr class="hover:bg-slate-50/50 transition-colors">
+                                <td class="px-5 py-4 font-semibold text-gray-900">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-9 h-9 rounded-full bg-indigo-50 text-indigo-700 font-bold text-xs flex items-center justify-center border border-indigo-100">
+                                            {{ strtoupper(substr($student->nama, 0, 2)) }}
+                                        </div>
+                                        <div>
+                                            <div class="font-bold text-gray-900">{{ $student->nama }}</div>
+                                            <div class="text-[11px] text-gray-400 font-normal">NIS: {{ $student->nis ?? '-' }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-5 py-4">
+                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold border {{ $track['badge_color'] }}">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-current"></span>
+                                        {{ $track['current_stage'] }}
+                                    </span>
+                                </td>
+                                <td class="px-5 py-4 text-center">
+                                    <div class="flex items-center justify-center gap-1.5">
+                                        {{-- Pretest --}}
+                                        <span title="Pretest: {{ $track['pretest_done'] ? 'Selesai' : 'Belum' }}"
+                                            class="w-7 h-7 rounded-lg text-[10px] font-bold flex items-center justify-center {{ $track['pretest_done'] ? 'bg-amber-100 text-amber-800' : 'bg-gray-100 text-gray-400' }}">
+                                            Pre
+                                        </span>
+                                        {{-- Tugas --}}
+                                        <span title="Penugasan: {{ $track['assignment_done'] ? 'Terkumpul' : 'Belum' }}"
+                                            class="w-7 h-7 rounded-lg text-[10px] font-bold flex items-center justify-center {{ $track['assignment_done'] ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-400' }}">
+                                            Tgs
+                                        </span>
+                                        {{-- Forum --}}
+                                        <span title="Forum Diskusi: {{ $track['discussion_count'] }} komentar"
+                                            class="w-7 h-7 rounded-lg text-[10px] font-bold flex items-center justify-center {{ $track['forum_done'] ? 'bg-purple-100 text-purple-800' : 'bg-gray-100 text-gray-400' }}">
+                                            Frm
+                                        </span>
+                                        {{-- Posttest --}}
+                                        <span title="Posttest: {{ $track['posttest_done'] ? 'Selesai' : 'Belum' }}"
+                                            class="w-7 h-7 rounded-lg text-[10px] font-bold flex items-center justify-center {{ $track['posttest_done'] ? 'bg-indigo-100 text-indigo-800' : 'bg-gray-100 text-gray-400' }}">
+                                            Post
+                                        </span>
+                                        {{-- Absensi --}}
+                                        <span title="Absensi: {{ $track['attendance_done'] ? 'Hadir' : 'Belum' }}"
+                                            class="w-7 h-7 rounded-lg text-[10px] font-bold flex items-center justify-center {{ $track['attendance_done'] ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-100 text-gray-400' }}">
+                                            Abs
+                                        </span>
+                                    </div>
+                                </td>
+                                <td class="px-5 py-4 text-center min-w-[130px]">
+                                    <div class="flex items-center gap-2 justify-center">
+                                        <div class="w-20 bg-gray-200 rounded-full h-2 overflow-hidden">
+                                            <div class="bg-indigo-600 h-2 rounded-full transition-all duration-500" style="width: {{ $track['progress_percent'] }}%"></div>
+                                        </div>
+                                        <span class="text-xs font-bold text-gray-700">{{ $track['progress_percent'] }}%</span>
+                                    </div>
+                                </td>
+                                <td class="px-5 py-4 text-right text-xs text-gray-500">
+                                    @if($track['last_active'])
+                                        <span class="font-medium text-gray-700">{{ \Carbon\Carbon::parse($track['last_active'])->diffForHumans() }}</span>
+                                        <div class="text-[10px] text-gray-400">{{ \Carbon\Carbon::parse($track['last_active'])->format('d M Y, H:i') }}</div>
+                                    @else
+                                        <span class="text-gray-400 italic">Belum ada aktivitas</span>
+                                    @endif
+                                </td>
+                            </tr>
+                            @endif
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            {{-- Timeline Activity Feed --}}
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+                <h3 class="text-base font-bold text-gray-900 border-b pb-3 mb-4 flex items-center gap-2">
+                    <i data-lucide="history" class="text-indigo-600"></i> Log Riwayat Aktivitas Realtime Siswa
+                </h3>
+
+                @if(count($sortedActivityLogs) > 0)
+                <div class="space-y-4 relative before:absolute before:left-4 before:top-2 before:bottom-2 before:w-0.5 before:bg-gray-200">
+                    @foreach($sortedActivityLogs as $log)
+                    <div class="flex items-start gap-4 relative pl-2">
+                        <div class="w-5 h-5 rounded-full {{ $log['color_bg'] }} text-white flex items-center justify-center z-10 text-[10px] shadow-sm mt-0.5">
+                            <i data-lucide="{{ $log['icon'] }}" class="w-3 h-3"></i>
+                        </div>
+                        <div class="flex-1 bg-slate-50 rounded-xl p-3.5 border border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <span class="font-bold text-gray-900 text-sm">{{ $log['student_name'] }}</span>
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border {{ $log['color_text'] }}">
+                                        {{ $log['badge'] }}
+                                    </span>
+                                </div>
+                                <p class="text-xs text-gray-600 mt-1">
+                                    <span class="font-semibold text-gray-800">{{ $log['title'] }}</span> — {{ $log['detail'] }}
+                                </p>
+                            </div>
+                            <div class="text-right flex sm:flex-col items-center sm:items-end justify-between text-[11px] text-gray-400">
+                                <span class="font-medium text-gray-600">{{ $log['timestamp']->diffForHumans() }}</span>
+                                <span>{{ $log['timestamp']->format('H:i, d M Y') }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
+                @else
+                <div class="text-center py-8 text-gray-400">
+                    <i data-lucide="inbox" class="w-10 h-10 mx-auto mb-2 text-gray-300"></i>
+                    <p class="text-xs">Belum ada riwayat aktivitas yang tercatat untuk pertemuan ini.</p>
+                </div>
+                @endif
+            </div>
+
         </div>
 
     </div>

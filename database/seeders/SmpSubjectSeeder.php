@@ -27,9 +27,9 @@ class SmpSubjectSeeder extends Seeder
             ['nama' => 'Informatika', 'teacher_keyword' => 'Gilang Hadi', 'jumlah_jam' => 2, 'code_suffix' => 'INF'],
         ];
 
-        $tingkats = ['7', '8', '9'];
+        $tingkats = ['10', '11', '12'];
 
-        $this->command->info('Seeding SMP subjects for levels 7, 8, and 9...');
+        $this->command->info('Seeding SMA/MA subjects for levels 10, 11, and 12...');
 
         foreach ($tingkats as $tingkat) {
             foreach ($subjectsDefinition as $def) {
@@ -40,15 +40,15 @@ class SmpSubjectSeeder extends Seeder
                     $teacher = Teacher::first();
                 }
 
-                $kode = 'SMP' . $tingkat . '-' . $def['code_suffix'];
+                $kode = 'SMA' . $tingkat . '-' . $def['code_suffix'];
 
-                // For Matematika tingkat 7, update subject ID 1 if it exists to maintain relationships
-                if ($def['nama'] === 'Matematika' && $tingkat === '7') {
+                // For Matematika tingkat 10, update subject ID 1 if it exists to maintain relationships
+                if ($def['nama'] === 'Matematika' && $tingkat === '10') {
                     $subject1 = Subject::find(1);
                     if ($subject1) {
                         $subject1->update([
                             'kode' => $kode,
-                            'nama' => 'Matematika Kelas 7',
+                            'nama' => 'Matematika Kelas 10',
                             'teacher_id' => $teacher->id,
                             'tingkat' => $tingkat,
                             'jumlah_jam' => $def['jumlah_jam'],
@@ -71,6 +71,6 @@ class SmpSubjectSeeder extends Seeder
             }
         }
 
-        $this->command->info('SMP Subjects seeded successfully.');
+        $this->command->info('SMA/MA Subjects seeded successfully.');
     }
 }

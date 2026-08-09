@@ -169,7 +169,7 @@
                         <select name="school_class_id" x-model="tugas.school_class_id" required class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-100 focus:border-orange-400 transition-all font-medium">
                             <option value="">-- Pilih Kelas --</option>
                             @foreach($classes as $c)
-                            <option value="{{ $c->id }}">{{ $c->tingkat }} - {{ $c->nama_kelas }}</option>
+                            <option value="{{ $c->id }}">{{ $c->nama_lengkap }}</option>
                             @endforeach
                         </select>
                     </div>

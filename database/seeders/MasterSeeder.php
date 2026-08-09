@@ -72,9 +72,6 @@ class MasterSeeder extends Seeder
                'tanggal_upload' => '2023-10-20'
            ]);
 
-           // Schedule for 7-A
-           Schedule::create(['subject_id' => $subject->id, 'kelas' => '7-A', 'hari' => 'Senin', 'jam_mulai' => '07:00', 'jam_selesai' => '08:30']);
-
            // Assignment
            $assignment = Assignment::create([
                'subject_id' => $subject->id,

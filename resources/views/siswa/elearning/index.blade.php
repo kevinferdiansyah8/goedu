@@ -49,7 +49,27 @@
                 <div class="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all group overflow-hidden flex flex-col justify-between">
                     <div>
                         <div class="bg-gradient-to-br from-orange-500 to-rose-600 p-4 text-white">
-                            <span class="text-orange-200 text-xs font-semibold">Pertemuan {{ $session->urutan }}</span>
+                            <div class="flex items-center justify-between gap-2 mb-2">
+                                <span class="text-orange-200 text-xs font-semibold">Pertemuan {{ $session->urutan }}</span>
+                                {{-- Lampu Indikator Absensi --}}
+                                @if($session->is_attended)
+                                <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-emerald-500 text-white shadow-sm shadow-emerald-900/20" title="Absensi Otomatis: HADIR">
+                                    <span class="relative flex h-2 w-2">
+                                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                                        <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-200"></span>
+                                    </span>
+                                    <span>HADIR</span>
+                                </div>
+                                @else
+                                <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-rose-500 text-white shadow-sm shadow-rose-900/20" title="Absensi: BELUM ABSEN">
+                                    <span class="relative flex h-2 w-2">
+                                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                                        <span class="relative inline-flex rounded-full h-2 w-2 bg-rose-200"></span>
+                                    </span>
+                                    <span>BELUM ABSEN</span>
+                                </div>
+                                @endif
+                            </div>
                             <h3 class="font-extrabold text-base mt-0.5 line-clamp-2">{{ $session->judul }}</h3>
                             @if($session->deskripsi)
                             <p class="text-xs text-orange-100 mt-2 line-clamp-2">{{ $session->deskripsi }}</p>
@@ -78,6 +98,17 @@
                                 <span class="text-green-600 font-bold bg-green-50 px-1.5 py-0.5 rounded">Terkumpul</span>
                                 @else
                                 <span class="text-gray-400 font-bold bg-gray-50 px-1.5 py-0.5 rounded">Belum</span>
+                                @endif
+                            </div>
+                            <div class="flex items-center justify-between text-xs text-gray-600">
+                                <span class="flex items-center gap-1.5 font-medium">
+                                    <i data-lucide="{{ $session->forum_done ? 'check-circle-2' : 'circle' }}" class="w-3.5 h-3.5 {{ $session->forum_done ? 'text-green-500' : 'text-gray-300' }}"></i>
+                                    Diskusi (Min. 2 Kiriman)
+                                </span>
+                                @if($session->forum_done)
+                                <span class="text-green-600 font-bold bg-green-50 px-1.5 py-0.5 rounded">Tercapai ({{ $session->discussion_count }})</span>
+                                @else
+                                <span class="text-amber-600 font-bold bg-amber-50 px-1.5 py-0.5 rounded">{{ $session->discussion_count }}/2</span>
                                 @endif
                             </div>
                             <div class="flex items-center justify-between text-xs text-gray-600">

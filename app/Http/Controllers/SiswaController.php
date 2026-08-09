@@ -126,9 +126,23 @@ class SiswaController extends Controller
     public function akademikJadwal()
     {
         $student = $this->getStudent();
-        $schedules = Schedule::where('school_class_id', $student->school_class_id)->with('subject.teacher')->get();
+        $classId = $student->school_class_id ?? null;
+        $className = $student->kelas ?? '';
+
+        $query = Schedule::with('subject.teacher');
+        if ($classId && $className) {
+            $query->where(function($q) use ($classId, $className) {
+                $q->where('school_class_id', $classId)->orWhere('kelas', 'like', "%{$className}%");
+            });
+        } elseif ($classId) {
+            $query->where('school_class_id', $classId);
+        } elseif ($className) {
+            $query->where('kelas', 'like', "%{$className}%");
+        }
+
+        $schedules = $query->get();
         $jadwal = [];
-        foreach (['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'] as $hari) {
+        foreach (['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'] as $hari) {
             $jadwal[$hari] = $schedules->where('hari', $hari)->map(function($j){
                 return ['jam' => $j->jam_mulai . ' - ' . $j->jam_selesai, 'mapel' => $j->subject->nama_pelajaran ?? $j->subject->nama ?? 'Unknown', 'guru' => $j->subject->teacher->nama ?? '-'];
             })->values()->toArray();
@@ -207,66 +221,48 @@ class SiswaController extends Controller
         return view('siswa.akademik.nilai', compact('nilai', 'rataRata', 'totalMapel', 'peringkat', 'totalSiswaKelas', 'trend'));
     }
 
-    public function kehadiranRiwayat()
+    public function kehadiranRiwayat(Request $request)
     {
         $student = $this->getStudent();
-        $riwayat = Attendance::where('student_id', $student->id)->orderByDesc('tanggal')->get();
-        return view('siswa.kehadiran.riwayat', compact('riwayat'));
-    }
 
-    public function kehadiranIzin()
-    {
-        $student = $this->getStudent();
-        
-        $riwayat_izin = Attendance::where('student_id', $student->id)
-            ->whereIn('status', ['Izin', 'Sakit'])
-            ->orderBy('tanggal', 'desc')
-            ->get()
-            ->map(function($a) {
-                return [
-                    'tanggal_pengajuan' => date('d M Y', strtotime($a->created_at ?? $a->tanggal)),
-                    'kategori' => $a->status,
-                    'mulai_tanggal' => date('d M Y', strtotime($a->tanggal)),
-                    'sampai_tanggal' => date('d M Y', strtotime($a->tanggal)),
-                    'keterangan' => $a->keterangan ?? '-',
-                    'bukti' => '-',
-                    'status' => 'Disetujui',
-                ];
-            });
-            
-        return view('siswa.kehadiran.izin', compact('riwayat_izin'));
-    }
+        // Get all attendances for student to extract available months
+        $allAttendances = Attendance::where('student_id', $student->id)
+            ->orderByDesc('tanggal')
+            ->get();
 
-    public function storeIzin(Request $request)
-    {
-        $request->validate([
-            'jenis' => 'required|in:Izin,Sakit',
-            'tanggal_mulai' => 'required|date',
-            'tanggal_selesai' => 'required|date|after_or_equal:tanggal_mulai',
-            'keterangan' => 'nullable|string'
-        ]);
+        $bulanList = $allAttendances->map(function ($att) {
+            return date('Y-m', strtotime($att->tanggal));
+        })->unique()->values()->toArray();
 
-        $student = $this->getStudent();
-
-        $mulai = \Carbon\Carbon::parse($request->tanggal_mulai);
-        $selesai = \Carbon\Carbon::parse($request->tanggal_selesai);
-        $diffDays = $mulai->diffInDays($selesai);
-        
-        for ($i = 0; $i <= $diffDays; $i++) {
-            $tgl = $mulai->copy()->addDays($i)->format('Y-m-d');
-            \App\Models\Attendance::updateOrCreate(
-                [
-                    'student_id' => $student->id,
-                    'tanggal' => $tgl,
-                ],
-                [
-                    'status' => $request->jenis,
-                    'keterangan' => $request->keterangan,
-                ]
-            );
+        if (empty($bulanList)) {
+            $bulanList[] = date('Y-m');
         }
 
-        return redirect()->back()->with('success', 'Pengajuan izin/sakit berhasil dikirim.');
+        $months = [
+            '01' => 'Januari', '02' => 'Februari', '03' => 'Maret', '04' => 'April',
+            '05' => 'Mei', '06' => 'Juni', '07' => 'Juli', '08' => 'Agustus',
+            '09' => 'September', '10' => 'Oktober', '11' => 'November', '12' => 'Desember'
+        ];
+
+        $dropdownOptions = [];
+        foreach ($bulanList as $bl) {
+            $parts = explode('-', $bl);
+            if (count($parts) == 2 && isset($months[$parts[1]])) {
+                $dropdownOptions[$bl] = $months[$parts[1]] . ' ' . $parts[0];
+            } else {
+                $dropdownOptions[$bl] = $bl;
+            }
+        }
+
+        $selectedBulan = $request->input('bulan', 'all');
+
+        $query = Attendance::where('student_id', $student->id);
+        if ($selectedBulan !== 'all' && !empty($selectedBulan)) {
+            $query->where('tanggal', 'like', $selectedBulan . '%');
+        }
+        $riwayat = $query->orderByDesc('tanggal')->get();
+
+        return view('siswa.kehadiran.riwayat', compact('riwayat', 'dropdownOptions', 'selectedBulan'));
     }
 
     public function kehadiranRekap()
